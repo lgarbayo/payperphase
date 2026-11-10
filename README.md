@@ -57,7 +57,7 @@ npm run check          # typecheck + tests
 - [x] PayPal developer dashboard: ES business sandbox app, Pay Later ES verified
 - [x] Idea chosen and MVP defined (`fleet/IDEA.md`, `fleet/SPEC.md`)
 - [x] Repo, MIT licence, stack; basic Claude call (live PDF extraction, 12 of 12 lines)
-- [ ] Sandbox test payment end to end
+- [x] Sandbox test payment end to end (Orders v2, €360, PayPal balance and Pay in 3, captured)
 - [ ] AI core connected to PayPal (billing agent through the Agent Toolkit)
 - [ ] Frontend, UX and MVP features finished
 - [ ] End-to-end flow on the hosted URL
