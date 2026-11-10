@@ -57,7 +57,7 @@ export function NoteCard({
       data-note-id={note.id}
       role={alert ? "alert" : undefined}
       className={cx(
-        "relative flex h-full flex-col gap-2 rounded-[var(--ppp-radius)] border border-l-4 border-border p-4 shadow-[var(--ppp-shadow)]",
+        "relative flex flex-col gap-2 rounded-[var(--ppp-radius)] border border-l-4 border-border p-4 shadow-[var(--ppp-shadow)]",
         s.border,
         s.bg,
         className,

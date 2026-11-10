@@ -79,7 +79,9 @@ export function PhaseCard({ planId, phase, locale, pulse = 0, highlighted, onPai
               {phase.title[locale]}
             </h3>
           </div>
-          <StatusPill status={status} locale={locale} />
+          <span className="shrink-0 whitespace-nowrap">
+            <StatusPill status={status} locale={locale} />
+          </span>
         </header>
 
         {phase.summary && (
@@ -105,9 +107,15 @@ export function PhaseCard({ planId, phase, locale, pulse = 0, highlighted, onPai
         </dl>
 
         <div className="flex flex-wrap items-center gap-1.5">
-          <Badge tone={fitInRange ? "primary" : "neutral"} data-testid="fit-badge" data-band={phase.fit.band}>
-            {fitInRange && <CheckIcon width={12} height={12} />}
-            {formatFit(phase.fit, locale)}
+          <Badge
+            tone={fitInRange ? "primary" : "neutral"}
+            data-testid="fit-badge"
+            data-band={phase.fit.band}
+            className="leading-snug"
+            style={{ borderRadius: 10 }}
+          >
+            {fitInRange && <CheckIcon width={12} height={12} className="shrink-0" />}
+            <FitText text={formatFit(phase.fit, locale)} />
           </Badge>
           {phase.teeth.length > 0 && (
             <Badge tone="neutral">
@@ -167,5 +175,16 @@ export function PhaseCard({ planId, phase, locale, pulse = 0, highlighted, onPai
       </Card>
     </Ripple>
     </div>
+  );
+}
+
+/** Keeps the "(20 €–2.000 €)" range on one line when the badge wraps. */
+function FitText({ text }: { text: string }) {
+  const i = text.indexOf(" (");
+  if (i < 0) return <span>{text}</span>;
+  return (
+    <span>
+      {text.slice(0, i)} <span className="whitespace-nowrap">{text.slice(i + 1)}</span>
+    </span>
   );
 }

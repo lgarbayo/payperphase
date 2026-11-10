@@ -84,7 +84,7 @@ export function ApprovedNotes({ plan, notes, locale }: { plan: Plan; notes: read
               <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">{t("notesGeneral")}</h3>
               <div className="grid gap-4 @2xl:grid-cols-2 @5xl:grid-cols-3">
                 {general.map((note) => (
-                  <NoteCard key={note.id} note={note} approval={approvals.get(note.id)} locale={locale} />
+                  <NoteCard key={note.id} note={note} approval={approvals.get(note.id)} locale={locale} className="h-full" />
                 ))}
               </div>
             </div>

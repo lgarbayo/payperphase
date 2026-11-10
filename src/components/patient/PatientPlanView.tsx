@@ -212,7 +212,7 @@ export function PatientPlanView({ initial, planRef }: PatientPlanViewProps) {
     >
       <main className="@container flex min-w-0 flex-col gap-6" data-testid="patient-plan" data-plan-id={plan.id}>
         {/* Header */}
-        <header className="flex flex-col gap-4 @3xl:flex-row @3xl:items-end @3xl:justify-between">
+        <header className="flex flex-col gap-4 @5xl:flex-row @5xl:items-end @5xl:justify-between">
           <div className="min-w-0">
             <p className="flex items-center gap-2 text-sm font-medium text-primary-strong">
               <ToothIcon />
@@ -222,21 +222,14 @@ export function PatientPlanView({ initial, planRef }: PatientPlanViewProps) {
               </span>
               <span className="text-muted">{plan.clinic.city}</span>
             </p>
-            <h1 className="mt-1.5 text-2xl font-semibold tracking-tight text-ink @3xl:text-[28px]">{t("title")}</h1>
+            <h1 className="mt-1.5 text-2xl font-semibold tracking-tight text-ink @5xl:text-[28px]">{t("title")}</h1>
             <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
               <span data-testid="patient-alias" className="font-medium text-ink">
                 {formatPatientAlias(plan.patient.alias, locale)}
               </span>
-              {plan.approvedBy && (
-                <>
-                  <span aria-hidden>·</span>
-                  <span>{t("approvedByLine", { name: plan.approvedBy })}</span>
-                </>
-              )}
-              <span aria-hidden>·</span>
-              <span>{t("phasesCount", { count: plan.phases.length })}</span>
-              <span aria-hidden>·</span>
-              <span className="tabular-nums">{t("planTotal", { total: formatCents(plan.totalCents, locale) })}</span>
+              {plan.approvedBy && <MetaItem>{t("approvedByLine", { name: plan.approvedBy })}</MetaItem>}
+              <MetaItem>{t("phasesCount", { count: plan.phases.length })}</MetaItem>
+              <MetaItem className="tabular-nums">{t("planTotal", { total: formatCents(plan.totalCents, locale) })}</MetaItem>
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -272,7 +265,7 @@ export function PatientPlanView({ initial, planRef }: PatientPlanViewProps) {
 
         {/* Gantt */}
         <section id="gantt" aria-labelledby="gantt-title" className="flex scroll-mt-6 flex-col gap-3">
-          <Card className="overflow-hidden p-0">
+          <div className="overflow-hidden rounded-[var(--ppp-radius)] border border-border bg-surface shadow-[var(--ppp-shadow)]">
             <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border px-5 py-3.5">
               <div className="min-w-0">
                 <h2 id="gantt-title" className="text-lg font-semibold tracking-tight text-ink">
@@ -302,7 +295,7 @@ export function PatientPlanView({ initial, planRef }: PatientPlanViewProps) {
                 height={GANTT_HEIGHT}
               />
             </div>
-          </Card>
+          </div>
 
           {live.ghostShifts && (
             <Reveal>
@@ -434,6 +427,18 @@ export function PatientPlanView({ initial, planRef }: PatientPlanViewProps) {
         </div>
       </aside>
     </div>
+  );
+}
+
+/** A header meta item that carries its own leading separator, so wrapped lines never start with "·". */
+function MetaItem({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <span className={cx("whitespace-nowrap", className)}>
+      <span aria-hidden className="mr-2">
+        ·
+      </span>
+      {children}
+    </span>
   );
 }
 
