@@ -60,7 +60,7 @@ export function realTodayIso(): string {
 export const OPEN_INVOICE_STATUSES: readonly InvoiceStatus[] = ["SENT", "SCHEDULED", "UNPAID", "PARTIALLY_PAID"];
 export const PAID_INVOICE_STATUSES: readonly InvoiceStatus[] = ["PAID", "MARKED_AS_PAID"];
 
-export function isOpenInvoice(inv: PhaseInvoice | undefined): inv is PhaseInvoice {
+export function isOpenInvoice(inv: PhaseInvoice | undefined): boolean {
   return !!inv && OPEN_INVOICE_STATUSES.includes(inv.status);
 }
 
