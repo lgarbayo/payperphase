@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PlanDiffSchema, PlanSchema } from "@/contracts";
+import { PlanDiffSchema, PlanSchema, type PlanEdit } from "@/contracts";
 import {
   GOLDEN_BONE_GRAFT_DIFF,
   GOLDEN_BONE_GRAFT_EDIT,
@@ -11,6 +11,12 @@ import { addDays } from "@/lib/dates";
 import { paidAndDelivered, planOf } from "./helpers";
 
 const NOW = "2026-11-18T10:00:00.000Z";
+
+/** The golden bone-graft line added to another phase. */
+function graftOn(phaseId: string): PlanEdit {
+  if (GOLDEN_BONE_GRAFT_EDIT.kind !== "ADD_LINE") throw new Error("expected ADD_LINE");
+  return { ...GOLDEN_BONE_GRAFT_EDIT, phaseId };
+}
 
 describe("applyEdit: the golden bone graft", () => {
   const after = applyEdit(GOLDEN_PLAN, GOLDEN_BONE_GRAFT_EDIT, NOW);
@@ -60,7 +66,7 @@ describe("applyEdit: the golden bone graft", () => {
   });
 
   it("numbers further clinic lines E2, E3 … with increasing lineNo", () => {
-    const again = applyEdit(after, { ...GOLDEN_BONE_GRAFT_EDIT, phaseId: "ph4" }, NOW);
+    const again = applyEdit(after, graftOn("ph4"), NOW);
     const added = again.lines.at(-1)!;
     expect([added.id, added.lineNo, added.source]).toEqual(["E2", 14, "clinic_edit"]);
     expect(again.version).toBe(3);
@@ -70,7 +76,7 @@ describe("applyEdit: the golden bone graft", () => {
 describe("applyEdit: other edits", () => {
   it("throws when editing a paid phase", () => {
     const paid = paidAndDelivered(goldenPlan(), "ph1", "2026-11-16");
-    const add = { ...GOLDEN_BONE_GRAFT_EDIT, phaseId: "ph1" };
+    const add = graftOn("ph1");
     expect(() => applyEdit(paid, add, NOW)).toThrow(EngineError);
     expect(() => applyEdit(paid, add, NOW)).toThrow(/paid/);
     expect(() => applyEdit(paid, { kind: "SET_UNIT_PRICE", lineId: "L1", unitPriceCents: 1 }, NOW)).toThrow(EngineError);
@@ -81,7 +87,7 @@ describe("applyEdit: other edits", () => {
     const delivered = goldenPlan();
     delivered.phases[1]!.delivery = { status: "delivered", deliveredOn: "2027-01-12" };
     expect(() => applyEdit(delivered, GOLDEN_BONE_GRAFT_EDIT, NOW)).toThrow(/delivered/);
-    expect(() => applyEdit(GOLDEN_PLAN, { ...GOLDEN_BONE_GRAFT_EDIT, phaseId: "ph9" }, NOW)).toThrow(EngineError);
+    expect(() => applyEdit(GOLDEN_PLAN, graftOn("ph9"), NOW)).toThrow(EngineError);
     expect(() => applyEdit(GOLDEN_PLAN, { kind: "REMOVE_LINE", lineId: "L99" }, NOW)).toThrow(EngineError);
   });
 
