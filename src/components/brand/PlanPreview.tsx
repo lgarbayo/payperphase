@@ -44,7 +44,7 @@ export function PlanPreview({ className }: { className?: string }) {
         {ROWS.map((row, i) => (
           <li key={row.key} className="grid grid-cols-[7.5rem_1fr] items-center gap-3 sm:grid-cols-[9.5rem_1fr]">
             <div className="min-w-0">
-              <p className="truncate text-xs font-medium text-ink">
+              <p className="text-xs font-medium leading-tight text-ink">
                 {i + 1}. {t(row.key)}
               </p>
               <p className="font-mono text-[11px] text-muted">{formatCents(row.cents, locale, { whole: true })}</p>
