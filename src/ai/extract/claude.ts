@@ -72,8 +72,7 @@ export async function callStructured<S extends z.ZodType>(
     }, call.timeoutMs);
   });
 
-  const fallback = supportsDefaultFallback(call.model);
-  const params = {
+  const base = {
     model: call.model,
     max_tokens: call.maxTokens ?? 16_000,
     system: call.system,
@@ -82,18 +81,28 @@ export async function callStructured<S extends z.ZodType>(
       format: zodOutputFormat(call.schema),
       ...(call.effort ? { effort: call.effort } : {}),
     },
-    ...(fallback ? { fallbacks: "default" as const } : {}),
   };
-
-  try {
-    const message = await Promise.race([
-      client.messages.parse(params, {
+  const request = (withFallback: boolean) =>
+    Promise.race([
+      client.messages.parse(withFallback ? { ...base, fallbacks: "default" as const } : base, {
         signal: controller.signal,
-        timeout: call.timeoutMs,
-        ...(fallback ? { headers: { "anthropic-beta": SERVER_SIDE_FALLBACK_BETA } } : {}),
+        timeout: Math.max(1, call.timeoutMs - elapsed()),
+        ...(withFallback ? { headers: { "anthropic-beta": SERVER_SIDE_FALLBACK_BETA } } : {}),
       }),
       timeout,
     ]);
+
+  try {
+    const withFallback = supportsDefaultFallback(call.model);
+    let message: Awaited<ReturnType<typeof request>>;
+    try {
+      message = await request(withFallback);
+    } catch (error) {
+      // Self-heal if this account/platform rejects the fallback field: same request, once, without it.
+      if (!(withFallback && error instanceof Anthropic.BadRequestError && /fallback/i.test(error.message))) throw error;
+      console.warn("[claude] server-side fallback rejected (400); retrying once without it");
+      message = await request(false);
+    }
     // Refusal first: a declined response may carry partial or no content.
     if (message.stop_reason === "refusal") {
       const category = message.stop_details?.category ?? null;

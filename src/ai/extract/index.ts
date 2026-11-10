@@ -98,7 +98,8 @@ function failureError(reason: StructuredFailure, detail: string | null): Extract
   }
 }
 
-async function liveExtract(
+/** One live extraction with no fallback (also used by the spike script to measure latency/accuracy). */
+export async function liveExtract(
   client: ClaudeClient,
   pdf: Uint8Array,
   meta: { quoteId: string; pdfSha256: string; extractedAt: string; filename?: string },
