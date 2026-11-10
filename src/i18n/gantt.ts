@@ -44,6 +44,14 @@ export default {
     tipBaseline: "Plan aprobado: {{date}}",
     tipPreview: "Vista previa: {{date}}",
     tipDue: "Pago {{amount}} · {{date}}",
+    tipDragTo: "Nueva fecha: {{date}}",
+    tipDragDelta: "{{days}} días",
+    tipDragDeltaWeeks: "{{weeks}} sem",
+
+    depTitle: "Fase {{from}} → fase {{to}}",
+    depMinWeeks: "Espera mínima: {{weeks}} semanas ({{days}} días)",
+    depMinDays: "Espera mínima: {{days}} días",
+    depActual: "Espera prevista: {{days}} días",
 
     menuPay: "Pagar esta fase",
     menuAskDelay: "¿Y si lo retraso?",
@@ -106,6 +114,14 @@ export default {
     tipBaseline: "Approved plan: {{date}}",
     tipPreview: "Preview: {{date}}",
     tipDue: "Payment {{amount}} · {{date}}",
+    tipDragTo: "New date: {{date}}",
+    tipDragDelta: "{{days}} days",
+    tipDragDeltaWeeks: "{{weeks}} wk",
+
+    depTitle: "Phase {{from}} → phase {{to}}",
+    depMinWeeks: "Minimum wait: {{weeks}} weeks ({{days}} days)",
+    depMinDays: "Minimum wait: {{days}} days",
+    depActual: "Planned wait: {{days}} days",
 
     menuPay: "Pay this phase",
     menuAskDelay: "What if I delay it?",

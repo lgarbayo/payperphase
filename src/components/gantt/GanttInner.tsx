@@ -22,7 +22,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { DeadlineWarning, Locale, Plan } from "@/contracts";
 import { daysBetween, fromLocalDate, toLocalDate } from "@/lib/dates";
 import { createDragController } from "./dragController";
-import { afterLabel, amountCell, bandCell, nameCell, statusCell, tooltipHtml } from "./ganttText";
+import {
+  afterLabel,
+  amountCell,
+  bandCell,
+  dependencyTipHtml,
+  dragTipHtml,
+  nameCell,
+  statusCell,
+  tooltipHtml,
+} from "./ganttText";
 import { GanttLegend, LEGEND_HEIGHT } from "./GanttLegend";
 import { syncProject, type ProjectLike } from "./projectSync";
 import { planToBryntum, shortDate, tg, type GanttTaskMeta, type PlanToBryntum } from "./toBryntum";
@@ -197,7 +206,7 @@ export default function GanttInner(props: PlanGanttProps) {
           { unit: "year", renderer: () => "" },
           {
             unit: "month",
-            renderer: (start: Date, _end: Date, _cfg: unknown, index: number) => monthHeader(start, index, L()),
+            renderer: (start: Date, end: Date, _cfg: unknown, index: number) => monthHeader(start, end, index, L()),
           },
         ],
       },
@@ -261,7 +270,20 @@ export default function GanttInner(props: PlanGanttProps) {
             return `<div class="ppp-tip">${tg(L(), ghost ? "tipPreview" : "tipBaseline", { date })}</div>`;
           },
         },
-        dependencies: { allowCreate: false, showLagInTooltip: true, radius: 6, clickWidth: 6 },
+        dependencies: {
+          allowCreate: false,
+          showLagInTooltip: true,
+          radius: 6,
+          clickWidth: 6,
+          tooltipTemplate: (dependency) => {
+            const d = dependency as unknown as { id: string; lag: number; fromEvent?: { id: string }; toEvent?: { id: string } };
+            const from = metaOf(d.fromEvent?.id);
+            const to = metaOf(d.toEvent?.id);
+            if (!from || !to) return "";
+            const heal = metaOf(`heal-${from.phaseId}-${to.phaseId}`);
+            return dependencyTipHtml(from, to, d.lag, heal?.noteTitle, L());
+          },
+        },
         dependencyEdit: false,
         indicators: {
           items: {
@@ -352,6 +374,13 @@ export default function GanttInner(props: PlanGanttProps) {
         },
         taskDrag: {
           showExactDropPosition: true,
+          tip: { maxWidth: 320 },
+          tooltipTemplate: ({ taskRecord, startDate }) => {
+            const m = metaOf(taskRecord.id);
+            if (!m) return "";
+            const date = fromLocalDate(startDate);
+            return dragTipHtml(m, date, L(), controller.validate(m.phaseId, date));
+          },
           validatorFn: (taskRecords, startDate) => {
             const m = metaOf(taskRecords[0]?.id);
             if (!m || m.kind !== "visit") return { valid: false, message: "" };
@@ -458,10 +487,13 @@ export default function GanttInner(props: PlanGanttProps) {
   );
 }
 
-function monthHeader(start: Date, index: number, locale: Locale): string {
-  const fmt = new Intl.DateTimeFormat(locale === "es" ? "es-ES" : "en-GB", { month: "short" });
-  const month = fmt.format(start).replace(".", "");
-  return index === 0 || start.getMonth() === 0 ? `${month} ${start.getFullYear()}` : month;
+/** "nov 2026 · dic · ene 2027 · feb …": the year on the first readable month and on January. */
+function monthHeader(start: Date, end: Date, index: number, locale: Locale): string {
+  const days = Math.round((end.getTime() - start.getTime()) / 86_400_000);
+  if (index === 0 && days < 12) return ""; // a sliver of the previous month at the left edge
+  const month = new Intl.DateTimeFormat(locale === "es" ? "es-ES" : "en-GB", { month: "short" }).format(start).replace(".", "");
+  const firstReadable = index === 0 || (index === 1 && start.getDate() === 1);
+  return firstReadable || start.getMonth() === 0 ? `${month} ${start.getFullYear()}` : month;
 }
 
 function shortHealing(m: GanttTaskMeta, locale: Locale): string {

@@ -4,6 +4,7 @@
  */
 import type { ClinicalNote, Locale, NoteId } from "@/contracts";
 import { STATUS_LABEL } from "@/lib/ui/status";
+import { daysBetween } from "@/lib/dates";
 import { formatCents } from "@/lib/money";
 import { BAND_KEY, amountLabel, shortDate, tg, type GanttTaskMeta } from "./toBryntum";
 
@@ -170,3 +171,42 @@ export function tooltipHtml(
   }
   return `<div class="ppp-tip">${parts.join("")}</div>`;
 }
+
+/** Compact drag tooltip: target date, signed shift, and the clinician note when the drop is illegal. */
+export function dragTipHtml(
+  m: GanttTaskMeta,
+  newStart: string,
+  locale: Locale,
+  verdict: { valid: true } | { valid: false; message: string },
+): string {
+  const delta = daysBetween(m.startDate, newStart);
+  const sign = delta > 0 ? "+" : delta < 0 ? "−" : "±";
+  const abs = Math.abs(delta);
+  const shift =
+    abs > 0 && abs % 7 === 0 ? tg(locale, "tipDragDeltaWeeks", { weeks: abs / 7 }) : tg(locale, "tipDragDelta", { days: abs });
+  const parts = [
+    `<div class="ppp-tip-title"><span class="ppp-n ppp-status-${m.status}">${m.n}</span>${escapeHtml(m.title)}</div>`,
+    `<div class="ppp-tip-row"><strong>${escapeHtml(tg(locale, "tipDragTo", { date: shortDate(newStart, locale) }))}</strong><span class="ppp-tip-delta">${sign}${escapeHtml(shift)}</span></div>`,
+  ];
+  if (!verdict.valid && verdict.message) parts.push(`<div class="ppp-tip-reject">${escapeHtml(verdict.message)}</div>`);
+  return `<div class="ppp-tip ppp-drag-tip${verdict.valid ? "" : " ppp-drag-invalid"}">${parts.join("")}</div>`;
+}
+
+/** Dependency hover: phase → phase, the clinical minimum wait (the lag) and the planned wait. */
+export function dependencyTipHtml(
+  from: GanttTaskMeta,
+  to: GanttTaskMeta,
+  lagDays: number,
+  noteTitle: string | undefined,
+  locale: Locale,
+): string {
+  const actual = daysBetween(from.endDate, to.startDate);
+  const min =
+    lagDays % 7 === 0
+      ? tg(locale, "depMinWeeks", { weeks: lagDays / 7, days: lagDays })
+      : tg(locale, "depMinDays", { days: lagDays });
+  return `<div class="ppp-tip"><div class="ppp-tip-title">${escapeHtml(tg(locale, "depTitle", { from: from.n, to: to.n }))}</div>${
+    noteTitle ? row(noteTitle, "ppp-tip-muted") : ""
+  }${row(min)}${row(tg(locale, "depActual", { days: actual }), "ppp-tip-muted")}</div>`;
+}
+
