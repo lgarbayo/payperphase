@@ -183,8 +183,9 @@ describe("live mode: the JS SDK is loaded once and drives our server", () => {
 
     await waitFor(() => expect(buttons).toHaveLength(2));
     await waitFor(() => expect(messages).toHaveLength(1));
-    expect(messages[0]).toMatchObject({ amount: 360, placement: "payment" });
+    expect(messages[0]).toMatchObject({ amount: 360, placement: "payment", offer: "PAY_LATER_SHORT_TERM" });
     const msg = screen.getByTestId("paylater-message");
+    expect(msg.getAttribute("data-pp-offer")).toBe("PAY_LATER_SHORT_TERM");
     expect(msg.getAttribute("data-pp-amount")).toBe("360.00");
     await waitFor(() => expect(msg.getAttribute("data-rendered")).toBe("true"));
   });
@@ -263,5 +264,13 @@ describe("<PayLaterMessage/>", () => {
     expect(el.textContent).toContain("Simulación");
     expect(el.textContent).not.toMatch(/elegible|eligible/i);
     expect(document.head.querySelectorAll("script[data-namespace]")).toHaveLength(0);
+  });
+
+  it("omits the Pay in 3 offer above 2.000 EUR (installments message)", async () => {
+    stubApi(LIVE_CONFIG);
+    render(<PayLaterMessage amountCents={250_000} locale="es" />);
+    const el = await screen.findByTestId("paylater-message");
+    expect(el.getAttribute("data-pp-amount")).toBe("2500.00");
+    expect(el.hasAttribute("data-pp-offer")).toBe(false);
   });
 });

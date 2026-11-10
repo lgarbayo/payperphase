@@ -27,6 +27,7 @@ export interface PayPalMessagesOptions {
   amount: number;
   currency?: string;
   placement?: string;
+  offer?: string;
   style?: Record<string, unknown>;
   onRender?: () => void;
 }

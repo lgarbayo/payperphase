@@ -12,10 +12,16 @@ import { useEffect, useRef, useState } from "react";
 import type { Locale } from "@/contracts";
 import { translate } from "@/i18n/core";
 import { centsToPayPalValue } from "@/lib/money";
+import { PAY_IN_3 } from "@/contracts/constants";
 import { buildSdkUrl, isInPayLaterRange, type PayPalClientConfig } from "@/lib/paypal/sdk-url";
 import { ModeBadge } from "@/lib/ui";
 import { loadPayPalSdk } from "./sdk";
 import { usePayPalConfig } from "./usePayPalConfig";
+
+/** Pay in 3 range (€20-€2,000): force the Pay in 3 offer, else PayPal shows "hasta 24 plazos" above ~€500. */
+function offerFor(amountCents: number): string | undefined {
+  return amountCents >= PAY_IN_3.minCents && amountCents <= PAY_IN_3.maxCents ? "PAY_LATER_SHORT_TERM" : undefined;
+}
 
 export function PayLaterMessage({ amountCents, locale }: { amountCents: number; locale: Locale }) {
   const { config } = usePayPalConfig();
@@ -57,6 +63,7 @@ function OfficialMessage({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [rendered, setRendered] = useState(false);
+  const offer = offerFor(amountCents);
   const url = buildSdkUrl({
     clientId: config.clientId ?? "",
     locale,
@@ -76,6 +83,7 @@ function OfficialMessage({
             // Currency comes from the SDK URL (currency=EUR); PayPal validates it against the merchant.
             amount: amountCents / 100,
             placement: "payment",
+            ...(offer ? { offer } : {}),
             style: { layout: "text", logo: { type: "inline" }, text: { color: "black", size: 12 } },
             onRender: () => {
               if (!disposed) setRendered(true);
@@ -89,7 +97,7 @@ function OfficialMessage({
     return () => {
       disposed = true;
     };
-  }, [url, amountCents]);
+  }, [url, amountCents, offer]);
 
   return (
     <div
@@ -97,6 +105,7 @@ function OfficialMessage({
       data-testid="paylater-message"
       data-pp-amount={value}
       data-pp-currency="EUR"
+      data-pp-offer={offer}
       data-mode="live"
       data-rendered={rendered ? "true" : "false"}
       className="min-h-5"
