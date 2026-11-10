@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+/*
+ * Scaffold-owned theme. Calm, clinical, trustworthy. Use the CSS variables (or the Tailwind
+ * aliases below: bg-surface, text-ink, text-muted, bg-primary, text-status-paid …) — never raw hex.
+ * Payment-status colours are shared by the Gantt, phase cards, ledger and agent feed.
+ */
+:root {
+  --ppp-bg: #f5f8f9;
+  --ppp-surface: #ffffff;
+  --ppp-surface-2: #eef3f5;
+  --ppp-ink: #10243a;
+  --ppp-muted: #5a6b7b;
+  --ppp-border: #d8e1e7;
+  --ppp-primary: #0f766e;
+  --ppp-primary-strong: #0b5d57;
+  --ppp-primary-ink: #ffffff;
+  --ppp-focus: #2563eb;
+
+  --ppp-status-scheduled: #94a3b8;
+  --ppp-status-upcoming: #d97706;
+  --ppp-status-due: #2563eb;
+  --ppp-status-processing: #6366f1;
+  --ppp-status-paid: #16a34a;
+  --ppp-status-overdue: #dc2626;
+
+  --ppp-healing: #cbd5e1;
+  --ppp-deadline: #dc2626;
+  --ppp-ghost: rgba(16, 36, 58, 0.18);
+
+  --ppp-radius: 14px;
+  --ppp-radius-sm: 8px;
+  --ppp-shadow: 0 1px 2px rgba(16, 36, 58, 0.06), 0 4px 16px rgba(16, 36, 58, 0.06);
+  --ppp-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --ppp-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+@theme inline {
+  --color-bg: var(--ppp-bg);
+  --color-surface: var(--ppp-surface);
+  --color-surface-2: var(--ppp-surface-2);
+  --color-ink: var(--ppp-ink);
+  --color-muted: var(--ppp-muted);
+  --color-border: var(--ppp-border);
+  --color-primary: var(--ppp-primary);
+  --color-primary-strong: var(--ppp-primary-strong);
+  --color-primary-ink: var(--ppp-primary-ink);
+  --color-status-scheduled: var(--ppp-status-scheduled);
+  --color-status-upcoming: var(--ppp-status-upcoming);
+  --color-status-due: var(--ppp-status-due);
+  --color-status-processing: var(--ppp-status-processing);
+  --color-status-paid: var(--ppp-status-paid);
+  --color-status-overdue: var(--ppp-status-overdue);
+  --color-healing: var(--ppp-healing);
+  --font-sans: var(--ppp-font);
+  --font-mono: var(--ppp-font-mono);
+  --radius-card: var(--ppp-radius);
+}
+
+html,
+body {
+  background: var(--ppp-bg);
+  color: var(--ppp-ink);
+  font-family: var(--ppp-font);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ppp-focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

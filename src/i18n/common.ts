@@ -1,0 +1,33 @@
+import type { Dictionary } from "./types";
+
+/** Scaffold-owned shell strings. Feature strings live in their own <feature>.ts file. */
+export default {
+  es: {
+    appName: "PayPerPhase",
+    tagline: "Paga tu tratamiento dental fase a fase, cuando lo recibes. Nunca por adelantado.",
+    simulated: "Simulado",
+    today: "Hoy",
+    mock: "Simulación",
+    cached: "En caché",
+    live: "En vivo",
+    loading: "Cargando…",
+    error: "Algo ha fallado",
+    retry: "Reintentar",
+    language: "Idioma",
+    sandbox: "Sandbox",
+  },
+  en: {
+    appName: "PayPerPhase",
+    tagline: "Pay for dental treatment phase by phase, as you receive it. Never in advance.",
+    simulated: "Simulated",
+    today: "Today",
+    mock: "Mock",
+    cached: "Cached",
+    live: "Live",
+    loading: "Loading…",
+    error: "Something went wrong",
+    retry: "Retry",
+    language: "Language",
+    sandbox: "Sandbox",
+  },
+} as const satisfies Dictionary;
