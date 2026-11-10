@@ -149,7 +149,17 @@ export function createDragController(opts: DragControllerOptions): DragControlle
     const landing = snapToClinicDay(newStartDate);
     if (!phase || phase.startDate === landing) return { kind: "noop" };
     const move: MoveRequest = { phaseId, newStartDate: landing };
-    const preview = reschedule(plan, move, today);
+    let preview: WhatIfResult;
+    try {
+      preview = reschedule(plan, move, today);
+    } catch {
+      // Engine throws INVALID_MOVE for anything validateMove rejects: treat as a snap-back, never crash the drag.
+      return reject(phaseId, {
+        valid: false,
+        message: tg(opts.getLocale(), "rejectUnknown"),
+        reason: "MIN_LAG",
+      });
+    }
     opts.onPreview?.(preview);
     opts.onMoveCommitted?.(move);
     return { kind: "committed", move, preview };
