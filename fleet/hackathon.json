@@ -1,0 +1,76 @@
+{
+  "name": "PayPal AI Hackathon 2026",
+  "slug": "paypal-ai-2026",
+  "url": "https://paypalaihackathon.devpost.com/",
+  "theme": "Build a working app, agent or automation that meaningfully uses both PayPal (APIs, SDKs, developer tools) and AI. No fixed tracks.",
+  "deadline": { "iso": "2026-11-12T20:00:00Z", "organizerTz": "Thu 12 Nov 2026, 12:00 PT", "spain": "Thu 12 Nov 2026, 21:00 CET" },
+  "judgingPeriod": "2026-12-01 to 2026-12-15 (testing access must stay live)",
+  "winnersAnnounced": "~2026-12-21",
+  "eligibility": {
+    "excludedRegions": ["Brazil", "Quebec", "Russia", "Crimea", "Cuba", "Iran", "North Korea", "OFAC-sanctioned"],
+    "teamSize": "no maximum; one Representative submits",
+    "notes": "Spain is eligible. Multiple entries allowed if substantially different. Existing projects must be significantly updated after 2026-10-01 09:15 PT."
+  },
+  "requiredTech": ["At least one PayPal API, SDK or developer tool, used meaningfully", "Any AI model or tool"],
+  "platformTools": [
+    "PayPal REST APIs: Orders v2 (capture/authorize), Payments, Vault, Subscriptions, Invoicing, Payouts, Disputes, Transaction Search, Webhooks",
+    "PayPal JS SDK v6, Pay Later",
+    "PayPal Agent Toolkit and MCP server (local, or remote at mcp.paypal.com / mcp.sandbox.paypal.com)",
+    "Agentic commerce: Agent Ready, Store Sync",
+    "Developer sandbox (free)"
+  ],
+  "submission": {
+    "video": { "maxSeconds": 180, "platform": "YouTube (public)", "rules": "show the project working on its target device; no unlicensed music or trademarks" },
+    "repo": "public GitHub/GitLab/Bitbucket with all code, assets and setup instructions",
+    "license": "open source license file, detectable and shown in the repo About section",
+    "demo": "hosted URL or complete run instructions",
+    "testAccess": "sandbox logins / test keys in README, free and live until 2026-12-15",
+    "language": "English",
+    "other": ["Text description of features", "AI tools statement: every model/tool/service and how it was used"]
+  },
+  "judging": {
+    "stages": ["Stage 1 pass/fail: fits the theme and reasonably uses PayPal", "Stage 2: five criteria, equal weight"],
+    "criteria": [
+      { "name": "Technological Implementation", "weight": 0.2, "description": "Depth and quality of the PayPal and AI integration. First tie-breaker." },
+      { "name": "Design", "weight": 0.2, "description": "Complete, coherent product experience, not a proof of concept." },
+      { "name": "Potential Impact", "weight": 0.2, "description": "Credible case that it solves a real problem for a real audience." },
+      { "name": "Quality of the Idea", "weight": 0.2, "description": "Creativity and novelty." },
+      { "name": "Presentation", "weight": 0.2, "description": "Video and pitch clearly show the project working end to end." }
+    ],
+    "tiebreak": "criteria in the order above, then judges' vote"
+  },
+  "prizes": [
+    { "name": "1st Place", "amount": "$12,000", "type": "grand", "winners": 1, "requires": "" },
+    { "name": "2nd Place", "amount": "$8,000", "type": "grand", "winners": 1, "requires": "" },
+    { "name": "3rd Place", "amount": "$5,000", "type": "grand", "winners": 1, "requires": "" },
+    { "name": "Most Creative", "amount": "$5,000", "type": "category", "winners": 1, "requires": "" },
+    { "name": "Most Impactful", "amount": "$5,000", "type": "category", "winners": 1, "requires": "" },
+    { "name": "Best Demo Delivery", "amount": "$5,000", "type": "category", "winners": 1, "requires": "" },
+    { "name": "Best Use of PayPal + AI", "amount": "$5,000", "type": "category", "winners": 1, "requires": "" },
+    { "name": "Best Use of Agentic Commerce", "amount": "$5,000", "type": "category", "winners": 1, "requires": "" },
+    { "name": "Best Use of AG Grid", "amount": "$5,000 / $2,000 / 3x $1,000", "type": "sponsor", "winners": 5, "requires": "uses AG Grid; polish (custom widgets, theming) and Studio Agent Framework reportedly valued" },
+    { "name": "Best Use of APIMatic", "amount": "3x $1,000 + 6-month Business plan", "type": "sponsor", "winners": 3, "requires": "uses APIMatic tools (e.g. Context Plugin)" },
+    { "name": "Best Use of Bryntum", "amount": "3x $1,000", "type": "sponsor", "winners": 3, "requires": "uses Bryntum Gantt, Scheduler or Calendar" },
+    { "name": "Best Use of Channel3", "amount": "$1,500", "type": "sponsor", "winners": 1, "requires": "must call the Channel3 API or MCP server; promo code PAYPAL-HACKATHON-2026 gives 20k credits" },
+    { "name": "Best Use of Render", "amount": "$1,000 / $750 / $500 in credits", "type": "sponsor", "winners": 3, "requires": "deployed/orchestrated on Render" }
+  ],
+  "stacking": "At most one Grand Prize or one category prize, plus at most one sponsor prize.",
+  "sponsors": [
+    { "name": "AG Grid", "tool": "AG Grid, AG Charts, AG Studio", "prize": "Best Use of AG Grid", "credits": "", "docs": "https://www.ag-grid.com/" },
+    { "name": "APIMatic", "tool": "Context Plugin (gives agents PayPal API context)", "prize": "Best Use of APIMatic", "credits": "", "docs": "https://www.apimatic.io/" },
+    { "name": "Bryntum", "tool": "Gantt, Scheduler, Calendar, Grid", "prize": "Best Use of Bryntum", "credits": "trial", "docs": "https://bryntum.com/" },
+    { "name": "Channel3", "tool": "Product data API / MCP over 100M+ products", "prize": "Best Use of Channel3", "credits": "20k API credits with PAYPAL-HACKATHON-2026", "docs": "https://trychannel3.com/" },
+    { "name": "Render", "tool": "Hosting, Render Workflows for agents", "prize": "Best Use of Render", "credits": "partner credits", "docs": "https://render.com/" },
+    { "name": "Kernel", "tool": "Cloud browsers for agents", "prize": "", "credits": "$50", "docs": "" },
+    { "name": "Postman / Elastic / Astropods / Zapier", "tool": "API tooling, search, agent hosting, automation", "prize": "", "credits": "", "docs": "" }
+  ],
+  "sources": [
+    "https://developer.paypal.com/community/blog/PayPal_AI_Hackathon",
+    "https://reconscribe.com/paypal-ai-hackathon-2026/",
+    "https://thegenaimagazine.com/paypal-ai-hackathon-2026-ideas-deadline-prizes"
+  ],
+  "conflicts": [
+    "Devpost page blocks automated fetch (403); facts come from PayPal's blog and third-party summaries. Confirm deadline on Devpost.",
+    "Prize pool quoted as $60k+ (PayPal blog caption) vs $67,500 cash (rules summaries)."
+  ]
+}
