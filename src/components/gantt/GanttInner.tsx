@@ -20,7 +20,7 @@ import "./gantt.css";
 import { Gantt, LocaleManager, type DomConfig, type GanttConfig, type TaskModel } from "@bryntum/gantt";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { DeadlineWarning, Locale, Plan } from "@/contracts";
-import { fromLocalDate, toLocalDate } from "@/lib/dates";
+import { daysBetween, fromLocalDate, toLocalDate } from "@/lib/dates";
 import { createDragController } from "./dragController";
 import { afterLabel, amountCell, bandCell, nameCell, statusCell, tooltipHtml } from "./ganttText";
 import { GanttLegend, LEGEND_HEIGHT } from "./GanttLegend";
@@ -132,6 +132,25 @@ export default function GanttInner(props: PlanGanttProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ── Narrow parents: drop the band chip, then the status pill, so the timeline keeps its room ──
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host || typeof ResizeObserver === "undefined") return;
+    const apply = (width: number) => {
+      const gantt = ganttRef.current;
+      if (!gantt || gantt.isDestroyed) return;
+      const columns = gantt.columns as unknown as { getById(id: string): { hidden: boolean } | undefined };
+      const band = columns.getById("band");
+      const st = columns.getById("status");
+      if (band) band.hidden = width < 1080;
+      if (st) st.hidden = width < 860;
+    };
+    const ro = new ResizeObserver((entries) => apply(entries[0]?.contentRect.width ?? host.clientWidth));
+    ro.observe(host);
+    apply(host.clientWidth);
+    return () => ro.disconnect();
+  }, [status]);
+
   // ── Props → chart (in place) ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     const gantt = ganttRef.current;
@@ -169,15 +188,28 @@ export default function GanttInner(props: PlanGanttProps) {
       project: { tasks: first.tasksData, dependencies: first.dependenciesData, timeRanges: first.timeRangesData },
       startDate: first.range.startDate,
       endDate: first.range.endDate,
-      viewPreset: "weekAndMonth",
+      viewPreset: {
+        id: "pppYearMonth",
+        base: "monthAndYear",
+        // Top lane is left blank for the time-range labels ("Hoy (simulado)", deadline), so they
+        // never cover a month name; months carry the year on the first cell and on January.
+        headers: [
+          { unit: "year", renderer: () => "" },
+          {
+            unit: "month",
+            renderer: (start: Date, _end: Date, _cfg: unknown, index: number) => monthHeader(start, index, L()),
+          },
+        ],
+      },
       forceFit: true,
+      autoAdjustTimeAxis: false,
       weekStartDay: 1,
-      rowHeight: 40,
-      barMargin: 9,
+      rowHeight: 38,
+      barMargin: 7,
       snap: true,
       timeResolution: { unit: "day", increment: 1 },
       readOnly: latest.current.mode !== "patient",
-      enableEventAnimations: true,
+      transition: { changeEvent: true },
       zoomOnMouseWheel: false,
       zoomOnTimeAxisDoubleClick: false,
       columns: [
@@ -185,14 +217,14 @@ export default function GanttInner(props: PlanGanttProps) {
           id: "name",
           type: "name",
           text: tg(latest.current.locale, "colPhase"),
-          width: 262,
+          width: 228,
           sortable: false,
           renderer: cell(nameCell),
         },
         {
           id: "amount",
           text: tg(latest.current.locale, "colAmount"),
-          width: 104,
+          width: 92,
           align: "end",
           sortable: false,
           renderer: cell(amountCell),
@@ -200,21 +232,22 @@ export default function GanttInner(props: PlanGanttProps) {
         {
           id: "status",
           text: tg(latest.current.locale, "colStatus"),
-          width: 128,
+          width: 116,
           sortable: false,
           renderer: cell(statusCell),
         },
         {
           id: "band",
           text: tg(latest.current.locale, "colBand"),
-          width: 138,
+          width: 126,
           sortable: false,
           renderer: cell(bandCell),
         },
       ],
       taskRenderer: ({ taskRecord }) => {
         const m = metaOf(taskRecord.id);
-        if (m?.kind === "healing" && m.minLagDays !== undefined) {
+        // Text only on windows long enough to hold it (lab fabrication's 2 weeks stays clean).
+        if (m?.kind === "healing" && m.minLagDays !== undefined && daysBetween(m.startDate, m.endDate) >= 35) {
           return { tag: "span", className: "ppp-heal-text", text: shortHealing(m, L()) };
         }
         return "";
@@ -235,7 +268,19 @@ export default function GanttInner(props: PlanGanttProps) {
             earlyDates: false,
             lateDates: false,
             constraintDate: false,
-            deadlineDate: true,
+            // TaskModel.deadlineDate drawn by Bryntum's deadline indicator, pinned to the exact day
+            // (the built-in snaps to the end of the month tick at this zoom).
+            deadlineDate: (taskRecord: TaskModel) => {
+              const m = metaOf(taskRecord.id);
+              // Once breached, the red deadline time range takes over (and the flag would cover the date label).
+              if (!m || m.kind !== "visit" || !m.deadlineDate || m.deadlineExceededDays) return null;
+              if (m.deadlineDate > (shownRef.current?.mapping.rangeIso.endDate ?? m.deadlineDate)) return null;
+              return {
+                startDate: toLocalDate(m.deadlineDate),
+                cls: `b-deadline-date ppp-deadline${m.deadlineExceededDays ? " ppp-deadline-hit" : ""}`,
+                name: tg(L(), "tipDeadline", { date: shortDate(m.deadlineDate, L()) }),
+              };
+            },
             dueDate: (taskRecord: TaskModel) => {
               const m = metaOf(taskRecord.id);
               if (!m || m.kind !== "visit") return null;
@@ -249,10 +294,17 @@ export default function GanttInner(props: PlanGanttProps) {
           },
         },
         labels: {
+          // Date before the visit pill (the dependency line leaves from its end), amount after the diamond.
+          before: {
+            renderer: ({ taskRecord, domConfig }) => {
+              const m = metaOf(taskRecord.id);
+              domConfig.text = m?.kind === "visit" ? afterLabel(m, L()) : "";
+            },
+          },
           after: {
             renderer: ({ taskRecord, domConfig }) => {
               const m = metaOf(taskRecord.id);
-              domConfig.text = m ? afterLabel(m, L()) : "";
+              domConfig.text = m?.kind === "payment" ? afterLabel(m, L()) : "";
             },
           },
         },
@@ -404,6 +456,12 @@ export default function GanttInner(props: PlanGanttProps) {
       )}
     </div>
   );
+}
+
+function monthHeader(start: Date, index: number, locale: Locale): string {
+  const fmt = new Intl.DateTimeFormat(locale === "es" ? "es-ES" : "en-GB", { month: "short" });
+  const month = fmt.format(start).replace(".", "");
+  return index === 0 || start.getMonth() === 0 ? `${month} ${start.getFullYear()}` : month;
 }
 
 function shortHealing(m: GanttTaskMeta, locale: Locale): string {

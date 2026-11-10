@@ -39,7 +39,9 @@
   --b-widget-font-family: var(--ppp-font);
   --b-font-family: var(--ppp-font);
   --b-grid-header-font-weight: 600;
-  --b-gantt-task-min-width: 10px;
+  --b-gantt-task-min-width: 16px;
+  --b-baseline-wrap-size: 0.4;
+  --b-baseline-flex: 1;
   --ppp-bar: var(--ppp-status-scheduled);
   --ppp-heal-stripe: color-mix(in srgb, var(--ppp-healing) 55%, var(--ppp-ink) 18%);
   --ppp-heal-min-bg: color-mix(in srgb, var(--ppp-healing) 45%, var(--ppp-surface));
@@ -54,8 +56,21 @@
 }
 .ppp-gantt .b-grid-header-text {
   font-size: 12px;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.ppp-gantt .b-sch-header-text {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+/* Flat rows: no tree bullets or expander gutter in the phase column. */
+.ppp-gantt .b-tree-leaf-cell .b-tree-icon,
+.ppp-gantt .b-tree-cell .b-tree-expander {
+  display: none;
+}
+.ppp-gantt .b-tree-cell-inner {
+  padding-inline-start: 0;
 }
 .ppp-gantt .b-grid-cell {
   font-size: 13px;
@@ -106,8 +121,22 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.ppp-cell-phase .ppp-cell-title {
+.ppp-gantt .b-grid-cell .ppp-cell-phase .ppp-cell-title {
+  display: -webkit-box;
+  font-size: 12.5px;
   font-weight: 600;
+  line-height: 15px;
+  white-space: normal;
+  text-overflow: clip;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+.ppp-gantt .b-tree-cell-inner,
+.ppp-gantt .b-tree-cell-value.ppp-cell {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
 }
 .ppp-cell-sub {
   padding-inline-start: 6px;
@@ -192,7 +221,10 @@
     color-mix(in srgb, var(--ppp-healing) 45%, var(--ppp-surface));
 }
 
-/* ── Visit bars ───────────────────────────────────────────────────────────────────────────────── */
+/* ── Visit bars: a 1-day visit is a few px wide at plan scale, so it is drawn as a pill ─────────── */
+.ppp-gantt .b-gantt-task-wrap[data-task-id^="visit-"] {
+  min-width: 16px;
+}
 .ppp-gantt .b-gantt-task.ppp-visit,
 .ppp-gantt .ppp-visit .b-gantt-task {
   --b-sch-event-background: var(--ppp-bar);
@@ -263,48 +295,107 @@
   opacity: 0.75;
 }
 
-/* ── Baseline ghost (approved plan) and chat preview ghost ───────────────────────────────────── */
+/* ── Baseline ghost (approved plan) and chat preview ghost ─────────────────────────────────────
+ * Baselines render in a lane under each bar. The approved plan and the preview share the lane
+ * (layered, each at its own date) so both stay readable at plan scale. */
 .ppp-gantt {
   --b-baseline-background: var(--ppp-ghost);
-  --b-baseline-border-radius: 3px;
+  --b-baseline-border-radius: 4px;
 }
-.ppp-gantt .b-task-baseline.ppp-ghost-shift {
-  background: color-mix(in srgb, var(--ppp-primary) 16%, transparent);
-  border: 1px dashed color-mix(in srgb, var(--ppp-primary) 70%, transparent);
+.ppp-gantt .b-baseline-wrap {
+  display: block;
+}
+.ppp-gantt .b-baseline-wrap .b-task-baseline {
+  position: absolute;
+  top: 2px;
+  bottom: 0;
+  margin: 0;
+}
+.ppp-gantt .b-baseline-wrap[data-task-id^="baselinesForvisit-"] .b-task-baseline {
+  min-width: 16px;
+  border: 1px dashed color-mix(in srgb, var(--ppp-ink) 40%, transparent);
+  background: color-mix(in srgb, var(--ppp-ghost) 60%, transparent);
+}
+.ppp-gantt .b-baseline-wrap .b-task-baseline.ppp-ghost-shift {
+  z-index: 1;
+  min-width: 16px;
+  border: 1px dashed var(--ppp-primary);
+  background: color-mix(in srgb, var(--ppp-primary) 22%, transparent);
+}
+/* Payment ghosts: just a diamond (Bryntum draws it with ::before, inheriting the background). */
+.ppp-gantt .b-baseline-wrap .b-task-baseline.b-task-baseline-milestone {
+  min-width: 0;
+  border: none;
+  background: none;
+}
+.ppp-gantt .b-baseline-wrap .b-task-baseline.b-task-baseline-milestone::before {
+  width: calc(0.707107 * var(--b-event-size) * 0.42 * 1px);
+  height: calc(0.707107 * var(--b-event-size) * 0.42 * 1px);
+  background-color: color-mix(in srgb, var(--ppp-ink) 22%, transparent);
+}
+.ppp-gantt .b-baseline-wrap .b-task-baseline.b-task-baseline-milestone.ppp-ghost-shift::before {
+  background-color: color-mix(in srgb, var(--ppp-primary) 45%, transparent);
 }
 
 /* ── Time ranges: simulated today + breached deadline ─────────────────────────────────────────── */
-.ppp-gantt .b-sch-range.ppp-today,
-.ppp-gantt .b-sch-line.ppp-today {
-  border-inline-start: 2px solid var(--ppp-primary);
+.ppp-gantt .b-sch-time-range.ppp-today {
+  --b-time-range-line-primary: var(--ppp-primary);
+  --b-time-range-line-color: var(--ppp-primary);
+  --b-time-range-line-header-background: var(--ppp-primary);
+  --b-time-range-line-label-background: var(--ppp-primary);
+  --b-time-range-line-width: 2px;
 }
-.ppp-gantt .b-sch-timerange.ppp-today,
-.ppp-gantt .ppp-today {
-  --b-sch-timerange-line-color: var(--ppp-primary);
-  --b-sch-time-range-line-color: var(--ppp-primary);
+.ppp-gantt .b-sch-time-range.ppp-deadline-line {
+  --b-time-range-line-primary: var(--ppp-deadline);
+  --b-time-range-line-color: var(--ppp-deadline);
+  --b-time-range-line-header-background: var(--ppp-deadline);
+  --b-time-range-line-label-background: var(--ppp-deadline);
+  --b-time-range-line-style: dashed;
+  --b-time-range-line-width: 2px;
 }
-.ppp-gantt .b-sch-timerange.b-sch-line.ppp-today label,
-.ppp-gantt .b-sch-timeaxis-cell .ppp-today,
-.ppp-gantt .b-timeaxis-timerange.ppp-today {
-  background: var(--ppp-primary);
-  color: var(--ppp-primary-ink);
+/* Time-range labels live in the (blank) top header lane. */
+.ppp-gantt .b-time-ranges-header-canvas .b-sch-time-range {
+  top: 0;
+  bottom: auto;
 }
-.ppp-gantt .ppp-deadline-line {
-  --b-sch-timerange-line-color: var(--ppp-deadline);
-  --b-sch-time-range-line-color: var(--ppp-deadline);
+.ppp-gantt .b-time-ranges-header-canvas .b-sch-time-range label {
+  font-size: 11.5px;
+  font-weight: 600;
 }
-.ppp-gantt .b-sch-timerange.b-sch-line.ppp-deadline-line {
-  border-inline-start: 2px dashed var(--ppp-deadline);
-}
-.ppp-gantt .b-sch-timerange.b-sch-line.ppp-deadline-line label,
-.ppp-gantt .b-timeaxis-timerange.ppp-deadline-line {
-  background: var(--ppp-deadline);
-  color: var(--ppp-primary-ink);
+.ppp-gantt .b-sch-header-row-0 .b-sch-header-time-axis-cell {
+  background: var(--ppp-surface-2);
 }
 
 /* ── Indicators and labels ────────────────────────────────────────────────────────────────────── */
 .ppp-gantt .b-indicator.ppp-ind-due {
-  color: var(--ppp-bar);
+  --b-indicator-custom-icon-color: var(--ppp-primary-ink);
+  display: grid;
+  place-items: center;
+  width: 16px;
+  /* Same height as the visit pill (the top 60% of the bar lane, above the baseline ghost). */
+  height: calc(1px * var(--b-event-size) * 0.6) !important;
+  margin: 0;
+  font-size: 9px;
+  pointer-events: none;
+}
+.ppp-gantt .b-indicator.ppp-ind-due::before {
+  display: none;
+}
+/* Bryntum's deadline flag sits in the ghost lane under the bar, clear of the dependency line. */
+.ppp-gantt .b-indicator.b-deadline-date.ppp-deadline {
+  display: grid;
+  place-items: center;
+  height: calc(1px * var(--b-event-size) * 0.4) !important;
+  margin-top: calc(1px * var(--b-event-size) * 0.62);
+  font-size: 11px;
+}
+.ppp-gantt .b-indicator.b-deadline-date.ppp-deadline-hit::before {
+  font-size: 1.25em;
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--ppp-deadline) 55%, transparent));
+}
+.ppp-gantt .b-sch-label-before {
+  color: var(--ppp-muted);
+  font-weight: 500;
 }
 .ppp-gantt .b-gantt-task-wrap .b-sch-label {
   color: var(--ppp-ink);

@@ -9,7 +9,8 @@
  * - visit:   the 1-day appointment, coloured by `payment.status`, draggable in patient mode when
  *            future + unpaid + undelivered. Carries Bryntum's `deadlineDate` (engine `deadlineFor`).
  * - payment: a milestone (diamond) at `payment.dueDate`, coloured by `payment.status`.
- * - healing: `pred.endDate → phase.startDate`; the `minLagDays` part is hatched (CSS vars below).
+ * - healing: `pred.endDate → phase.startDate`; the `minLagDays` part is hatched, the part past
+ *            `maxLagDays` turns red (CSS vars --ppp-min-pct / --ppp-max-pct). No baseline ghost.
  * Dependencies are visit → visit, end-to-start, with the engine's `minLagDays` as lag.
  */
 import type {
@@ -34,7 +35,6 @@ import {
   maxIso,
   minIso,
   toLocalDate,
-  weekday,
   type IsoDate,
 } from "@/lib/dates";
 import { formatCents } from "@/lib/money";
@@ -183,10 +183,6 @@ export function minLagLabel(days: number, locale: Locale): string {
     : tg(locale, "healingRowMinDays", { days });
 }
 
-function previousMonday(date: IsoDate): IsoDate {
-  const w = weekday(date); // 0 = Sunday
-  return addDays(date, -((w + 6) % 7));
-}
 
 export function planToBryntum(plan: Plan, opts: PlanToBryntumOptions): PlanToBryntum {
   const { today, locale, mode } = opts;
@@ -208,8 +204,6 @@ export function planToBryntum(plan: Plan, opts: PlanToBryntumOptions): PlanToBry
   const meta: Record<string, GanttTaskMeta> = {};
   const datesForRange: IsoDate[] = [today];
 
-  const ghostStart = (p: Phase) => ghosts.get(p.id)?.toStart ?? p.startDate;
-  const ghostEnd = (p: Phase) => addDays(ghostStart(p), p.durationDays);
 
   for (const phase of phases) {
     const title = phase.title[locale];
@@ -245,22 +239,11 @@ export function planToBryntum(plan: Plan, opts: PlanToBryntumOptions): PlanToBry
     for (const w of windowsInto.get(phase.id) ?? []) {
       const gap = daysBetween(w.startDate, w.actualEndDate);
       if (gap <= 0) continue; // nothing to draw (and a 0-length task would render as a milestone)
-      const pred = byId.get(w.fromPhaseId);
       const minLagDays = daysBetween(w.startDate, w.minEndDate);
       const maxLagDays = w.maxEndDate ? daysBetween(w.startDate, w.maxEndDate) : undefined;
       const exceeded = maxLagDays !== undefined && gap > maxLagDays;
       const id = healingTaskId(w.fromPhaseId, phase.id);
       const noteTitle = notes[w.noteId]?.title[locale] ?? tg(locale, "healingFallback");
-      const baselines: GanttBaselineData[] = [];
-      const predBase = baseline.get(w.fromPhaseId);
-      if (predBase && base && compareIso(predBase.endDate, base.startDate) < 0) {
-        baselines.push({ startDate: toLocalDate(predBase.endDate), endDate: toLocalDate(base.startDate) });
-      }
-      if (pred && (ghosts.has(pred.id) || ghost)) {
-        const gs = ghostEnd(pred);
-        const ge = ghostStart(phase);
-        if (compareIso(gs, ge) < 0) baselines.push({ startDate: toLocalDate(gs), endDate: toLocalDate(ge), cls: "ppp-ghost-shift" });
-      }
       tasksData.push({
         id,
         name: `${noteTitle} · ${minLagLabel(minLagDays, locale)}`,
@@ -271,7 +254,8 @@ export function planToBryntum(plan: Plan, opts: PlanToBryntumOptions): PlanToBry
         resizable: false,
         cls: ["ppp-healing", exceeded ? "ppp-healing-exceeded" : ""].filter(Boolean).join(" "),
         style: `--ppp-min-pct:${pct(minLagDays, gap)};--ppp-max-pct:${maxLagDays !== undefined ? pct(maxLagDays, gap) : "100%"}`,
-        baselines,
+        // No ghost under healing windows: the visit and payment ghosts already show the approved plan.
+        baselines: [],
         kind: "healing",
         phaseId: phase.id,
       });
@@ -398,7 +382,7 @@ export function planToBryntum(plan: Plan, opts: PlanToBryntumOptions): PlanToBry
     }
   }
 
-  // Visible window: a week before the first date (from a Monday) to past the last date, and far
+  // Visible window: ~2.5 weeks before the first date (room for its date label) to past the last date, and far
   // enough right that the next draggable visit can be dragged beyond its clinical deadline.
   const lo = minIso(...datesForRange);
   let hi = addDays(maxIso(...datesForRange), 35);
@@ -407,7 +391,11 @@ export function planToBryntum(plan: Plan, opts: PlanToBryntumOptions): PlanToBry
     .map((p) => meta[visitTaskId(p.id)]?.deadlineDate)
     .find((d): d is IsoDate => Boolean(d));
   if (nextDraggableDeadline) hi = maxIso(hi, addDays(nextDraggableDeadline, 21));
-  const startIso = previousMonday(addDays(lo, -7));
+  // Pull in deadline flags that sit just past the edge instead of clipping them.
+  for (const m of Object.values(meta)) {
+    if (m.deadlineDate && m.deadlineDate > hi && daysBetween(hi, m.deadlineDate) <= 30) hi = addDays(m.deadlineDate, 10);
+  }
+  const startIso = addDays(lo, -18);
   const endIso = hi;
 
   return {

@@ -75,7 +75,7 @@ export default {
     colPhase: "Phase",
     colAmount: "Amount",
     colStatus: "Status",
-    colBand: "Payment option",
+    colBand: "Payment",
 
     bandPayIn3: "Pay in 3 range",
     bandInstallments: "Instalments",

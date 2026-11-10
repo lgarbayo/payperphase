@@ -11,7 +11,7 @@
  *   (`onMoveRejected`) so it can show the snap-back card.
  */
 import type { ClinicalNote, Locale, MoveRequest, MoveValidation, NoteId, Phase, Plan, WhatIfResult } from "@/contracts";
-import { reschedule, validateMove } from "@/engine";
+import { reschedule, snapToClinicDay, validateMove } from "@/engine";
 import type { IsoDate } from "@/lib/dates";
 import { phaseLock, shortDate, tg } from "./toBryntum";
 
@@ -145,8 +145,10 @@ export function createDragController(opts: DragControllerOptions): DragControlle
     if (!verdict.valid) return reject(phaseId, verdict);
     const { plan, today } = sync();
     const phase = phases.get(phaseId);
-    if (!phase || phase.startDate === newStartDate) return { kind: "noop" };
-    const move: MoveRequest = { phaseId, newStartDate };
+    // The engine lands weekend drops on the next clinic day; dropping onto the same day is a no-op.
+    const landing = snapToClinicDay(newStartDate);
+    if (!phase || phase.startDate === landing) return { kind: "noop" };
+    const move: MoveRequest = { phaseId, newStartDate: landing };
     const preview = reschedule(plan, move, today);
     opts.onPreview?.(preview);
     opts.onMoveCommitted?.(move);

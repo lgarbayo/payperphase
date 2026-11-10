@@ -108,8 +108,13 @@ export default function GanttLab() {
     if (q.get("ghost") === "1") setGhost({ phaseId: "ph2", newStartDate: addDays("2027-01-12", 91) });
     const scenario = q.get("scenario");
     const base = goldenPlan();
-    if (scenario === "delay") setPlan(reschedule(base, GOLDEN_DELAY_MOVE, t && isIsoDate(t) ? t : GOLDEN_START_DATE).plan);
-    if (scenario === "late") setPlan(reschedule(base, LATE_MOVE, t && isIsoDate(t) ? t : GOLDEN_START_DATE).plan);
+    const at = t && isIsoDate(t) ? t : GOLDEN_START_DATE;
+    try {
+      if (scenario === "delay") setPlan(reschedule(base, GOLDEN_DELAY_MOVE, at).plan);
+      if (scenario === "late") setPlan(reschedule(base, LATE_MOVE, at).plan);
+    } catch {
+      /* scenario not valid at that simulated date: keep the golden plan */
+    }
   }, []);
 
   const shownPlan = useMemo(() => (paidPh1 ? withPaidPhase(plan, "ph1", GOLDEN_START_DATE) : plan), [plan, paidPh1]);
@@ -123,10 +128,14 @@ export default function GanttLab() {
     return out;
   }, [shownPlan.approvedNotes]);
 
-  const ghostShifts: PhaseShift[] | undefined = useMemo(
-    () => (ghost ? reschedule(shownPlan, ghost, today).shifts : undefined),
-    [ghost, shownPlan, today],
-  );
+  const ghostShifts: PhaseShift[] | undefined = useMemo(() => {
+    if (!ghost) return undefined;
+    try {
+      return reschedule(shownPlan, ghost, today).shifts;
+    } catch {
+      return undefined; // e.g. the preview date fell into the simulated past
+    }
+  }, [ghost, shownPlan, today]);
 
   const phaseTitle = (phaseId: string) => {
     const p = shownPlan.phases.find((x) => x.id === phaseId);
@@ -140,7 +149,13 @@ export default function GanttLab() {
       push("primary", `whatif ${move.phaseId} → ${move.newStartDate}`);
       // Simulated POST /api/plans/:id/whatif: the "server" runs the engine and returns the new plan.
       setTimeout(() => {
-        setPlan((p) => ({ ...reschedule(p, move, today).plan, version: p.version + 1 }));
+        setPlan((p) => {
+          try {
+            return reschedule(p, move, today).plan;
+          } catch {
+            return p; // the "server" re-validates and refuses: keep the persisted plan
+          }
+        });
         setSaving(false);
       }, PERSIST_LATENCY_MS);
     },
