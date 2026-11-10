@@ -58,7 +58,7 @@ function run(dir: string, env: Record<string, string> = {}) {
       HOME: dir,
       FAKE_NPM_LOG: log,
       ...env,
-    },
+    } as unknown as NodeJS.ProcessEnv,
   });
   const calls = existsSync(log) ? readFileSync(log, "utf8").trim().split("\n") : [];
   return { status: res.status, out: `${res.stdout}${res.stderr}`, calls, npmrc: readFileSync(path.join(dir, ".npmrc"), "utf8") };
