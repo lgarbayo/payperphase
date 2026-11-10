@@ -10,7 +10,7 @@ owns:
   - src/i18n/pay.ts
   - tests/paypal/**
   - docs/spikes/paylater-es.md
-status: todo
+status: merged
 hours: 3
 criteria: [Technological Implementation, Potential Impact, Presentation]
 ---
