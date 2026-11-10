@@ -3,6 +3,7 @@ import {
   ExtractionResultSchema,
   INVOICE_NUMBER_RE,
   PAY_IN_3,
+  PlanDiffSchema,
   PlanSchema,
   RawExtractionSchema,
   formatInvoiceNumber,
@@ -11,6 +12,7 @@ import {
   phaseCustomId,
 } from "@/contracts";
 import {
+  GOLDEN_BONE_GRAFT_DIFF,
   GOLDEN_BONE_GRAFT_EDIT,
   GOLDEN_EXTRACTION,
   GOLDEN_PLAN,
@@ -24,6 +26,19 @@ describe("golden implant fixture", () => {
     expect(RawExtractionSchema.parse(GOLDEN_RAW_EXTRACTION)).toBeTruthy();
     expect(ExtractionResultSchema.parse(GOLDEN_EXTRACTION)).toBeTruthy();
     expect(PlanSchema.parse(GOLDEN_PLAN)).toBeTruthy();
+    expect(PlanDiffSchema.parse(GOLDEN_BONE_GRAFT_DIFF)).toBeTruthy();
+  });
+
+  it("bone-graft diff: +€450 on ph2 (still Pay in 3), ph3/ph4 +28 days on clinic days", () => {
+    const [ph2, ph3, ph4] = GOLDEN_BONE_GRAFT_DIFF.phases;
+    expect(GOLDEN_BONE_GRAFT_EDIT.kind === "ADD_LINE" && GOLDEN_BONE_GRAFT_EDIT.line.unitPriceCents).toBe(45_000);
+    expect(ph2?.amountAfterCents).toBe(150_000 + 45_000);
+    expect(ph2?.amountAfterCents).toBeLessThanOrEqual(PAY_IN_3.maxCents);
+    const ph2End = GOLDEN_PLAN.phases[1]!.endDate;
+    expect(ph3?.startAfter).toBe(addDays(ph2End, 112));
+    expect(ph4?.startAfter).toBe(addDays(addDays(ph3!.startAfter, 1), 14));
+    for (const p of [ph3, ph4]) expect([1, 2, 3, 4, 5]).toContain(new Date(`${p!.startAfter}T00:00:00Z`).getUTCDay());
+    expect(GOLDEN_BONE_GRAFT_DIFF.totalDeltaCents).toBe(45_000);
   });
 
   it("Σ lines = printed total = Σ phases", () => {

@@ -3,7 +3,7 @@
  * OWNED BY WP-08. FDI odontogram (SVG) with per-tooth treatment marks and staggered reveal.
  * SCAFFOLD STUB: simple tooth-number grid.
  */
-import type { FdiTooth, Locale, ProcedureCategory } from "@/contracts";
+import type { FdiTooth, Locale, Phase, ProcedureCategory, QuoteLine } from "@/contracts";
 import { PERMANENT_TEETH } from "@/contracts";
 import { cx } from "@/lib/ui";
 
@@ -23,6 +23,21 @@ export interface OdontogramProps {
   revealStaggerMs?: number;
   locale: Locale;
   size?: "sm" | "md" | "lg";
+}
+
+/**
+ * Quote lines (+ optional plan phases) → per-tooth marks. WP-07 calls it as lines reveal.
+ * SCAFFOLD STUB: one "planned" mark per printed tooth; WP-08 adds extract/implant/crown states.
+ */
+export function marksFromLines(lines: QuoteLine[], phases?: Phase[]): ToothMark[] {
+  return lines.flatMap((l) =>
+    l.teeth.map((tooth) => ({
+      tooth,
+      category: l.category,
+      phaseN: phases?.find((p) => p.lineIds.includes(l.id))?.n,
+      state: "planned" as const,
+    })),
+  );
 }
 
 export function Odontogram({ marks, highlight = [] }: OdontogramProps) {

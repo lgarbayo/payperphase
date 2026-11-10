@@ -18,7 +18,7 @@
  * If WP-01's engine output differs from GOLDEN_PLAN, file a Contract change request rather than
  * editing this file; tests/contracts asserts its internal consistency.
  */
-import type { ExtractionResult, Plan, PlanEdit, RawExtraction } from "@/contracts";
+import type { ExtractionResult, Plan, PlanDiff, PlanEdit, RawExtraction } from "@/contracts";
 
 export const GOLDEN_PLAN_ID = "pln_ribera01";
 export const GOLDEN_QUOTE_ID = "q_ribera_implant_001";
@@ -271,6 +271,76 @@ export const GOLDEN_BONE_GRAFT_EDIT: PlanEdit = {
     qty: 1,
     unitPriceCents: 45_000,
   },
+};
+
+/**
+ * diffPlans(GOLDEN_PLAN, applyEdit(GOLDEN_PLAN, GOLDEN_BONE_GRAFT_EDIT, now)). WP-01 must produce exactly
+ * this. WP-03 (explainDiff), WP-07 (diff panel) and WP-10 (reissue at €1,950) use it so they never wait
+ * for the engine. ph2→ph3 min lag becomes 112 days (BONE_GRAFT_HEALING_16W): ph3 and ph4 move +28 days.
+ */
+export const GOLDEN_BONE_GRAFT_DIFF: PlanDiff = {
+  planId: GOLDEN_PLAN_ID,
+  fromVersion: 1,
+  toVersion: 2,
+  totalBeforeCents: GOLDEN_TOTAL_CENTS,
+  totalAfterCents: GOLDEN_TOTAL_CENTS + 45_000,
+  totalDeltaCents: 45_000,
+  phases: [
+    {
+      phaseId: "ph2",
+      n: 2,
+      amountBeforeCents: 150_000,
+      amountAfterCents: 195_000,
+      deltaCents: 45_000,
+      fitBefore: "PAY_IN_3",
+      fitAfter: "PAY_IN_3",
+      addedLines: [
+        {
+          id: "E1",
+          lineNo: 13,
+          description: "Injerto óseo con membrana (regeneración ósea guiada) pieza 36",
+          code: "BONE_GRAFT",
+          category: "SURGICAL",
+          teeth: [36],
+          qty: 1,
+          unitPriceCents: 45_000,
+          totalCents: 45_000,
+          confidence: 1,
+          issues: [],
+          source: "clinic_edit",
+        },
+      ],
+      removedLines: [],
+      startBefore: "2027-01-12",
+      startAfter: "2027-01-12",
+    },
+    {
+      phaseId: "ph3",
+      n: 3,
+      amountBeforeCents: 52_000,
+      amountAfterCents: 52_000,
+      deltaCents: 0,
+      fitBefore: "PAY_IN_3",
+      fitAfter: "PAY_IN_3",
+      addedLines: [],
+      removedLines: [],
+      startBefore: "2027-04-07",
+      startAfter: "2027-05-05",
+    },
+    {
+      phaseId: "ph4",
+      n: 4,
+      amountBeforeCents: 169_000,
+      amountAfterCents: 169_000,
+      deltaCents: 0,
+      fitBefore: "PAY_IN_3",
+      fitAfter: "PAY_IN_3",
+      addedLines: [],
+      removedLines: [],
+      startBefore: "2027-04-22",
+      startAfter: "2027-05-20",
+    },
+  ],
 };
 
 /** The demo's delay what-if (beat 3): implants 6 weeks later; ph3/ph4 follow by 42 days. */
