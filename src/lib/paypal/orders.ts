@@ -211,6 +211,7 @@ async function captureInternal(req: CapturePhaseOrderRequest, via: PaymentVia): 
     }
     throw e;
   }
+  declines.delete(req.orderId);
 
   const applied = await applyOrderCapture(order, { planId: plan.id, phaseId: phase.id }, via);
   return { outcome: applied.outcome, captureId: applied.captureId, paidCents: applied.paidCents, mode };
