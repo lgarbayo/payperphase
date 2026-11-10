@@ -4,8 +4,9 @@
  * with data-pp-amount = the phase amount. Mounted only for amounts inside the Pay Later range; PayPal
  * alone decides what it says. Our own copy never claims eligibility.
  *
- * Mock mode (no PayPal client id): no SDK is loaded; we show our neutral range line
- * ("Dentro del rango de Paga en 3 (20 €–2.000 €)") with a ModeBadge, never an imitation of the message.
+ * Mock mode (no PayPal client id): no SDK is loaded; the slot says, in our words, that PayPal's official
+ * message appears here, with a ModeBadge. Never an imitation of the message, never an eligibility claim
+ * (the phase card already carries the "within Pay in 3 range" fit badge).
  */
 import { useEffect, useRef, useState } from "react";
 import type { Locale } from "@/contracts";
@@ -34,7 +35,7 @@ export function PayLaterMessage({ amountCents, locale }: { amountCents: number; 
         data-mode="mock"
         className="flex flex-wrap items-center gap-2 text-xs text-muted"
       >
-        <span>{translate("pay", locale, "payLaterRange")}</span>
+        <span>{translate("pay", locale, "payLaterSlot")}</span>
         <ModeBadge mode="mock" what={translate("pay", locale, "payLaterWhat")} locale={locale} />
       </div>
     );

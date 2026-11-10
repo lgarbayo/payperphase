@@ -253,13 +253,13 @@ describe("<PayLaterMessage/>", () => {
     expect(document.head.querySelectorAll("script[data-namespace]")).toHaveLength(0);
   });
 
-  it("in mock mode shows only our neutral range line with a mock badge (never an imitation)", async () => {
+  it("in mock mode shows only a labelled placeholder for PayPal's message (never an imitation or a claim)", async () => {
     stubApi(MOCK_CONFIG);
     render(<PayLaterMessage amountCents={195_000} locale="es" />);
     await waitFor(() => expect(screen.getByTestId("paylater-message").getAttribute("data-mode")).toBe("mock"));
     const el = screen.getByTestId("paylater-message");
     expect(el.getAttribute("data-pp-amount")).toBe("1950.00");
-    expect(el.textContent).toContain("Dentro del rango de Paga en 3 (20 €–2.000 €)");
+    expect(el.textContent).toContain("Aquí aparece el mensaje oficial de PayPal sobre el pago a plazos.");
     expect(el.textContent).toContain("Simulación");
     expect(el.textContent).not.toMatch(/elegible|eligible/i);
     expect(document.head.querySelectorAll("script[data-namespace]")).toHaveLength(0);

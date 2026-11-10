@@ -28,6 +28,7 @@ export default {
     sdkError: "No se ha podido cargar PayPal.",
     retry: "Reintentar",
     payLaterRange: "Dentro del rango de Paga en 3 (20 €–2.000 €)",
+    payLaterSlot: "Aquí aparece el mensaje oficial de PayPal sobre el pago a plazos.",
     onlyThisPhase: "Pago único de esta fase. Nunca se cobra por adelantado.",
   },
   en: {
@@ -52,6 +53,7 @@ export default {
     sdkError: "PayPal could not be loaded.",
     retry: "Retry",
     payLaterRange: "Within Pay in 3 range (€20–€2,000)",
+    payLaterSlot: "PayPal's official Pay Later message appears here.",
     onlyThisPhase: "One-off payment for this phase. Never charged in advance.",
   },
 } as const satisfies Dictionary;
