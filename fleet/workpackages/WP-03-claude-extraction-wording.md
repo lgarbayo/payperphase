@@ -9,7 +9,7 @@ owns:
   - app/api/wording/**
   - tests/ai-extract/**
   - docs/spikes/claude-pdf.md
-status: todo
+status: merged
 hours: 2.5
 criteria: [Technological Implementation, Quality of the Idea, Presentation]
 ---
