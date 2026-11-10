@@ -82,6 +82,7 @@ export default {
     resultDiff: "Cambio leído",
     resultError: "PayPal devolvió un error: {{message}}",
     resultDuplicate: "El número {{number}} ya existe en PayPal → se usa {{next}}",
+    resultRecordFallback: "PayPal no conoce esa transacción → se registra como pago externo",
 
     guardAmount: "{{actual}} ≠ motor {{expected}}",
     guardCurrency: "Moneda {{currency}} no permitida: solo EUR",
@@ -209,6 +210,7 @@ export default {
     resultDiff: "Change read",
     resultError: "PayPal returned an error: {{message}}",
     resultDuplicate: "Number {{number}} already exists at PayPal → using {{next}}",
+    resultRecordFallback: "PayPal does not know that transaction → recording it as an external payment",
 
     guardAmount: "{{actual}} ≠ engine {{expected}}",
     guardCurrency: "Currency {{currency}} not allowed: EUR only",

@@ -241,7 +241,7 @@ export function checkToolCall(name: string, input: unknown, ctx: GuardContext): 
 
 /**
  * PayPal rejects a reused invoice_number (demo resets, earlier runs). The toolkit flattens the error
- * into a message, so match the issue code and the human description.
+ * into a message; live sandbox text (spike): "Invoice number is duplicate." (HTTP 422).
  */
 export function isDuplicateInvoiceNumberError(output: unknown): boolean {
   let text: string;
@@ -250,7 +250,7 @@ export function isDuplicateInvoiceNumberError(output: unknown): boolean {
   } catch {
     return false;
   }
-  return /DUPLICATE_INVOICE_(ID|NUMBER)|invoice number (already exists|is already (in use|used))|already been used/i.test(
+  return /DUPLICATE_INVOICE_(ID|NUMBER)|invoice number (is duplicate|already exists|is already (in use|used))|already been used/i.test(
     text,
   );
 }

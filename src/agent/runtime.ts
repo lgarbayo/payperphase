@@ -240,6 +240,23 @@ export class AgentRun {
       }
     }
 
+    // Live spike: method PAYPAL needs a transaction PayPal knows (404 otherwise). Deterministic fallback
+    // (never model-chosen, amount already guard-checked): record it as an external payment so the invoice
+    // still closes and the patient cannot pay twice. The capture id goes into the note.
+    if (!res.ok && invoiceTool === "record_payment_for_invoice" && isRecord(res.output) && res.output.status === 404) {
+      const { payment_id: captureId, ...rest } = input;
+      await this.emit({
+        kind: "tool_result",
+        tool: invoiceTool,
+        phaseId,
+        ok: false,
+        output: res.output,
+        text: lt("resultRecordFallback"),
+      });
+      const note = `PayPal capture ${typeof captureId === "string" ? captureId : "—"}${typeof input.note === "string" ? ` · ${input.note}` : ""}`;
+      res = await this.tools.call(invoiceTool, { ...rest, method: "OTHER", note: note.slice(0, 2000) });
+    }
+
     if (!res.ok) {
       const message = errorMessageOf(res.output);
       this.issues++;
