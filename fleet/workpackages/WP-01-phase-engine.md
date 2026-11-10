@@ -5,7 +5,7 @@ deps: []
 owns:
   - src/engine/**
   - tests/engine/**
-status: todo
+status: merged
 hours: 3
 criteria: [Technological Implementation, Potential Impact, Best Use of Bryntum]
 ---
@@ -61,4 +61,4 @@ Keep every exported signature in `src/engine/index.ts`; the scaffold stub alread
 - Gantt (WP-05), patient page (WP-06), chat (WP-11), server (WP-09) and PayPal (WP-04) all import from `@/engine`, so keep it free of Node-only and React imports.
 
 ## Contract change requests
-_None yet._
+- **Deferred (integrator).** Add a `FitReason` such as `OVER_PAY_IN_3_MAX_AFTER_EDIT` for a divisible phase that `applyEdit` pushes over €2,000 (today it is flagged `INSTALLMENTS` / `INDIVISIBLE_ITEM_OVER_PAY_IN_3_MAX`, because `applyEdit` does not re-split, so ids and F{n} numbers stay stable). Not applied at merge: it is optional, the golden fixtures do not need it, the `FitBand` contract says INSTALLMENTS is "only when indivisible", and a new enum value would break the exhaustive `formatFit` switch in WP-06 (`src/components/patient/format.ts`). Revisit once WP-06 has merged.
