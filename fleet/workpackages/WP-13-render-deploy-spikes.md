@@ -53,5 +53,7 @@ The scaffold is live on a public Render URL **before any feature merges** (Gate 
 - Never commit secrets. `.env` is git-ignored.
 - The `build` must not need any secret: everything mocks without keys.
 
+- **Free-plan fallback (the human may not have Render credits; Starter costs about $7/month):** keep `plan: starter` in `render.yaml`, but also support the free plan. Boot must reseed when `DATA_DIR` has no `db.json` (free has no disk). Add `.github/workflows/keep-warm.yml`, which pings `${RENDER_URL}/api/health` every 10 minutes from a repo variable `RENDER_URL` and is a no-op when the variable is unset. The free plan sleeps after 15 minutes and a webhook to a sleeping instance can fail, so the return reconcile (WP-04) remains the source of truth. Document both options in `docs/deploy.md`.
+
 ## Contract change requests
 _None yet._
