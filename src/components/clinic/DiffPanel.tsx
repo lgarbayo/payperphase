@@ -166,7 +166,9 @@ export function DiffPanel({ result, locale, t, onDismiss }: DiffPanelProps) {
                   const moved = p.startBefore !== p.startAfter;
                   return (
                     <tr key={p.phaseId} data-testid={`diff-row-${p.phaseId}`} className="align-top">
-                      <td className="py-2 pr-3 font-medium text-ink">{t("phaseLabel", { n: p.n })}</td>
+                      <td className="whitespace-nowrap py-2 pr-3 font-medium text-ink">
+                        {t("phaseLabel", { n: p.n })}
+                      </td>
                       <td className="py-2 pr-3 tabular-nums">
                         {p.deltaCents === 0 ? (
                           <span className="text-muted">{formatCents(p.amountAfterCents, locale)}</span>
@@ -196,17 +198,21 @@ export function DiffPanel({ result, locale, t, onDismiss }: DiffPanelProps) {
                               <Icon.Arrow width={12} height={12} className="text-muted" />
                             </>
                           )}
-                          <Badge tone={FIT_TONE[p.fitAfter]}>{t(FIT_LABEL[p.fitAfter])}</Badge>
+                          <Badge tone={FIT_TONE[p.fitAfter]} className="whitespace-nowrap">
+                            {t(FIT_LABEL[p.fitAfter])}
+                          </Badge>
                         </span>
                       </td>
                       <td className="py-2 tabular-nums">
                         {moved ? (
                           <span className="flex flex-wrap items-center gap-x-2">
-                            <span className="text-muted line-through decoration-muted/60">
+                            <span className="whitespace-nowrap text-muted line-through decoration-muted/60">
                               {formatIsoDate(p.startBefore, locale)}
                             </span>
                             <Icon.Arrow width={12} height={12} className="text-muted" />
-                            <span className="font-medium text-ink">{formatIsoDate(p.startAfter, locale)}</span>
+                            <span className="whitespace-nowrap font-medium text-ink">
+                              {formatIsoDate(p.startAfter, locale)}
+                            </span>
                           </span>
                         ) : (
                           <span className="text-muted">{formatIsoDate(p.startAfter, locale)}</span>
