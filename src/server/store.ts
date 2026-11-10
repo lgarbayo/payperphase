@@ -40,6 +40,8 @@ import { newPlanId, randomAlnum } from "./ids";
 import { DbSchema, beatHasHero, seedDb, type Db } from "./seed";
 
 export const DB_FILE_NAME = "db.json";
+/** serverEnv()'s DATA_DIR default. */
+const DEFAULT_DATA_DIR = "./.data";
 /** Oldest agent steps are dropped beyond this many (keeps db.json small through judging). */
 export const MAX_AGENT_STEPS = 5_000;
 
@@ -65,18 +67,19 @@ export interface ServerStore extends PlanStore {
   advanceClock(days: number): Promise<SimClock>;
   /** Re-derive every plan's payment statuses at the current simulated day (boot). No events. */
   refreshPaymentStatuses(): Promise<PlanStatusChange[]>;
-  /** Absolute path of db.json. */
-  dbPath(): string;
+  /** Absolute path of db.json, or null for an in-memory store. */
+  dbPath(): string | null;
 }
 
 export interface StoreOptions {
-  dataDir: string;
+  /** Directory holding db.json; null keeps everything in memory (nothing is read or written). */
+  dataDir: string | null;
   /** First simulated day (SIM_START_DATE); boot, reset and every beat put the clock here. */
   simStart: string;
 }
 
 interface StoreState {
-  file: string;
+  file: string | null;
   simStart: string;
   db: Db | null;
   loading: Promise<Db> | null;
@@ -85,7 +88,7 @@ interface StoreState {
 
 function newState(opts: StoreOptions): StoreState {
   return {
-    file: path.resolve(opts.dataDir, DB_FILE_NAME),
+    file: opts.dataDir === null ? null : path.resolve(opts.dataDir, DB_FILE_NAME),
     simStart: opts.simStart,
     db: null,
     loading: null,
@@ -98,7 +101,11 @@ const g = globalThis as unknown as { __pppStoreState?: StoreState };
 function globalState(): StoreState {
   if (!g.__pppStoreState) {
     const env = serverEnv();
-    g.__pppStoreState = newState({ dataDir: env.DATA_DIR, simStart: env.SIM_START_DATE });
+    // Under Vitest (NODE_ENV=test) with the default DATA_DIR the store is in-memory, like the scaffold
+    // stub was: tests that touch the real store stay hermetic (nothing shared between parallel workers
+    // or carried over from the last run in ./.data). Set DATA_DIR explicitly to test the file store.
+    const dataDir = env.NODE_ENV === "test" && env.DATA_DIR === DEFAULT_DATA_DIR ? null : env.DATA_DIR;
+    g.__pppStoreState = newState({ dataDir, simStart: env.SIM_START_DATE });
   }
   return g.__pppStoreState;
 }
@@ -106,11 +113,13 @@ function globalState(): StoreState {
 // ---------------------------------------------------------------- persistence
 
 async function writeDb(s: StoreState, db: Db): Promise<void> {
-  await mkdir(path.dirname(s.file), { recursive: true });
-  const tmp = `${s.file}.${process.pid}.${randomAlnum(6)}.tmp`;
+  if (s.file === null) return;
+  const file = s.file;
+  await mkdir(path.dirname(file), { recursive: true });
+  const tmp = `${file}.${process.pid}.${randomAlnum(6)}.tmp`;
   await writeFile(tmp, `${JSON.stringify(db, null, 2)}\n`, "utf8");
   try {
-    await rename(tmp, s.file);
+    await rename(tmp, file);
   } catch (err) {
     await rm(tmp, { force: true }).catch(() => undefined);
     throw err;
@@ -118,6 +127,7 @@ async function writeDb(s: StoreState, db: Db): Promise<void> {
 }
 
 async function readDbFile(s: StoreState): Promise<{ db: Db } | { missing: true } | { invalid: string }> {
+  if (s.file === null) return { missing: true };
   let text: string;
   try {
     text = await readFile(s.file, "utf8");
@@ -149,7 +159,7 @@ function load(s: StoreState): Promise<Db> {
     if ("db" in res) {
       db = res.db;
     } else {
-      if ("invalid" in res) {
+      if ("invalid" in res && s.file !== null) {
         const aside = `${s.file}.corrupt-${Date.now()}`;
         console.warn(`[store] ${s.file} is invalid (${res.invalid}); moved to ${aside} and reseeding.`);
         await rename(s.file, aside).catch(() => undefined);

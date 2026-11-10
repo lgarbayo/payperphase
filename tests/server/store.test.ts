@@ -292,6 +292,36 @@ describe("boot", () => {
   });
 });
 
+describe("test isolation", () => {
+  afterEach(() => {
+    __resetStoreForTests();
+  });
+
+  it("with the default DATA_DIR under Vitest, the global store is in-memory (never touches ./.data)", async () => {
+    delete process.env.DATA_DIR;
+    resetEnvCache();
+    __resetStoreForTests();
+    expect(process.env.NODE_ENV).toBe("test");
+    vi.mocked(rename).mockClear();
+    expect(globalStore.dbPath()).toBeNull();
+    await globalStore.init();
+    expect((await globalStore.getPlan(HERO_PLAN_ALIAS))?.id).toBe(GOLDEN_PLAN_ID);
+    await globalStore.updatePlan(HERO_PLAN_ALIAS, (p) => ({ ...p, status: "completed" }));
+    expect((await globalStore.getPlan(HERO_PLAN_ALIAS))?.status).toBe("completed");
+    await globalStore.resetDemo();
+    expect((await globalStore.getPlan(HERO_PLAN_ALIAS))?.status).toBe("approved");
+    expect(rename).not.toHaveBeenCalled();
+    resetEnvCache();
+  });
+
+  it("createStore({dataDir:null}) is a working in-memory store", async () => {
+    const mem = createStore({ dataDir: null, simStart: SIM_DEFAULT_START });
+    expect(await mem.recordWebhookEvent(webhook("WH-1"))).toBe(true);
+    expect(await mem.recordWebhookEvent(webhook("WH-1"))).toBe(false);
+    expect((await mem.getClock()).today).toBe(SIM_DEFAULT_START);
+  });
+});
+
 describe("resetDemo", () => {
   it("re-ids the hero (fresh pln_ + 8, new plan4), clears agent/approval/webhook records, publishes DEMO_RESET", async () => {
     await s.savePlan(otherPlan("pln_user0001", { status: "draft" }));
