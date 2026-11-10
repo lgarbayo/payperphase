@@ -60,6 +60,8 @@ The patient pays **exactly one clinical phase** with a one-time PayPal Orders v2
 - Sandbox token lifetime is 3–8 h. Always go through `getAccessToken()`.
 - **Should (spike-gated, cut #7):** if Pay Later renders under AUTHORIZE, support `PHASE_PAYMENT_INTENT=AUTHORIZE`: authorize at check-in ("reserved, not charged"), capture on the clinic's "Phase delivered", and void on the clinic-closure demo. Otherwise CAPTURE only.
 - Never log secrets or full tokens.
+- **Spike results (2026-11-10, real ES sandbox app, see ~/hackathon-fleet/hackathons/paypal-ai-2026/spikes/SPIKES.md):** Pay Later ES renders with JS SDK v5 + `enable-funding=paylater&buyer-country=ES&currency=EUR&locale=es_ES`. By default the message switches to \"hasta 24 plazos\" above ~€500, so `PayLaterMessage` must pass **`data-pp-offer=\"PAY_LATER_SHORT_TERM\"`** (Pay in 3) for every phase in €20–€2,000: 360 → 3 × 120,00 €, 1500 → 3 × 500,00 €, 1690 → 3 × 563,34 €. Above €2,000 omit the offer (installments message). Keep SDK v5. Add a test that asserts the attribute.
+- Webhook signatures: verify only with the postback endpoint `POST /v1/notifications/verify-webhook-signature` (offline verification is not proven). Treat `INVOICING.INVOICE.SENT` as optional.
 
 ## Contract change requests
 _None yet._

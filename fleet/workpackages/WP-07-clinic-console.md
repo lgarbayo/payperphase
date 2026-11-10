@@ -7,7 +7,7 @@ owns:
   - src/components/clinic/**
   - src/i18n/clinic.ts
   - tests/clinic/**
-status: todo
+status: merged
 hours: 3
 criteria: [Design, Technological Implementation, Presentation]
 ---
