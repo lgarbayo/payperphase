@@ -72,8 +72,8 @@ function OfficialMessage({
         ref.current.replaceChildren();
         return paypal
           .Messages({
+            // Currency comes from the SDK URL (currency=EUR); PayPal validates it against the merchant.
             amount: amountCents / 100,
-            currency: "EUR",
             placement: "payment",
             style: { layout: "text", logo: { type: "inline" }, text: { color: "black", size: 12 } },
             onRender: () => {

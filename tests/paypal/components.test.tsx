@@ -183,7 +183,7 @@ describe("live mode: the JS SDK is loaded once and drives our server", () => {
 
     await waitFor(() => expect(buttons).toHaveLength(2));
     await waitFor(() => expect(messages).toHaveLength(1));
-    expect(messages[0]).toMatchObject({ amount: 360, currency: "EUR" });
+    expect(messages[0]).toMatchObject({ amount: 360, placement: "payment" });
     const msg = screen.getByTestId("paylater-message");
     expect(msg.getAttribute("data-pp-amount")).toBe("360.00");
     await waitFor(() => expect(msg.getAttribute("data-rendered")).toBe("true"));
