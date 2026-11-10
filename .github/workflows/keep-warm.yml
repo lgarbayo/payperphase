@@ -1,0 +1,16 @@
+# Free-plan fallback: keeps a sleeping Render instance warm. No-op when the repo variable RENDER_URL is unset.
+# Set it under Settings > Secrets and variables > Actions > Variables, e.g. https://payperphase.onrender.com
+name: keep-warm
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    if: ${{ vars.RENDER_URL != '' }}
+    steps:
+      - name: Ping /api/health
+        run: curl --fail --silent --show-error --retry 3 --max-time 60 "${RENDER_URL%/}/api/health"
+        env:
+          RENDER_URL: ${{ vars.RENDER_URL }}
