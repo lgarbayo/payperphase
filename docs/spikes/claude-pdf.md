@@ -2,7 +2,7 @@
 
 **Question.** Can Claude Sonnet 5.5 read the hero presupuesto (a base64 PDF document block) into `RawExtraction` through structured outputs, fast and accurately enough for beat B1, with code doing every money, date and tooth check?
 
-**Status: offline parts verified, including the exact request the real SDK puts on the wire. The live run (acceptance criterion 8) is still an OPEN GAP. It needs a human with a sandbox key.** The builder environment had no credential source, and the review-fix pass on 2026-11-10 checked again: no `ANTHROPIC_API_KEY` in the environment, no `.env`, no `ant` CLI and no `~/.config/anthropic` profile. No latency or accuracy figure below is invented: the table stays empty until someone follows the [live-run checklist](#live-run-checklist-for-whoever-has-the-key).
+**Status: live run passed on 2026-11-11 00:30 CET** (acceptance criterion 8 met). Claude Sonnet 5.5 read the stand-in hero PDF exactly: 12 of 12 lines, Σ = printed total, 0 invalid teeth, 8.5 s. The API accepted the request as sent (no 400, no self-heal retry). Note for the video: every line came back with confidence ≥ 0.97, so the live check bar shows "0 to review" while the cached golden extraction shows "1 to review" (L12 = 0.74). The script must say which one is on screen.
 
 What is still unproven without a key: whether the API *accepts* the request (the `fallbacks` field and beta header for this account, and the compiled schema), and the latency and accuracy at `effort: "low"`. What is proven offline: what is sent, how every failure is handled, and that the self-heal covers any 400 the fallback opt-in could cause (see [What was verified offline](#what-was-verified-offline)). If the live call fails anyway, the demo is not broken: the known hero PDF and `sampleId` return the golden extraction labelled `source: "cached"`. An *unknown* uploaded PDF, though, gets a 502 `EXTRACTION_FAILED` instead of a live read.
 
@@ -32,7 +32,7 @@ The script calls the same `liveExtract()` the route uses, with no cached fallbac
 
 | Run | PDF | Model served | Latency | Lines exact (of 12) | Σ = printed | To review | Notes |
 |---|---|---|---|---|---|---|---|
-| — | — | — | — | — | — | — | pending: no credential source in the builder or review-fix environment (re-checked 2026-11-10) |
+| 1 | stand-in (sha256 0ba96fb2…bd2dd) | claude-sonnet-5-5 | 8,475 ms | 12 | yes (407000 = 407000) | none (L12 = 0.97) | run by the integrator with `npx tsx src/ai/extract/spike/run.ts --runs 1`; quoteDate 2026-11-12; rerun on the WP-02 PDF once it exists |
 
 Acceptance for the demo: at least 11 of 12 lines exact, `sumMatches: true`, `L12` (confidence < 0.8) the only line to review, and p50 latency under 20 s. If latency is too high, keep `effort: "low"` and record the video on the labelled cached extraction, as SPEC cut item 9 allows.
 

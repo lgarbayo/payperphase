@@ -1,11 +1,59 @@
 import type { Dictionary } from "./types";
 
-/** Owned by WP-04. Add keys to BOTH es and en (tests/i18n checks parity). */
+/**
+ * Owned by WP-04. Add keys to BOTH es and en (tests/i18n checks parity).
+ * Our own copy never claims Pay Later eligibility: the official PayPal message speaks for itself,
+ * and we only ever say "within Pay in 3 range (€20–€2,000)".
+ */
 export default {
   es: {
-    title: "pay",
+    title: "Pago de la fase",
+    payWithPayPal: "Pagar con PayPal",
+    mockPay: "Pagar (simulación)",
+    mockWhat: "PayPal",
+    payLaterWhat: "Paga a plazos",
+    notDueReason: "Se paga el día de la visita",
+    working: "Procesando el pago…",
+    paid: "Pagado",
+    pending: "PayPal está revisando el pago. La fase aparecerá como pagada en cuanto se confirme.",
+    declined: "PayPal no ha aceptado ese método de pago. Prueba con otro.",
+    cancelled: "Has cerrado PayPal sin pagar. Puedes intentarlo de nuevo cuando quieras.",
+    errorGeneric: "No se ha podido completar el pago. Inténtalo de nuevo.",
+    errorNotDue: "Esta fase aún no se puede pagar: se paga el día de la visita.",
+    errorAlreadyPaid: "Esta fase ya está pagada.",
+    errorProcessing: "Ya hay un pago en curso para esta fase.",
+    errorPlanNotApproved: "Tu clínica todavía no ha aprobado el plan.",
+    errorNetwork: "Sin conexión con el servidor. Comprueba tu red e inténtalo de nuevo.",
+    sdkLoading: "Cargando PayPal…",
+    sdkError: "No se ha podido cargar PayPal.",
+    retry: "Reintentar",
+    payLaterRange: "Dentro del rango de Paga en 3 (20 €–2.000 €)",
+    payLaterSlot: "Aquí aparece el mensaje oficial de PayPal sobre el pago a plazos.",
+    onlyThisPhase: "Pago único de esta fase. Nunca se cobra por adelantado.",
   },
   en: {
-    title: "pay",
+    title: "Phase payment",
+    payWithPayPal: "Pay with PayPal",
+    mockPay: "Pay (mock)",
+    mockWhat: "PayPal",
+    payLaterWhat: "Pay Later",
+    notDueReason: "Paid on the day of your visit",
+    working: "Processing payment…",
+    paid: "Paid",
+    pending: "PayPal is reviewing the payment. The phase will show as paid as soon as it is confirmed.",
+    declined: "PayPal did not accept that payment method. Please try another one.",
+    cancelled: "You closed PayPal without paying. You can try again whenever you like.",
+    errorGeneric: "The payment could not be completed. Please try again.",
+    errorNotDue: "This phase cannot be paid yet: it is paid on the day of your visit.",
+    errorAlreadyPaid: "This phase is already paid.",
+    errorProcessing: "A payment for this phase is already in progress.",
+    errorPlanNotApproved: "Your clinic has not approved the plan yet.",
+    errorNetwork: "Could not reach the server. Check your connection and try again.",
+    sdkLoading: "Loading PayPal…",
+    sdkError: "PayPal could not be loaded.",
+    retry: "Retry",
+    payLaterRange: "Within Pay in 3 range (€20–€2,000)",
+    payLaterSlot: "PayPal's official Pay Later message appears here.",
+    onlyThisPhase: "One-off payment for this phase. Never charged in advance.",
   },
 } as const satisfies Dictionary;
