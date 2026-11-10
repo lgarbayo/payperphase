@@ -395,7 +395,8 @@ export function planToBryntum(plan: Plan, opts: PlanToBryntumOptions): PlanToBry
   for (const m of Object.values(meta)) {
     if (m.deadlineDate && m.deadlineDate > hi && daysBetween(hi, m.deadlineDate) <= 30) hi = addDays(m.deadlineDate, 10);
   }
-  const startIso = addDays(lo, -18);
+  // Left padding scales with the span so the first date label never clips when the chart is compressed.
+  const startIso = addDays(lo, -Math.max(18, Math.round(daysBetween(lo, hi) * 0.07)));
   const endIso = hi;
 
   return {

@@ -1,0 +1,13 @@
+import { chromium } from "@playwright/test";
+const port = process.argv[2], out = process.argv[3];
+const b = await chromium.launch({executablePath: process.env.CHROME});
+const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+p.on("console", m => { if (m.type()==="error") console.log("CONSOLE", m.text().slice(0,200)); });
+p.on("pageerror", e => console.log("PAGEERR", e.message.slice(0,200)));
+const go = async (q, name) => { await p.goto(`http://localhost:${port}/gantt-lab${q}`); await p.waitForSelector(".b-gantt .b-gantt-task, .b-sch-event", { timeout: 60000 }).catch(()=>console.log("no tasks", q)); await p.waitForTimeout(1500); await p.screenshot({ path: `${out}/${name}.png` }); };
+await go("", "01-golden");
+await go("?scenario=delay&ghost=1", "02-delay-baseline-ghost");
+await go("?paid=1&today=2027-01-05", "03-paid-today");
+await go("?scenario=late&today=2027-02-15", "04-late-deadline");
+await go("?lang=en&mode=patient", "05-en");
+await b.close();

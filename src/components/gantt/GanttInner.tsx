@@ -414,9 +414,11 @@ export default function GanttInner(props: PlanGanttProps) {
       listeners: {
         beforeTaskDrag: ({ taskRecord }: { taskRecord: TaskModel }) => {
           const m = metaOf(taskRecord.id);
-          return Boolean(
+          const ok = Boolean(
             m && m.kind === "visit" && m.draggable && latest.current.mode === "patient" && controller.canDrag(m.phaseId),
           );
+          if (ok) setFlash(null); // a new drag starts: drop the previous snap-back message
+          return ok;
         },
         afterTaskDrop: ({ taskRecords, valid }: { taskRecords: TaskModel[]; valid: boolean }) => {
           const rec = taskRecords[0];
