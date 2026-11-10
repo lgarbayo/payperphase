@@ -177,7 +177,7 @@ function checkCreateInvoice(input: Record<string, unknown>, ctx: GuardContext): 
   if (isPhaseSettled(phase) || (existing && PAID_INVOICE_STATUSES.includes(existing.status))) {
     return reject("PHASE_ALREADY_PAID", lt("guardPaid", { n: phase.n }), { phaseId: phase.id });
   }
-  if (isOpenInvoice(existing)) {
+  if (existing && isOpenInvoice(existing)) {
     return reject("INVOICE_ALREADY_OPEN", lt("guardOpen", { n: phase.n, number: existing.invoiceNumber }), {
       phaseId: phase.id,
     });
