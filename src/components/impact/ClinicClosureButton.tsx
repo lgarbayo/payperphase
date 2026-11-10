@@ -174,7 +174,10 @@ function ClosurePanel({
         initial={reduce ? false : { opacity: 0, y: 16, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.24, ease: "easeOut" }}
-        className="relative max-h-[calc(100vh-2rem)] w-full max-w-5xl overflow-y-auto rounded-[var(--ppp-radius)] bg-surface p-6 shadow-2xl outline-none sm:p-8"
+        // The container only receives programmatic focus (so screen readers announce the title);
+        // it is not a control, so no focus ring on camera.
+        style={{ outline: "none" }}
+        className="relative max-h-[calc(100vh-2rem)] w-full max-w-5xl overflow-y-auto rounded-[var(--ppp-radius)] bg-surface p-6 shadow-2xl sm:p-8"
       >
         <button
           type="button"
@@ -186,8 +189,8 @@ function ClosurePanel({
           <CloseIcon className="h-5 w-5" />
         </button>
 
-        <header className="pr-10">
-          <div className="flex flex-wrap items-center gap-2">
+        <header>
+          <div className="flex flex-wrap items-center gap-2 pr-10">
             <Badge tone="upcoming" data-testid="closure-illustrative" className="uppercase tracking-wide">
               <InfoIcon className="h-3.5 w-3.5" />
               {t("closureIllustrativeBadge")}
@@ -196,10 +199,10 @@ function ClosurePanel({
               {t("closureAsOf", { date: formatIsoDate(stress.asOf, locale) })}
             </Badge>
           </div>
-          <h2 id={titleId} className="mt-4 text-3xl font-semibold tracking-tight text-ink">
+          <h2 id={titleId} className="mt-4 pr-10 text-3xl font-semibold tracking-tight text-ink">
             {t("closureTitle")}
           </h2>
-          <div id={descId} className="mt-3 max-w-3xl space-y-1 text-base leading-relaxed text-muted">
+          <div id={descId} className="mt-3 space-y-1 text-base leading-relaxed text-muted">
             <p>{t("closureLine1")}</p>
             <p>{t("closureLine2")}</p>
           </div>

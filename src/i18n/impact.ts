@@ -30,9 +30,8 @@ export default {
     closureButtonHint: "Prueba de estrés ilustrativa",
     closureTitle: "¿Y si la clínica cierra hoy?",
     closureLine1:
-      "Con un préstamo vinculado financias todo el presupuesto el primer día: si la clínica cierra, sigues pagando las fases que nunca recibiste.",
-    closureLine2:
-      "Con PayPerPhase pagas cada fase el día que la recibes, así que no hay nada pagado por adelantado que perder.",
+      "Un préstamo vinculado financia todo el presupuesto el primer día: si la clínica cierra, sigues pagando lo que nunca recibiste.",
+    closureLine2: "Con PayPerPhase pagas cada fase el día que la recibes: no hay nada pagado por adelantado que perder.",
     closureIllustrativeBadge: "Ilustrativo",
     closureAsOf: "Fecha simulada · {{date}}",
     closureLoanLabel: "Préstamo vinculado",
@@ -78,9 +77,8 @@ export default {
     closureButtonHint: "Illustrative stress test",
     closureTitle: "What if the clinic closes today?",
     closureLine1:
-      "With a linked loan you finance the whole quote on day one: if the clinic closes, you keep paying for phases you never received.",
-    closureLine2:
-      "With PayPerPhase you pay each phase on the day you receive it, so there is nothing prepaid to lose.",
+      "A linked loan finances the whole quote on day one: if the clinic closes, you keep paying for treatment you never received.",
+    closureLine2: "With PayPerPhase you pay each phase on the day you receive it: nothing is prepaid, so nothing is lost.",
     closureIllustrativeBadge: "Illustrative",
     closureAsOf: "Simulated date · {{date}}",
     closureLoanLabel: "Linked loan",
