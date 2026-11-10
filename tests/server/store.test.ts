@@ -24,7 +24,7 @@ import {
 } from "@/contracts";
 import { GOLDEN_PLAN_ID, GOLDEN_QUOTE_ID, goldenPlan } from "@/contracts/fixtures/implantCase";
 import { resetEnvCache } from "@/env";
-import { boot } from "@/server/boot";
+import { announceBootState, boot } from "@/server/boot";
 import { InvalidRecordError, PlanNotFoundError } from "@/server/errors";
 import { getEventSimToday } from "@/server/events";
 import { DbSchema } from "@/server/seed";
@@ -288,6 +288,24 @@ describe("boot", () => {
     expect((await globalStore.getClock()).today).toBe("2027-01-04");
     expect(getEventSimToday()).toBe("2027-01-04");
     delete process.env.SIM_START_DATE;
+    resetEnvCache();
+  });
+
+  it("announceBootState publishes PLAN_APPROVED once after a fresh seed (agent issues invoices), never on a reboot", async () => {
+    process.env.DATA_DIR = dir;
+    resetEnvCache();
+    __resetStoreForTests();
+    await boot();
+    const bus = captureEvents();
+    await announceBootState();
+    await announceBootState();
+    expect(bus.events).toMatchObject([{ type: "PLAN_APPROVED", planId: GOLDEN_PLAN_ID, version: 1 }]);
+
+    __resetStoreForTests();
+    await boot(); // db.json exists now
+    await announceBootState();
+    bus.stop();
+    expect(bus.events).toHaveLength(1);
     resetEnvCache();
   });
 });

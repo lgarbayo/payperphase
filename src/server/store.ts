@@ -57,8 +57,11 @@ export interface PlanStatusChange {
  * add them to the interface). Consumers typed against PlanStore keep working unchanged.
  */
 export interface ServerStore extends PlanStore {
-  /** Load or seed db.json. Idempotent; every other method calls it implicitly. */
-  init(): Promise<void>;
+  /**
+   * Load or seed db.json. Idempotent; every other method calls it implicitly.
+   * `seeded` is true when this process created the DB from the seed (no file, or a corrupt one).
+   */
+  init(): Promise<{ seeded: boolean }>;
   /** Promote a plan to the hero (alias "demo"); null clears the alias. */
   setHeroPlanId(id: string | null): Promise<void>;
   /** Synchronous hero id (null before the first load). Used by the SSE alias filter. */
@@ -83,6 +86,8 @@ interface StoreState {
   simStart: string;
   db: Db | null;
   loading: Promise<Db> | null;
+  /** True once this process had to seed the DB (missing or invalid file). */
+  seeded: boolean;
   queue: Promise<unknown>;
 }
 
@@ -92,6 +97,7 @@ function newState(opts: StoreOptions): StoreState {
     simStart: opts.simStart,
     db: null,
     loading: null,
+    seeded: false,
     queue: Promise.resolve(),
   };
 }
@@ -166,6 +172,7 @@ function load(s: StoreState): Promise<Db> {
       }
       db = seedDb({ beat: "B2_PLAN_SENT", simStart: s.simStart, now: nowIso() });
       await writeDb(s, db);
+      s.seeded = true;
     }
     s.db = db;
     setEventSimToday(db.clock.today);
@@ -309,6 +316,7 @@ function makeStore(st: () => StoreState): ServerStore {
   const self: ServerStore = {
     async init() {
       await load(st());
+      return { seeded: st().seeded };
     },
 
     dbPath() {
