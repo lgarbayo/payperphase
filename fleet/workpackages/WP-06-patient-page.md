@@ -7,7 +7,7 @@ owns:
   - src/components/patient/**
   - src/i18n/patient.ts
   - tests/patient/**
-status: todo
+status: merged
 hours: 3
 criteria: [Design, Presentation, Potential Impact]
 ---
