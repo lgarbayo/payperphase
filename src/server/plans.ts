@@ -91,6 +91,8 @@ export async function createDraftPlan(req: CreatePlanRequest): Promise<Plan> {
  * for the initial per-phase invoice issue). Draft → approved with the approved notes (library
  * versions), phase summaries and the baseline snapshot; statuses applied at the simulated day.
  * An implant plan becomes the hero (alias "demo"). Publishes PLAN_APPROVED.
+ * On an already approved plan the same call only releases notes that are not approved yet (409
+ * when there are none); it publishes nothing, so the agent does not reissue invoices.
  */
 export async function approvePlan(id: string, req: ApprovePlanRequest): Promise<Plan> {
   const noteIds = [...new Set(req.noteIds)];
@@ -98,8 +100,24 @@ export async function approvePlan(id: string, req: ApprovePlanRequest): Promise<
   if (unknownNote) throw new RouteError(422, "UNKNOWN_NOTE", `Note ${unknownNote} is not in the note library`);
   const { today } = await store.getClock();
   const now = nowIso();
+  let notesOnly = false;
   const plan = await store.updatePlan(id, (cur) => {
-    if (cur.status !== "draft") throw new RouteError(409, "PLAN_NOT_DRAFT", `Plan ${cur.id} is already ${cur.status}`);
+    if (cur.status !== "draft") {
+      // After an edit the plan cites notes the patient has not seen (e.g. the bone-graft healing
+      // note). The clinic releases them here: only the not-yet-approved notes are added; dates,
+      // baseline, summaries and invoices are untouched.
+      const have = new Set(cur.approvedNotes.map((n) => n.noteId));
+      const fresh = noteIds.filter((n) => !have.has(n));
+      if (fresh.length === 0) throw new RouteError(409, "PLAN_NOT_DRAFT", `Plan ${cur.id} is already ${cur.status}`);
+      notesOnly = true;
+      return {
+        ...cur,
+        approvedNotes: [
+          ...cur.approvedNotes,
+          ...fresh.map((noteId) => ({ noteId, noteVersion: NOTE_LIBRARY[noteId].version, approvedBy: req.approvedBy, approvedAt: now })),
+        ],
+      };
+    }
     const unknownPhase = req.summaries.find((s) => !cur.phases.some((p) => p.id === s.phaseId));
     if (unknownPhase) throw new RouteError(422, "UNKNOWN_PHASE", `Summary for unknown phase ${unknownPhase.phaseId}`);
     const approved = captureBaseline(
@@ -123,6 +141,7 @@ export async function approvePlan(id: string, req: ApprovePlanRequest): Promise<
     );
     return applyPaymentStatuses(approved, today).plan;
   });
+  if (notesOnly) return plan;
   if (plan.caseKind === "implant") await store.setHeroPlanId(plan.id);
   publish({ type: "PLAN_APPROVED", planId: plan.id, version: plan.version });
   return plan;

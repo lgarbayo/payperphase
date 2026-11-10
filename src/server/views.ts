@@ -14,8 +14,11 @@ export async function buildPlanView(idOrAlias: string, view: "patient" | "clinic
   const clock = await store.getClock();
   const library = Object.values(NOTE_LIBRARY) as ClinicalNote[];
   const approved = new Set(plan.approvedNotes.map((n) => n.noteId));
+  // The patient never sees notes the clinic has not approved, so a note an edit just added
+  // (BONE_GRAFT_HEALING_16W) stays out of the payload until the clinic releases it.
+  const visible = view === "clinic" ? plan : { ...plan, phases: plan.phases.map((p) => ({ ...p, noteIds: p.noteIds.filter((n) => approved.has(n)) })) };
   return {
-    plan,
+    plan: visible,
     clock,
     exposure: computeExposure(plan, clock.today),
     stress: closureStressTest(plan, clock.today),
