@@ -98,9 +98,14 @@ export async function callStructured<S extends z.ZodType>(
     try {
       message = await request(withFallback);
     } catch (error) {
-      // Self-heal if this account/platform rejects the fallback field: same request, once, without it.
-      if (!(withFallback && error instanceof Anthropic.BadRequestError && /fallback/i.test(error.message))) throw error;
-      console.warn("[claude] server-side fallback rejected (400); retrying once without it");
+      // Self-heal: a 400 on the fallback-enabled request may be this account/platform rejecting the
+      // `fallbacks` field or the `anthropic-beta` header (an org not enabled for a beta gets a 400 whose
+      // wording we can't pin down), so ANY 400 here gets the same request once without both. A 400 with
+      // another cause (schema, PDF) fails again on the retry and surfaces as api_error, never a loop.
+      if (!(withFallback && error instanceof Anthropic.BadRequestError)) throw error;
+      console.warn(
+        `[claude] request with server-side fallback rejected (${error.message.slice(0, 200)}); retrying once without fallbacks or beta header`,
+      );
       message = await request(false);
     }
     // Refusal first: a declined response may carry partial or no content.

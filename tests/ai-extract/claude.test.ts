@@ -56,12 +56,43 @@ describe("callStructured", () => {
     expect(parse.mock.calls[1]![1]?.headers).toBeUndefined();
   });
 
-  it("other 400s are not retried and surface as api_error", async () => {
+  it("a 400 about the beta header (no 'fallback' in the wording) is also retried once without fallback", async () => {
+    const { client, parse } = fake(async (_params, opts) => {
+      if (opts?.headers?.["anthropic-beta"]) throw badRequest("anthropic-beta: your organization does not have access to this beta");
+      return ok;
+    });
+    const res = await callStructured(client, call());
+    expect(res.ok).toBe(true);
+    expect(parse).toHaveBeenCalledTimes(2);
+    expect(parse.mock.calls[0]![0]).toHaveProperty("fallbacks", "default");
+    expect(parse.mock.calls[0]![1]?.headers).toEqual({ "anthropic-beta": "server-side-fallback-2026-07-01" });
+    expect(parse.mock.calls[1]![0]).not.toHaveProperty("fallbacks");
+    expect(parse.mock.calls[1]![1]?.headers).toBeUndefined();
+  });
+
+  it("a 400 unrelated to fallback is retried exactly once, then surfaces as api_error", async () => {
     const { client, parse } = fake(async () => {
       throw badRequest("messages.0.content: document too large");
     });
     const res = await callStructured(client, call());
     expect(res).toMatchObject({ ok: false, reason: "api_error" });
+    expect(res.ok === false && res.detail).toMatch(/^400: .*document too large/);
+    expect(parse).toHaveBeenCalledTimes(2);
+  });
+
+  it("without fallback in the request, a 400 is not retried", async () => {
+    const { client, parse } = fake(async () => {
+      throw badRequest("messages.0.content: document too large");
+    });
+    expect(await callStructured(client, call("claude-haiku-5-5"))).toMatchObject({ ok: false, reason: "api_error" });
+    expect(parse).toHaveBeenCalledOnce();
+  });
+
+  it("non-400 API errors are not retried by the self-heal", async () => {
+    const { client, parse } = fake(async () => {
+      throw new Anthropic.InternalServerError(500, { type: "error", error: { type: "api_error", message: "boom" } }, undefined, new Headers());
+    });
+    expect(await callStructured(client, call())).toMatchObject({ ok: false, reason: "api_error" });
     expect(parse).toHaveBeenCalledOnce();
   });
 
