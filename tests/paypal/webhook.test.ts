@@ -259,6 +259,18 @@ describe("PayPal webhooks", () => {
       expect(storedWebhookEvents()[0]).toMatchObject({ eventId: "WH-EVT-UNK", applied: false });
     });
 
+    it("a failing reconcile GET still acknowledges the event (it is recorded, a retry would be dropped)", async () => {
+      mockPayPal([
+        { method: "GET", path: `/v2/checkout/orders/${ORDER}`, reply: () => ({ status: 500, body: { name: "INTERNAL_SERVICE_ERROR" } }) },
+      ]);
+      const r = await handleWebhookEvent(
+        { id: "WH-EVT-FAIL", event_type: "CHECKOUT.ORDER.COMPLETED", resource: { id: ORDER, status: "COMPLETED" } },
+        { verified: true },
+      );
+      expect(r.status).toBe("ignored");
+      expect(storedWebhookEvents()).toHaveLength(1);
+    });
+
     it("an out-of-order event (PENDING after paid) is ignored by transition() and triggers a GET reconcile", async () => {
       resetStore(withPayment("ph1", { status: "paid", instrument: "order", orderId: ORDER, captureId: "CAP-1", paidCents: 36_000 }));
       const { apiCalls } = mockPayPal([

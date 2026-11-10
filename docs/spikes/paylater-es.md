@@ -32,6 +32,13 @@ Does PayPal's official Pay Later offer render for a Spanish buyer paying in EUR,
 3. **Same card after the click.** The button is replaced by a pale-green row: "✓ Pagado · 360,00 €". Re-checked after merging WP-06 (16:58 CET): its phase card shows the button under "Hoy es tu visita: paga esta fase al terminar." After the click and the SSE refetch, the card flips to a green "Pagado" pill and "Pagado ✓ · recibido · Recibido el 16 nov 2026".
 4. **Phase 2 card.** "2. Colocación de implantes", "12 ene 2027 · 1.500,00 €" and a grey "Programado" pill. A disabled (faded) button reads "📅 Pagar con PayPal · 1.500,00 €", with "Se paga el día de la visita" underneath.
 
+## Result with the real ES sandbox app (Tue 2026-11-10, 17:10 CET; fleet SPIKES.md §1)
+The team's ES business sandbox app (EUR) settles the open question above: **the Pay Later message renders**, with no "Expected USD" warning and no `buyerCountry` needed on the message.
+- JS SDK **v5** stays: `enable-funding=paylater` + `buyer-country=ES` (sandbox only) + `currency=EUR` + `locale=es_ES`.
+- By default PayPal switches product by amount: Pay in 3 at €360, "hasta 24 plazos" at €520, €1,500 and €1,690.
+- **`PayLaterMessage` therefore passes `offer: "PAY_LATER_SHORT_TERM"` (rendered as `data-pp-offer`) for every amount in €20–€2,000.** Result: €360 → 3 × 120,00 €, €1,500 → 3 × 500,00 €, €1,690 → 3 × 563,34 €. Above €2,000 (up to the €5,000 installments range) the attribute is omitted and PayPal shows its installments message. Tests: `tests/paypal/components.test.tsx` (attribute present at €360, absent above €2,000).
+- Webhooks: signatures are verified **only** through `POST /v1/notifications/verify-webhook-signature` (offline verification is not proven). `INVOICING.INVOICE.SENT` is optional and only triggers a reconcile.
+
 ## Decisions
 - **`PHASE_PAYMENT_INTENT=CAPTURE` (recommended and the only flow built).** Pay Later works under AUTHORIZE too, so that door is open. But the patient pays at the end of the visit, when the care has just been delivered, so an authorization buys nothing. It would add the 3-day honour period and the 29-day validity limit, a second capture leg, and a void path. That is cut #7: the AUTHORIZE/void flow is **not** implemented. `paypalClientConfig()` always tells the browser `intent=capture`, and orders are always `intent: "CAPTURE"`.
 - **Copy (fallback rule in force until the message is seen with an ES merchant).** Our own text only ever says "Dentro del rango de Paga en 3 (20 €–2.000 €)" / "Within Pay in 3 range (€20–€2,000)" and never claims eligibility. The official `<PayLaterMessage/>` stays mounted, unedited, with `data-pp-amount` = phase amount, for amounts from €20 to €5,000. If PayPal has no offer, it renders nothing. Standard checkout always works, and PayPal itself offers "Paga a plazos" inside the button stack.
@@ -41,9 +48,12 @@ Does PayPal's official Pay Later offer render for a Spanish buyer paying in EUR,
 On the dev server (`FORCE_MOCKS=1`), `/p/demo` → click "Pagar (simulación)" on phase 1. It went through the real routes: `POST /api/paypal/orders` → `POST /api/paypal/orders/:id/capture` → `transition()` → store. The SSE stream (`/api/events?planId=pln_ribera01`) delivered `PAYMENT_CAPTURED {phaseId: ph1, amountCents: 36000, via: "capture"}`, then `PHASE_STATUS_CHANGED due→paid`, then `PHASE_DELIVERED`. `GET /api/plans/demo` showed ph1 `paid` (instrument `order`, `paidCents` 36000) and delivered on 2026-11-16 (simulated). Click to "Pagado" took 0.8 s, including the dev compile of the routes.
 
 ## Still open (needs sandbox credentials from WP-13)
-- [ ] **Message check with an ES merchant.** Set `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET` and `NEXT_PUBLIC_PAYPAL_CLIENT_ID` (ES business sandbox app, EUR), then open `/spike-paylater`. Read the table: the three message columns should turn green for both intents. `window.__pppSpike` holds the same results as JSON. Note the message wording here, in words.
+- [x] **Message check with an ES merchant.** (done, see "Result with the real ES sandbox app") Set `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET` and `NEXT_PUBLIC_PAYPAL_CLIENT_ID` (ES business sandbox app, EUR), then open `/spike-paylater`. Read the table: the three message columns should turn green for both intents. `window.__pppSpike` holds the same results as JSON. Note the message wording here, in words.
 - [ ] **Live payment of ph1 (€360) end to end.** With the same env plus `PAYPAL_WEBHOOK_ID`: `npm run dev`, then `POST /api/demo/reset`, open `/p/demo`, click "Pagar con PayPal" (or "Paga a plazos") on phase 1, approve with the ES sandbox buyer, and watch the diamond turn green. Record date, time, order id and capture id here. Server path: `getAccessToken()` → `POST /v2/checkout/orders` (`PayPal-Request-Id {planId}-ph1-create-1`, `invoice_id PPP-{plan4}-F1-O1`) → `POST /v2/checkout/orders/{id}/capture` (`PayPal-Request-Id {id}-capture`).
 
 | When (CET) | Order id | Capture id | Result |
 |---|---|---|---|
-| _pending credentials_ | | | |
+| _integrator runs the buyer-approved payment_ | | | |
+
+## Server-side sandbox check by WP-04 reviewer (Wed 2026-11-11, 00:35 CET)
+With the real ES sandbox credentials (no buyer approval): OAuth token OK; `createPhaseOrder` for ph2 (scheduled) refused with `NOT_DUE_YET`; with the simulated clock on 2026-11-16, ph1 created order `8UF12137GP897594C` (status `CREATED`, `amount EUR 360.00`, `custom_id pln_ribera01:ph1`, `invoice_id PPP-RIBE-F1-O1`; an `amount` in the request was ignored). A webhook call with a made-up signature came back not `SUCCESS` (so the route answers 401). The buyer approval and capture are left to the integrator.

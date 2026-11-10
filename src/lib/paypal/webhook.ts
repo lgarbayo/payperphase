@@ -235,13 +235,19 @@ export async function handleWebhookEvent(
 
   // Unknown, unroutable or out-of-order: ask PayPal for the truth.
   if (modes().paypal !== "live") return { ...base, status: "ignored" };
-  if (routed.reconcile?.orderId) {
-    const r = await reconcileOrder(routed.reconcile.orderId, "webhook");
-    return { ...base, planId: r.route?.planId ?? base.planId, phaseId: r.route?.phaseId ?? base.phaseId, status: "reconciled" };
-  }
-  if (routed.reconcile?.invoiceId) {
-    const r = await reconcileInvoice(routed.reconcile.invoiceId);
-    return { ...base, planId: r?.planId ?? base.planId, phaseId: r?.phaseId ?? base.phaseId, status: "reconciled" };
+  // The event id is already recorded, so a PayPal retry would be dropped as a duplicate: a failed GET
+  // must not turn into a 500. The capture response and the /return reconcile cover the same ground.
+  try {
+    if (routed.reconcile?.orderId) {
+      const r = await reconcileOrder(routed.reconcile.orderId, "webhook");
+      return { ...base, planId: r.route?.planId ?? base.planId, phaseId: r.route?.phaseId ?? base.phaseId, status: "reconciled" };
+    }
+    if (routed.reconcile?.invoiceId) {
+      const r = await reconcileInvoice(routed.reconcile.invoiceId);
+      return { ...base, planId: r?.planId ?? base.planId, phaseId: r?.phaseId ?? base.phaseId, status: "reconciled" };
+    }
+  } catch (e) {
+    console.warn(`[paypal] webhook ${event.event_type} reconcile failed: ${e instanceof Error ? e.message : String(e)}`);
   }
   return { ...base, status: "ignored" };
 }
