@@ -1,7 +1,7 @@
 ---
 id: WP-11
 title: Build the grounded patient chat (Claude Haiku 5.5 over cited approved notes, simulate_delay engine tool, numeric grounding check, refusal/referral path, Gantt ghost preview)
-deps: [WP-01, WP-09]
+deps: [WP-01]
 owns:
   - src/ai/chat/**
   - app/api/chat/**
@@ -17,11 +17,11 @@ criteria: [Technological Implementation, Quality of the Idea]
 The patient asks "If I wait 3 months for the implant, what changes?" and gets an answer whose every date comes from the engine, with a chip "Aprobado por Dra. Ruiz · Fase 2" and a ghost preview on the Gantt. A question like "Can I take ibuprofen?" gets a polite, fixed referral and a "Message my clinic" button. **This is first on the cut list.** Without it, the fallback is approved-note cards plus a "message my clinic" link (WP-06 already shows the note cards).
 
 ## Consumes
-- Contracts: `ChatRequest`, `ChatResponse`, `ChatCitation`, `WhatIfResult`. `store.getPlan`, `publish` (`CHAT_PREVIEW`). `NOTE_LIBRARY`. Engine `reschedule` / `validateMove` (WP-01).
+- Contracts: `ChatRequest`, `ChatResponse`, `ChatCitation`, `WhatIfResult`. `store.getPlan`, `publish` (`CHAT_PREVIEW`) (WP-09; the stubs work, so they are not a dep). `NOTE_LIBRARY`. Engine `reschedule` / `validateMove` (WP-01, a real dep: the cascade and deadline-warning assertions need the real engine).
 - `serverEnv().ANTHROPIC_MODEL_CHAT` (claude-haiku-5-5), `modes().anthropic`, `src/lib/dates.ts`, `src/lib/money.ts`, `useT("chat")`, `src/lib/ui`.
 
 ## Provides
-- `answerPatientQuestion(req): Promise<ChatResponse>` (keep the signature), `groundingCheck(answer, sources)`, `POST /api/chat`, and `<PlanChat planId locale/>`.
+- `answerPatientQuestion(req): Promise<ChatResponse>` (keep the signature), `groundingCheck(answer, sources)`, `POST /api/chat`, and `<PlanChat planId locale onGhostPreview?/>` (keep `PlanChatProps` from the stub; WP-06 passes `onGhostPreview` to draw the ghost).
 
 ## Acceptance criteria
 - [ ] Load the `claude-api` skill first.
@@ -34,8 +34,8 @@ The patient asks "If I wait 3 months for the implant, what changes?" and gets an
 - [ ] `<PlanChat/>`:
   - two suggested-question chips (the demo questions, localized), a message list, and citation chips "Aprobado por {approvedBy} · Fase {n}";
   - a "Enviar mensaje a mi clínica" button (a demo toast "Mensaje enviado a la clínica (demo)");
-  - a "Ver en el calendario" toggle for the ghost preview, and a `ModeBadge` when the source is cached.
-  jsdom test with mocked `fetch`.
+  - a "Ver en el calendario" toggle for the ghost preview that calls `onGhostPreview(shifts)` (and `null` to clear), and a `ModeBadge` when the source is cached.
+  `tests/chat/panel.test.tsx` (jsdom, mocked `fetch`).
 - [ ] `POST /api/chat` validates with `ChatRequestSchema` and rate-limits naively (≤10 requests per minute per plan, in memory).
 
 ## Notes

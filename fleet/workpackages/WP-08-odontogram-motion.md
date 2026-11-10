@@ -7,6 +7,7 @@ owns:
   - src/components/motion/**
   - src/i18n/odontogram.ts
   - tests/odontogram/**
+  - tests/motion/**
 status: todo
 hours: 2
 criteria: [Design, Presentation]
@@ -16,11 +17,11 @@ criteria: [Design, Presentation]
 This is the "quote builds itself" moment. As extracted lines appear, the matching teeth (36, 37, 46…) light up on a clean FDI odontogram, coloured by procedure category and labelled with their phase number. The same WP ships the small motion vocabulary the rest of the app uses: staggered reveals, the green "paid" ripple, and animated counters.
 
 ## Consumes
-- Contracts: `FdiTooth`, `PERMANENT_TEETH`, `ProcedureCategory`, `PROCEDURE_CATEGORY`, `QuoteLine`, `Phase`. `useT("odontogram")`, `src/lib/ui`, CSS vars.
+- Contracts: `FdiTooth`, `PERMANENT_TEETH`, `ProcedureCategory`, `PROCEDURE_CATEGORY`, `QuoteLine`, `Phase`. `useT("odontogram")`, `src/lib/ui`, CSS vars (category colours are the scaffold's `--ppp-cat-*` tokens plus `--ppp-tooth-missing` in `app/globals.css`).
 - `framer-motion@12.43.0` (already installed).
 
 ## Provides
-- `<Odontogram marks highlight revealStaggerMs locale size/>` (keep `OdontogramProps` and `ToothMark` as in the stub) and `marksFromLines(lines, phases?) → ToothMark[]`.
+- `<Odontogram marks highlight revealStaggerMs locale size/>` (keep `OdontogramProps` and `ToothMark` as in the stub) and `marksFromLines(lines, phases?) → ToothMark[]` (stubbed already; WP-07 calls it, so keep the signature).
 - `src/components/motion`: `Reveal`, `Stagger`, `Ripple`, `CountUp` (keep the stub signatures). Everything respects `prefers-reduced-motion`.
 
 ## Acceptance criteria
@@ -29,7 +30,7 @@ This is the "quote builds itself" moment. As extracted lines appear, the matchin
 - [ ] Each tooth has an accessible name, e.g. "Pieza 36: extracción (fase 1), implante (fase 2), corona (fase 4)" (ES/EN).
 - [ ] `tests/odontogram/marks.test.ts`: `marksFromLines(GOLDEN_LINES, GOLDEN_PLAN.phases)` gives tooth 36 extraction (phase 1), implant (phase 2) and crown (phase 4); tooth 37 a filling (phase 1); tooth 46 implant and crown. Lines without teeth produce no marks.
 - [ ] `tests/odontogram/render.test.tsx` (jsdom): renders 32 teeth with `data-tooth`. `highlight` sets `data-highlight` on those teeth. Reduced motion skips the stagger (`matchMedia` mocked).
-- [ ] The motion primitives have a jsdom test: `CountUp` shows the final formatted value immediately under reduced motion, and `Ripple` re-triggers when `trigger` changes.
+- [ ] `tests/motion/primitives.test.tsx` (jsdom): `CountUp` shows the final formatted value immediately under reduced motion, and `Ripple` re-triggers when `trigger` changes.
 - [ ] Looks calm and clinical at video resolution. Check it with a Playwright screenshot of a tiny local page or Storybook-free harness inside the tests.
 
 ## Notes

@@ -33,6 +33,7 @@ This is the runtime backbone. It covers:
   - `GET/POST /api/plans`, `GET /api/plans/[id]` (`?view=patient|clinic`; id may be `demo`);
   - `POST /api/plans/[id]/approve`, `POST /api/plans/[id]/whatif`, `POST /api/plans/[id]/edit`, `POST /api/plans/[id]/phases/[phaseId]/deliver`;
   - `GET/POST /api/clock`, `GET /api/events` (SSE), `POST /api/demo/reset`, `POST /api/demo/beat`.
+- Every one of these routes already has a typed stub (approve, edit, deliver and beat included) that WP-06, WP-07, WP-10 and WP-14 build against. Replace the bodies, and keep the paths, request schemas and response shapes.
 
 ## Acceptance criteria
 - [ ] `tests/server/store.test.ts` (tmp `DATA_DIR`):
@@ -43,7 +44,7 @@ This is the runtime backbone. It covers:
   - Agent steps and approvals round-trip.
 - [ ] Boot seeds state **B2** when no db exists: the hero plan is approved, the clock is `SIM_START_DATE`, and ph1 is due. `resetDemo()` re-ids the hero plan with a fresh `pln_` + 8 random chars, giving a new `plan4` and therefore unique PayPal invoice numbers. It clears agent steps, approvals and webhook records and publishes `DEMO_RESET`. Tested.
 - [ ] `tests/server/clock.test.ts`: `POST /api/clock {advanceDays:49}` sets 2027-01-04 and calls `engine.applyPaymentStatuses` for every plan. It persists the result, publishes one `PHASE_STATUS_CHANGED` per returned change, then `CLOCK_ADVANCED`, and updates `setEventSimToday`. Mock `@/engine` with `vi.mock` so this test does not depend on WP-01's merge.
-- [ ] `tests/server/routes.test.ts` (calling the route handlers directly with `Request` objects):
+- [ ] `tests/server/routes.test.ts` (calling the route handlers directly with `Request` objects; `vi.mock("@/engine")` wherever an assertion depends on engine behaviour, for example the invalid move → 409, because the scaffold stub accepts every move):
   - **whatif** returns 409 with the validation on an invalid move. A valid move persists when `persist !== false`, publishes `PLAN_RESCHEDULED`, and keeps `baseline` untouched. `persist:false` returns a preview without saving.
   - **approve** sets `status:"approved"`, `approvedNotes` (with `noteVersion` from the library), `approvedBy`/`approvedAt`, phase `summary` texts and the `captureBaseline`. It applies statuses, makes the plan the hero if it is an implant case, and publishes `PLAN_APPROVED`.
   - **edit** runs `engine.applyEdit` + `diffPlans` + `explainDiff`, saves, publishes `PLAN_EDITED {diff}` and returns `EditPlanResponse`.

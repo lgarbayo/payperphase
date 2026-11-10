@@ -1,7 +1,7 @@
 ---
 id: WP-10
 title: Build the clinic billing agent (PayPal Agent Toolkit /bedrock → Anthropic tool adapter, deterministic policy guard, event triggers, human approval, playbook fallback, AgentFeed UI)
-deps: [WP-09]
+deps: []
 owns:
   - src/agent/**
   - app/api/agent/**
@@ -19,7 +19,7 @@ This is the agent that cannot invent money. Domain events drive a Claude Sonnet 
 
 ## Consumes
 - Contracts: `InvoiceToolName`, `TOOLKIT_INVOICE_ACTIONS`, `HUMAN_APPROVAL_TOOLS`, `formatInvoiceNumber`, `INVOICE_NUMBER_RE`, `AgentStep`, `PendingApproval`, `InvoiceToolsClient`, `AgentStepsResponse`, `AgentApproveRequestSchema`, `PhaseInvoice`, `DomainEvent`.
-- `store` + `publish`/`subscribe` (WP-09), `centsToPayPalValue`, `serverEnv()`/`modes()` (`ANTHROPIC_MODEL_AGENT`, `AGENT_MODE`, `DEMO_PATIENT_EMAIL`, `DEMO_MERCHANT_EMAIL`), `explainDiff` (WP-03), `useDomainEvents`, `src/lib/ui`, `useT("agent")`.
+- `store` + `publish`/`subscribe` (WP-09). **No deps:** the scaffold's in-memory store implements the whole `PlanStore` (agent steps, approvals, `updatePlan`) and the event bus works, so build and test against them. In tests, publish `PLAN_APPROVED`, `PAYMENT_CAPTURED`, `PLAN_EDITED` and `PHASE_STATUS_CHANGED` directly. That is also what lets the toolkit spike run in hour 1 (Gate A). Also `centsToPayPalValue`, `serverEnv()`/`modes()` (`ANTHROPIC_MODEL_AGENT`, `AGENT_MODE`, `DEMO_PATIENT_EMAIL`, `DEMO_MERCHANT_EMAIL`), `explainDiff` (WP-03), `useDomainEvents`, `src/lib/ui`, `useT("agent")`.
 - `@paypal/agent-toolkit@1.11.0`, **`/bedrock` export only**: `new PayPalAgentToolkit({clientId, clientSecret, configuration:{actions:{invoices: TOOLKIT_INVOICE_ACTIONS}, context:{sandbox:true}}})`, `getTools()` → `{toolSpec:{name, description, inputSchema:{json}}}[]`, `handleToolCall({toolUseId, name, input})` → `{toolUseId, content:[{text}]}`. These were verified in the installed package.
 
 ## Provides
@@ -31,7 +31,7 @@ This is the agent that cannot invent money. Domain events drive a Claude Sonnet 
   - `loop.ts`: manual Claude tool loop.
   - `playbook.ts`: deterministic sequences.
   - `approvals.ts`: canonical-JSON sha256.
-- Routes: `GET /api/agent/steps?planId=` (stub exists), `POST /api/agent/approve`, `POST /api/agent/run`, and `POST /api/agent/guard-test {planId}`, which pushes one `create_invoice` with the pre-edit amount through the guard and is labelled "guard test" for Director key **G**.
+- Routes: `GET /api/agent/steps?planId=`, `POST /api/agent/approve` and `POST /api/agent/guard-test` (stubs exist), `POST /api/agent/run`, with `POST /api/agent/guard-test {planId}` which pushes one `create_invoice` with the pre-edit amount through the guard and is labelled "guard test" for Director key **G**.
 - `<AgentFeed planId locale/>`: a live list of steps, tool chips with ✓/✗, expandable redacted JSON, red guard rejections with the reason ("1.500,00 € ≠ motor 1.950,00 €"), an approval card with a payload summary and Approve/Reject, LLM/Playbook and Mock badges, invoice payer links and QR images.
 - `docs/spikes/agent-toolkit.md`: the hour-1 spike.
 
@@ -42,7 +42,7 @@ This is the agent that cannot invent money. Domain events drive a Claude Sonnet 
   - whether `send_invoice_reminder` and `cancel_sent_invoice` work on it.
   Pick the dating policy from the result. Preferred: invoice_date = visit date, so the bill is delivered on the visit day. Fallback: due_date = visit date with the note "Pagar el día de la visita".
 - [ ] **Triggers (llm and playbook modes behave the same):**
-  - `PLAN_APPROVED` (the dentist's plan approval covers this initial issue): per unpaid phase, `create_invoice` (number `PPP-{plan4}-F{n}-v1`, one item = phase amount, EUR, recipient = plan patient email) → `send_invoice`. The due phase also gets `generate_invoice_qr_code`. Phases already paid at approval are skipped. The run is idempotent and never duplicates an invoice for the same plan, phase and version.
+  - `PLAN_APPROVED` (the dentist's plan approval covers this initial issue): per unpaid phase, `create_invoice` (number `PPP-{plan4}-F{n}-v1`, one item = phase amount, EUR, recipient = `recipientFor(plan)`, which is `DEMO_PATIENT_EMAIL` when set (live sandbox buyer) and the plan's `patient.email` otherwise; the guard checks against the same function) → `send_invoice`. The due phase also gets `generate_invoice_qr_code`. Phases already paid at approval are skipped. The run is idempotent and never duplicates an invoice for the same plan, phase and version.
   - `PAYMENT_CAPTURED` → `record_payment_for_invoice` for that phase's open invoice: method PAYPAL, amount = captured cents, date = sim today. The one-live-instrument rule holds.
   - `PLAN_EDITED` → an `explanation` step (diff explanation) → `cancel_sent_invoice` (old) → `create_invoice` (v+1, new engine amount) → **`approval_required`** with the stored payload → after Approve: `send_invoice` with **exactly** the stored payload (the sha256 is re-checked) → `generate_invoice_qr_code`.
   - `PHASE_STATUS_CHANGED` to `upcoming` → `send_invoice_reminder`.
@@ -52,7 +52,7 @@ This is the agent that cannot invent money. Domain events drive a Claude Sonnet 
   - valid payloads pass;
   - `DUPLICATE_INVOICE_ID` from PayPal bumps `v{k}`.
 - [ ] `tests/agent/adapter.test.ts`: toolkit `toolSpec`s map to Anthropic tools `{name, description, input_schema}`, and only allowlisted names come through. `handleToolCall` text output is parsed as JSON safely.
-- [ ] `tests/agent/playbook.test.ts` (mock tools): `PLAN_EDITED` on the golden plan + `GOLDEN_BONE_GRAFT_EDIT` emits steps in the exact order cancel → create → approval_required. Approve → send → qr. A changed payload hash is refused.
+- [ ] `tests/agent/playbook.test.ts` (mock tools): `PLAN_EDITED` with `GOLDEN_BONE_GRAFT_DIFF` on the post-edit plan (the golden plan with ph2 at 195 000 cents and `version: 2`, built in the test, because the scaffold `applyEdit` stub doesn't resize) emits steps in the exact order cancel → create (195 000) → approval_required. Approve → send → qr. A changed payload hash is refused.
 - [ ] `tests/agent/loop.test.ts`: a fake Anthropic client first calls `create_invoice` with €1,500 → `guard_rejected` + an `is_error` tool_result → then calls it with €1,950 → ok. Also covered: `stop_reason:"refusal"` → playbook fallback, and a loop with more than 12 iterations aborts.
 - [ ] Steps persist via `store.appendAgentStep` and stream as `AGENT_STEP`. `GET /api/agent/steps` returns the audit trail and pending approvals. The feed renders them live (jsdom test with mocked SSE).
 - [ ] Load the `claude-api` skill before writing the loop. Use a manual loop (so each call can be gated and paused), the model from env, `tool_choice` auto, and handle `refusal`. Use no unverified beta headers, and enable server-side fallbacks only as documented in the skill.

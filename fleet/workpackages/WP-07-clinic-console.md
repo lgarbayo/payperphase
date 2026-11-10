@@ -1,7 +1,7 @@
 ---
 id: WP-07
 title: Build the clinic console /clinic (PDF dropzone, staggered extraction reveal with odontogram + check bar, phase review and note approval, approve & send link/QR, plan editor with plain-language diff, agent feed, payments overview)
-deps: [WP-03, WP-09]
+deps: []
 owns:
   - app/clinic/**
   - src/components/clinic/**
@@ -17,7 +17,8 @@ This is the clinic's side of the demo (beats 1 and 5). A dentist drops a presupu
 
 ## Consumes
 - API: `POST /api/extract` (WP-03), `POST /api/wording` (WP-03), `POST /api/plans`, `GET /api/plans`, `GET /api/plans/:id?view=clinic`, `POST /api/plans/:id/approve`, `POST /api/plans/:id/edit`, `POST /api/plans/:id/phases/:phaseId/deliver` (all WP-09).
-- `<Odontogram/>` + `marksFromLines` (WP-08), `<PlanGantt mode="clinic"/>` (WP-05), `<AgentFeed/>` (WP-10), `<TrustStrip/>` (WP-14), and `Stagger`/`Reveal` (WP-08). The stubs are fine until those WPs merge.
+- `<Odontogram/>` + `marksFromLines` (WP-08), `<PlanGantt mode="clinic"/>` (WP-05), `<AgentFeed/>` (WP-10), `<TrustStrip/>` (WP-14), and `Stagger`/`Reveal` (WP-08).
+- **No deps: build against the scaffold stubs.** Every route above already has a typed stub that works on the in-memory store: extract returns the cached golden extraction, create, approve, edit and deliver persist and publish, and wording returns deterministic drafts. Every component has a stub too. Your tests mock `fetch` and the child components. `marksFromLines` is stubbed too: it returns one planned mark per tooth until WP-08 merges. WP-16 checks the integrated console.
 - `SAMPLE_PDFS` (`@data/seed`), `GOLDEN_BONE_GRAFT_EDIT`, `formatInvoiceNumber`, `qrcode` (installed), `useDomainEvents`, `src/lib/ui`, `useT("clinic")`.
 
 ## Provides
@@ -33,13 +34,14 @@ This is the clinic's side of the demo (beats 1 and 5). A dentist drops a presupu
   - Approve → `POST /api/plans/:id/approve {approvedBy: plan.clinic.dentistName, noteIds, summaries}` → the patient link `/p/{id}` (copy button), a QR code (`qrcode` data URL) and **"Facturas que se emitirán"**: one row per phase with `formatInvoiceNumber`, amount and visit date. This plan approval is the human approval for the initial invoice issue (see WP-10).
 - [ ] **Plan editor:** "Añadir línea" to a phase, with a one-click preset "Injerto óseo (+450 €)" = `GOLDEN_BONE_GRAFT_EDIT`, remove line, and "Fase entregada" (deliver). The edit → `POST /api/plans/:id/edit` → a `DiffPanel` with `explanation.rendered` plus per-phase before/after amounts, fit bands and dates. Example: "Fase 2: 1.500,00 € → 1.950,00 € · sigue dentro del rango de Paga en 3 · fases 3–4 se mueven 4 semanas".
 - [ ] `<AgentFeed planId/>` is visible next to the editor, and `PaymentsOverview` lists plans (`GET /api/plans`) with paid totals and the next due date. Both live-refresh on SSE.
+- [ ] Director deep-link anchors (WP-14 scrolls to them): the plan editor has `id="plan-editor"` and the agent feed wrapper has `id="agent-feed"`. Asserted in `tests/clinic/console.test.tsx`.
 - [ ] `tests/clinic/console.test.tsx` (jsdom, mocked `fetch` and child components):
   - the golden extraction renders 12 lines and a ✓ check bar with "1 a revisar";
   - an invalid tooth shows as flagged;
   - approve is disabled until the notes are ticked;
   - the approve payload includes the ticked note ids;
   - the bone-graft preset posts exactly `GOLDEN_BONE_GRAFT_EDIT`;
-  - the diff panel shows "+450,00 €".
+  - the diff panel shows "+450,00 €" (mock the edit response with `GOLDEN_BONE_GRAFT_DIFF`).
 
 ## Notes
 - Never compute amounts or dates in the UI. All of them come from API responses.

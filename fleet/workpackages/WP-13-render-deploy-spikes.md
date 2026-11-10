@@ -10,6 +10,7 @@ owns:
   - docs/deploy.md
   - docs/sandbox-setup.md
   - docs/spikes/bryntum-render.md
+  - tests/deploy/**
 status: todo
 hours: 1.5
 criteria: [Presentation, Technological Implementation]
@@ -34,10 +35,10 @@ The scaffold is live on a public Render URL **before any feature merges** (Gate 
 - `docs/deploy.md` (how to deploy, env, rollback, logs), `docs/sandbox-setup.md` and `docs/spikes/bryntum-render.md` (Gate A evidence).
 
 ## Acceptance criteria
-- [ ] `render.yaml` is valid as a Render Blueprint, and every `.env.example` key appears in it.
+- [ ] `render.yaml` is valid as a Render Blueprint, and every `.env.example` key appears in it. `tests/deploy/render-yaml.test.ts` asserts the key coverage plus `healthCheckPath: /api/health`, the disk mount at `/var/data`, `plan: starter` and `autoDeploy: true` (string or line match; no new dependency).
 - [ ] Hand the human the exact steps to create the service: connect the GitHub repo as a Blueprint and fill in the secrets. You cannot click in the Render dashboard, so write them in `docs/deploy.md` and report them in your final message. If a `RENDER_API_KEY` is available in the environment, you may use the Render API instead.
-- [ ] On the live URL, `/api/health` returns `ok:true` (mock modes are fine at Gate A), `/gantt-lab` shows Bryntum task bars, and `/p/demo` renders. Record the URL, the time, and what was checked in `docs/spikes/bryntum-render.md`. If the human hasn't created the service yet, verify with `npm run build && PORT=3100 npm start` locally plus the same checks, and say so.
-- [ ] `scripts/demo-check.ts` passes against the local production build. Give its exit codes a tiny unit test, or document a manual run.
+- [ ] On the live URL, `/api/health` returns `ok:true` (mock modes are fine at Gate A), `/gantt-lab` shows Bryntum task bars, and `/p/demo` renders. Record the URL, the time, and what was checked in `docs/spikes/bryntum-render.md`. If the human hasn't created the service yet, verify with `npm run build && PORT=<free port> npm start` locally plus the same checks, and say so. Builders never assume a fixed port, because other worktrees run in parallel.
+- [ ] `scripts/demo-check.ts` passes against the local production build. `tests/deploy/demo-check.test.ts` covers its exit codes with a mocked `fetch` (0 when all pass, non-zero on any failure). Export the check runner so the test can import it without spawning a process.
 - [ ] `docs/sandbox-setup.md` covers:
   - creating the ES **business** sandbox account (EUR, receiving preferences set to auto-accept EUR) and the ES **personal** buyer;
   - the REST app's client ID and secret;

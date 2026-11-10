@@ -18,11 +18,12 @@ Realistic but clearly synthetic Spanish quotes exist as PDFs the clinic can drag
 ## Consumes
 - Engine (`buildPlan`, `captureBaseline`, `applyPaymentStatuses`) from WP-01, which must be merged first.
 - Contracts: `RawExtraction`, `ExtractionResult`, `Plan`, `NoteId`, `ClinicalNote`, `SIM_DEFAULT_START`. Golden fixtures in `src/contracts/fixtures/implantCase.ts`.
-- `pdf-lib@1.17.1` (installed). The `npm run pdfs` script already runs `tsx scripts/pdfs/generate.ts`.
+- `pdf-lib@1.17.1` (installed). The `npm run pdfs` script (scaffold) runs `tsx scripts/pdfs/generate.ts`.
+- The scaffold stub in `data/seed/index.ts` already exports `SAMPLE_PDFS` (hero entry `implant-ribera`, empty `sha256`), `cachedExtractionBySampleId` and `cachedExtractionBySha`. WP-03 and WP-07 import them, so keep the names and signatures.
 
 ## Provides
 - `scripts/pdfs/generate.ts` → `public/samples/presupuesto-implantes-ribera.pdf` (hero), `public/samples/presupuesto-ortodoncia-ribera.pdf` (aligner), and optionally `public/samples/presupuesto-perio-implantes.pdf`.
-- `data/seed/samples.ts`: `SAMPLE_PDFS` with `{ id, caseKind, label, path, sha256 }`, re-exported from `data/seed/index.ts`, plus a `cachedExtractionBySha(sha)` helper for WP-03.
+- `data/seed/samples.ts`: `SAMPLE_PDFS` with `{ id, caseKind, label, path, sha256 }` (real sha256 values filled in), re-exported from `data/seed/index.ts`, plus the `cachedExtractionBySha(sha)` and `cachedExtractionBySampleId(id)` helpers for WP-03. Sample ids equal `SeedCase.key`, and the hero stays `implant-ribera`.
 - `data/seed/alignerCase.ts` (raw + extraction fixture), the optional `data/seed/perioCase.ts`, and `seedCases()` returning approved plans built with `buildPlan`, keeping the `SeedCase` shape.
 - `data/seed/notes.ts`: the reviewed `NOTE_LIBRARY`, with every `NoteId` in ES and EN.
 
