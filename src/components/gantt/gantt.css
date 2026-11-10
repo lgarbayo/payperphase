@@ -1,0 +1,449 @@
+/*
+ * OWNED BY WP-05. Clinical Gantt skin on top of Bryntum's svalbard-light theme.
+ * Colours come from the shared --ppp-* variables (app/globals.css); never raw hex here.
+ */
+
+.ppp-gantt-root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--ppp-border);
+  border-radius: var(--ppp-radius);
+  background: var(--ppp-surface);
+  box-shadow: var(--ppp-shadow);
+}
+.ppp-gantt-host {
+  position: relative;
+  flex: none;
+  min-height: 0;
+}
+.ppp-gantt-overlay {
+  position: absolute;
+  inset: 0 0 40px 0;
+  display: grid;
+  place-items: center;
+  background: var(--ppp-surface);
+  color: var(--ppp-muted);
+  font-size: 14px;
+}
+.ppp-gantt-overlay-error {
+  color: var(--ppp-status-overdue);
+}
+
+/* ── Theme bridge ─────────────────────────────────────────────────────────────────────────────── */
+.ppp-gantt {
+  --b-primary: var(--ppp-primary);
+  --b-widget-font-family: var(--ppp-font);
+  --b-font-family: var(--ppp-font);
+  --b-grid-header-font-weight: 600;
+  --b-gantt-task-min-width: 10px;
+  --ppp-bar: var(--ppp-status-scheduled);
+  --ppp-heal-stripe: color-mix(in srgb, var(--ppp-healing) 55%, var(--ppp-ink) 18%);
+  --ppp-heal-min-bg: color-mix(in srgb, var(--ppp-healing) 45%, var(--ppp-surface));
+  --ppp-heal-wait-bg: color-mix(in srgb, var(--ppp-healing) 18%, var(--ppp-surface));
+  --ppp-heal-over-bg: color-mix(in srgb, var(--ppp-deadline) 22%, var(--ppp-surface));
+  font-family: var(--ppp-font);
+  color: var(--ppp-ink);
+  height: 100%;
+}
+.ppp-gantt .b-grid-header {
+  color: var(--ppp-muted);
+}
+.ppp-gantt .b-grid-header-text {
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.ppp-gantt .b-grid-cell {
+  font-size: 13px;
+  color: var(--ppp-ink);
+}
+
+/* Status palette as a local --ppp-bar, shared by bars, diamonds, pills and numbers. */
+.ppp-gantt .ppp-status-scheduled,
+.ppp-legend .ppp-status-scheduled,
+.ppp-tip .ppp-status-scheduled {
+  --ppp-bar: var(--ppp-status-scheduled);
+}
+.ppp-gantt .ppp-status-upcoming,
+.ppp-legend .ppp-status-upcoming,
+.ppp-tip .ppp-status-upcoming {
+  --ppp-bar: var(--ppp-status-upcoming);
+}
+.ppp-gantt .ppp-status-due,
+.ppp-legend .ppp-status-due,
+.ppp-tip .ppp-status-due {
+  --ppp-bar: var(--ppp-status-due);
+}
+.ppp-gantt .ppp-status-processing,
+.ppp-legend .ppp-status-processing,
+.ppp-tip .ppp-status-processing {
+  --ppp-bar: var(--ppp-status-processing);
+}
+.ppp-gantt .ppp-status-paid,
+.ppp-legend .ppp-status-paid,
+.ppp-tip .ppp-status-paid {
+  --ppp-bar: var(--ppp-status-paid);
+}
+.ppp-gantt .ppp-status-overdue,
+.ppp-legend .ppp-status-overdue,
+.ppp-tip .ppp-status-overdue {
+  --ppp-bar: var(--ppp-status-overdue);
+}
+
+/* ── Grid cells ───────────────────────────────────────────────────────────────────────────────── */
+.ppp-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.ppp-cell-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ppp-cell-phase .ppp-cell-title {
+  font-weight: 600;
+}
+.ppp-cell-sub {
+  padding-inline-start: 6px;
+  color: var(--ppp-muted);
+  font-size: 12.5px;
+}
+.ppp-cell-muted {
+  color: var(--ppp-muted);
+  font-size: 12px;
+}
+.ppp-n {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--ppp-bar);
+  color: var(--ppp-primary-ink);
+  font-size: 12px;
+  font-weight: 700;
+}
+.ppp-amount {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.ppp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ppp-bar) 14%, transparent);
+  color: color-mix(in srgb, var(--ppp-bar) 80%, var(--ppp-ink));
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  white-space: nowrap;
+}
+.ppp-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+}
+.ppp-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border: 1px solid color-mix(in srgb, var(--ppp-primary) 35%, transparent);
+  border-radius: 6px;
+  color: var(--ppp-primary-strong);
+  background: color-mix(in srgb, var(--ppp-primary) 7%, transparent);
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ppp-chip.ppp-band-INSTALLMENTS,
+.ppp-chip.ppp-band-PAYPAL_ONLY {
+  border-color: var(--ppp-border);
+  color: var(--ppp-muted);
+  background: var(--ppp-surface-2);
+}
+.ppp-diamond {
+  display: inline-block;
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin-inline: 2px;
+  rotate: 45deg;
+  border-radius: 2px;
+  background: var(--ppp-bar);
+}
+.ppp-hatch {
+  display: inline-block;
+  flex: none;
+  width: 18px;
+  height: 10px;
+  border-radius: 3px;
+  background:
+    repeating-linear-gradient(135deg, var(--ppp-heal-stripe, var(--ppp-healing)) 0 2px, transparent 2px 5px),
+    color-mix(in srgb, var(--ppp-healing) 45%, var(--ppp-surface));
+}
+
+/* ── Visit bars ───────────────────────────────────────────────────────────────────────────────── */
+.ppp-gantt .b-gantt-task.ppp-visit,
+.ppp-gantt .ppp-visit .b-gantt-task {
+  --b-sch-event-background: var(--ppp-bar);
+  --b-sch-event-border-color: var(--ppp-bar);
+  background: var(--ppp-bar);
+  border-color: var(--ppp-bar);
+  border-radius: 5px;
+  min-width: 12px;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--ppp-ink) 18%, transparent);
+}
+.ppp-gantt .ppp-draggable.b-gantt-task,
+.ppp-gantt .ppp-draggable .b-gantt-task {
+  cursor: grab;
+}
+.ppp-gantt .ppp-locked.b-gantt-task,
+.ppp-gantt .ppp-locked .b-gantt-task {
+  cursor: default;
+}
+.ppp-gantt .ppp-deadline-exceeded.b-gantt-task,
+.ppp-gantt .ppp-deadline-exceeded .b-gantt-task {
+  --ppp-bar: var(--ppp-deadline);
+  outline: 2px solid color-mix(in srgb, var(--ppp-deadline) 35%, transparent);
+  outline-offset: 2px;
+  animation: ppp-pulse 1.6s ease-in-out 2;
+}
+.ppp-gantt .ppp-rejected,
+.ppp-gantt .ppp-rejected .b-gantt-task {
+  animation: ppp-nudge 0.45s ease-in-out 2;
+}
+
+/* ── Payment milestones ───────────────────────────────────────────────────────────────────────── */
+.ppp-gantt .ppp-payment.b-milestone .b-gantt-task-content::before,
+.ppp-gantt .ppp-payment .b-milestone .b-gantt-task-content::before,
+.ppp-gantt .b-gantt-task.ppp-payment .b-gantt-task-content::before {
+  background: var(--ppp-bar);
+  border-color: var(--ppp-bar);
+}
+.ppp-gantt .ppp-payment,
+.ppp-gantt .ppp-payment .b-gantt-task {
+  --b-sch-event-background: var(--ppp-bar);
+  --b-sch-event-border-color: var(--ppp-bar);
+  cursor: default;
+}
+
+/* ── Healing windows: hatched minimum, light extra wait, red beyond the maximum ──────────────── */
+.ppp-gantt .b-gantt-task.ppp-healing,
+.ppp-gantt .ppp-healing .b-gantt-task {
+  background:
+    linear-gradient(to right, transparent 0 var(--ppp-max-pct, 100%), var(--ppp-heal-over-bg) var(--ppp-max-pct, 100%) 100%),
+    repeating-linear-gradient(135deg, var(--ppp-heal-stripe) 0 2px, transparent 2px 7px) 0 0 / var(--ppp-min-pct, 100%) 100% no-repeat,
+    linear-gradient(to right, var(--ppp-heal-min-bg) 0 var(--ppp-min-pct, 100%), var(--ppp-heal-wait-bg) var(--ppp-min-pct, 100%) 100%);
+  border: 1px solid color-mix(in srgb, var(--ppp-healing) 80%, var(--ppp-ink) 10%);
+  border-radius: 4px;
+  box-shadow: none;
+  color: var(--ppp-muted);
+  cursor: default;
+}
+.ppp-gantt .b-gantt-task.ppp-healing-exceeded,
+.ppp-gantt .ppp-healing-exceeded .b-gantt-task {
+  border-color: color-mix(in srgb, var(--ppp-deadline) 60%, transparent);
+}
+.ppp-heal-text {
+  padding-inline: 6px;
+  color: var(--ppp-ink);
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0.75;
+}
+
+/* ── Baseline ghost (approved plan) and chat preview ghost ───────────────────────────────────── */
+.ppp-gantt {
+  --b-baseline-background: var(--ppp-ghost);
+  --b-baseline-border-radius: 3px;
+}
+.ppp-gantt .b-task-baseline.ppp-ghost-shift {
+  background: color-mix(in srgb, var(--ppp-primary) 16%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--ppp-primary) 70%, transparent);
+}
+
+/* ── Time ranges: simulated today + breached deadline ─────────────────────────────────────────── */
+.ppp-gantt .b-sch-range.ppp-today,
+.ppp-gantt .b-sch-line.ppp-today {
+  border-inline-start: 2px solid var(--ppp-primary);
+}
+.ppp-gantt .b-sch-timerange.ppp-today,
+.ppp-gantt .ppp-today {
+  --b-sch-timerange-line-color: var(--ppp-primary);
+  --b-sch-time-range-line-color: var(--ppp-primary);
+}
+.ppp-gantt .b-sch-timerange.b-sch-line.ppp-today label,
+.ppp-gantt .b-sch-timeaxis-cell .ppp-today,
+.ppp-gantt .b-timeaxis-timerange.ppp-today {
+  background: var(--ppp-primary);
+  color: var(--ppp-primary-ink);
+}
+.ppp-gantt .ppp-deadline-line {
+  --b-sch-timerange-line-color: var(--ppp-deadline);
+  --b-sch-time-range-line-color: var(--ppp-deadline);
+}
+.ppp-gantt .b-sch-timerange.b-sch-line.ppp-deadline-line {
+  border-inline-start: 2px dashed var(--ppp-deadline);
+}
+.ppp-gantt .b-sch-timerange.b-sch-line.ppp-deadline-line label,
+.ppp-gantt .b-timeaxis-timerange.ppp-deadline-line {
+  background: var(--ppp-deadline);
+  color: var(--ppp-primary-ink);
+}
+
+/* ── Indicators and labels ────────────────────────────────────────────────────────────────────── */
+.ppp-gantt .b-indicator.ppp-ind-due {
+  color: var(--ppp-bar);
+}
+.ppp-gantt .b-gantt-task-wrap .b-sch-label {
+  color: var(--ppp-ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ── Dependencies ─────────────────────────────────────────────────────────────────────────────── */
+.ppp-gantt {
+  --b-dependency-color: color-mix(in srgb, var(--ppp-muted) 75%, transparent);
+}
+
+/* ── Tooltips (rendered in Bryntum's floating root, outside .ppp-gantt) ──────────────────────── */
+.ppp-tip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: var(--ppp-font);
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--ppp-ink);
+}
+.ppp-tip-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+  font-weight: 700;
+}
+.ppp-tip-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ppp-tip-muted {
+  color: var(--ppp-muted);
+}
+.ppp-tip-hint {
+  margin-top: 2px;
+  color: var(--ppp-primary-strong);
+  font-size: 12px;
+}
+.ppp-tip-note {
+  margin-top: 2px;
+  padding: 6px 8px;
+  border-radius: var(--ppp-radius-sm);
+  background: var(--ppp-surface-2);
+  color: var(--ppp-ink);
+  font-size: 12px;
+}
+.ppp-tip-warn {
+  margin-top: 2px;
+  color: var(--ppp-deadline);
+  font-weight: 600;
+}
+
+/* ── Legend strip ─────────────────────────────────────────────────────────────────────────────── */
+.ppp-legend {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 14px;
+  border-top: 1px solid var(--ppp-border);
+  background: var(--ppp-surface);
+  color: var(--ppp-muted);
+  font-size: 12px;
+  overflow: hidden;
+}
+.ppp-legend-items {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.ppp-legend-items li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ppp-legend-swatch {
+  display: inline-block;
+  width: 22px;
+  height: 10px;
+  border-radius: 3px;
+}
+.ppp-legend-heal {
+  background:
+    repeating-linear-gradient(135deg, color-mix(in srgb, var(--ppp-healing) 55%, var(--ppp-ink) 18%) 0 2px, transparent 2px 6px),
+    color-mix(in srgb, var(--ppp-healing) 45%, var(--ppp-surface));
+  border: 1px solid var(--ppp-healing);
+}
+.ppp-legend-wait {
+  background: color-mix(in srgb, var(--ppp-healing) 18%, var(--ppp-surface));
+  border: 1px solid var(--ppp-healing);
+}
+.ppp-legend-ghost {
+  height: 6px;
+  background: var(--ppp-ghost);
+}
+.ppp-legend-preview {
+  background: color-mix(in srgb, var(--ppp-primary) 16%, transparent);
+  border: 1px dashed var(--ppp-primary);
+}
+.ppp-legend-flag {
+  color: var(--ppp-deadline);
+}
+.ppp-legend-hint,
+.ppp-legend-flash {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ppp-legend-hint {
+  color: var(--ppp-primary-strong);
+}
+.ppp-legend-flash {
+  color: var(--ppp-status-overdue);
+  font-weight: 600;
+}
+
+@keyframes ppp-pulse {
+  50% {
+    outline-color: color-mix(in srgb, var(--ppp-deadline) 75%, transparent);
+  }
+}
+@keyframes ppp-nudge {
+  25% {
+    translate: -3px 0;
+  }
+  75% {
+    translate: 3px 0;
+  }
+}
