@@ -36,7 +36,10 @@ export function PhaseReview(props: PhaseReviewProps) {
   const lineById = new Map(plan.lines.map((l) => [l.id, l]));
   return (
     <div className="flex flex-col gap-4">
-      <div data-testid="phase-review" className="grid gap-4 md:grid-cols-2">
+      <div
+        data-testid="phase-review"
+        className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-[repeat(2,minmax(0,1fr))]"
+      >
         <Stagger stepMs={90}>
           {plan.phases.map((phase) => (
             <PhaseCard
@@ -86,10 +89,12 @@ function PhaseCard({
   const draft = drafts.status === "ready" ? drafts.byPhase[phase.id] : undefined;
   const approvedSummary = readOnly ? phase.summary?.[locale] : undefined;
   return (
-    <Card data-testid={`phase-review-${phase.id}`} className="flex flex-col gap-4 p-4">
+    <Card data-testid={`phase-review-${phase.id}`} className="flex min-w-0 flex-col gap-4 p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wide text-primary-strong">{t("phaseLabel", { n: phase.n })}</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-primary-strong">
+            {t("phaseLabel", { n: phase.n })}
+          </p>
           <h3 className="mt-0.5 font-semibold leading-snug text-ink">{phase.title[locale]}</h3>
         </div>
         <p data-testid={`phase-amount-${phase.id}`} className="shrink-0 text-xl font-semibold tabular-nums text-ink">
@@ -108,7 +113,10 @@ function PhaseCard({
 
       {dep && predecessor && (
         <p className="flex items-center gap-2 text-xs text-muted">
-          <span aria-hidden className="inline-block h-2 w-5 rounded-sm bg-[repeating-linear-gradient(135deg,var(--ppp-healing)_0_3px,transparent_3px_6px)]" />
+          <span
+            aria-hidden
+            className="inline-block h-2 w-5 rounded-sm bg-[repeating-linear-gradient(135deg,var(--ppp-healing)_0_3px,transparent_3px_6px)]"
+          />
           {t("afterPhase", { n: predecessor.n, min: spanText(dep.minLagDays, t) })}
         </p>
       )}
@@ -151,7 +159,17 @@ function PhaseCard({
           {approvedSummary}
         </blockquote>
       ) : (
-        !readOnly && <WordingDraft phaseId={phase.id} draft={draft} drafts={drafts} used={usedDrafts.has(phase.id)} onToggle={onToggleDraft} locale={locale} t={t} />
+        !readOnly && (
+          <WordingDraft
+            phaseId={phase.id}
+            draft={draft}
+            drafts={drafts}
+            used={usedDrafts.has(phase.id)}
+            onToggle={onToggleDraft}
+            locale={locale}
+            t={t}
+          />
+        )
       )}
     </Card>
   );
@@ -181,7 +199,9 @@ function WordingDraft({
         <p className="text-xs font-semibold uppercase tracking-wide text-muted">
           {t("wordingTitle")} <span className="font-normal normal-case">· {t("wordingOptional")}</span>
         </p>
-        {drafts.status === "ready" && <ModeBadge mode={drafts.source === "live" ? "live" : "cached"} what={t("wordingWhat")} locale={locale} />}
+        {drafts.status === "ready" && (
+          <ModeBadge mode={drafts.source === "live" ? "live" : "cached"} what={t("wordingWhat")} locale={locale} />
+        )}
       </div>
       {drafts.status === "loading" && (
         <div role="status" className="flex flex-col gap-1.5">

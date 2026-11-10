@@ -65,7 +65,10 @@ export function QuoteDropzone({ samples, locale, t, busy, busyLabel, compact, er
           </span>
           <div className="min-w-0">
             <p className="font-medium text-ink">{t("extracting")}</p>
-            <p className="truncate text-sm text-muted">{busyLabel ? `${busyLabel} · ` : ""}{t("extractingHint")}</p>
+            <p className="truncate text-sm text-muted">
+              {busyLabel ? `${busyLabel} · ` : ""}
+              {t("extractingHint")}
+            </p>
           </div>
         </div>
         <div className="mt-5 flex flex-col gap-2" aria-hidden>
@@ -155,7 +158,10 @@ export function QuoteDropzone({ samples, locale, t, busy, busyLabel, compact, er
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm font-medium text-muted">{t("samplesTitle")}</span>
           {samples.map((s) => (
-            <span key={s.id} className="inline-flex items-center overflow-hidden rounded-full border border-border bg-surface">
+            <span
+              key={s.id}
+              className="inline-flex items-center overflow-hidden rounded-full border border-border bg-surface"
+            >
               <button
                 type="button"
                 data-testid={`sample-${s.id}`}

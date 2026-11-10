@@ -4,11 +4,7 @@
  */
 import { vi } from "vitest";
 import type { EditPlanResponse, ExtractionResult, Plan, PlanSummary, PlanViewResponse } from "@/contracts";
-import {
-  GOLDEN_BONE_GRAFT_DIFF,
-  goldenExtraction,
-  goldenPlan,
-} from "@/contracts/fixtures/implantCase";
+import { GOLDEN_BONE_GRAFT_DIFF, goldenExtraction, goldenPlan } from "@/contracts/fixtures/implantCase";
 import { NOTE_LIBRARY } from "@data/seed/notes";
 
 export const norm = (s: string | null | undefined) => (s ?? "").replace(/[  ]/g, " ").replace(/\s+/g, " ").trim();
@@ -98,7 +94,10 @@ export function boneGraftResponse(): EditPlanResponse {
     plan: boneGraftPlan(),
     diff: structuredClone(GOLDEN_BONE_GRAFT_DIFF),
     explanation: {
-      template: { es: "Se añade un injerto óseo a la fase {{phaseN}}.", en: "A bone graft is added to phase {{phaseN}}." },
+      template: {
+        es: "Se añade un injerto óseo a la fase {{phaseN}}.",
+        en: "A bone graft is added to phase {{phaseN}}.",
+      },
       rendered: {
         es: "Se añade un injerto óseo a la fase 2. Las fases siguientes esperan más para que el hueso cicatrice.",
         en: "A bone graft is added to phase 2. Later phases wait longer so the bone can heal.",

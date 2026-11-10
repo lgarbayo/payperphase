@@ -34,7 +34,7 @@ function invoiceNumberFor(plan: Plan, phase: Phase): string {
 export function SendToPatient({ plan, locale, t, notesApproved, approving, error, onApprove }: SendToPatientProps) {
   const approved = plan.status !== "draft";
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(300px,1fr)]">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(300px,1fr)]">
       <InvoicesPreview plan={plan} locale={locale} t={t} approved={approved} />
       {approved ? (
         <PatientLinkCard plan={plan} locale={locale} t={t} />
@@ -82,10 +82,18 @@ function InvoicesPreview({ plan, locale, t, approved }: { plan: Plan; locale: Lo
         <table className="w-full min-w-[520px] text-sm">
           <thead>
             <tr className="bg-surface-2/60 text-left text-[11px] font-medium uppercase tracking-wide text-muted">
-              <th scope="col" className="px-4 py-2 font-medium">{t("colInvoice")}</th>
-              <th scope="col" className="px-4 py-2 font-medium">{t("colVisit")}</th>
-              <th scope="col" className="px-4 py-2 text-right font-medium">{t("colAmount")}</th>
-              <th scope="col" className="px-4 py-2 text-right font-medium">{t("colStatus")}</th>
+              <th scope="col" className="px-4 py-2 font-medium">
+                {t("colInvoice")}
+              </th>
+              <th scope="col" className="px-4 py-2 font-medium">
+                {t("colVisit")}
+              </th>
+              <th scope="col" className="px-4 py-2 text-right font-medium">
+                {t("colAmount")}
+              </th>
+              <th scope="col" className="px-4 py-2 text-right font-medium">
+                {t("colStatus")}
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -95,7 +103,9 @@ function InvoicesPreview({ plan, locale, t, approved }: { plan: Plan; locale: Lo
               return (
                 <tr key={phase.id} data-testid={`invoice-row-${phase.id}`}>
                   <td className="px-4 py-2.5">
-                    <span className="block font-mono text-xs font-medium text-ink">{invoiceNumberFor(plan, phase)}</span>
+                    <span className="block font-mono text-xs font-medium text-ink">
+                      {invoiceNumberFor(plan, phase)}
+                    </span>
                     <span className="block text-xs text-muted">
                       {t("phaseLabel", { n: phase.n })} · {phase.title[locale]}
                     </span>
@@ -108,7 +118,9 @@ function InvoicesPreview({ plan, locale, t, approved }: { plan: Plan; locale: Lo
                     {paid ? (
                       <Badge tone="paid">{t("invPaid")}</Badge>
                     ) : inv ? (
-                      <Badge tone={inv.status === "CANCELLED" ? "neutral" : "primary"}>{t(INVOICE_STATUS_LABEL[inv.status])}</Badge>
+                      <Badge tone={inv.status === "CANCELLED" ? "neutral" : "primary"}>
+                        {t(INVOICE_STATUS_LABEL[inv.status])}
+                      </Badge>
                     ) : (
                       <Badge tone="neutral">{t("invToIssue")}</Badge>
                     )}
@@ -137,7 +149,12 @@ function PatientLinkCard({ plan, locale, t }: { plan: Plan; locale: Locale; t: C
   useEffect(() => {
     if (!origin) return;
     let alive = true;
-    QRCode.toDataURL(link, { margin: 1, width: 320, errorCorrectionLevel: "M", color: { dark: "#10243a", light: "#ffffff" } })
+    QRCode.toDataURL(link, {
+      margin: 1,
+      width: 320,
+      errorCorrectionLevel: "M",
+      color: { dark: "#10243a", light: "#ffffff" },
+    })
       .then((url) => alive && setQr(url))
       .catch(() => alive && setQr(null));
     return () => {
@@ -184,7 +201,11 @@ function PatientLinkCard({ plan, locale, t }: { plan: Plan; locale: Locale; t: C
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted">{t("patientLink")}</p>
           <div className="flex items-center gap-2 rounded-[var(--ppp-radius-sm)] border border-border bg-surface-2/60 py-1 pl-3 pr-1">
-            <code data-testid="patient-link" className="min-w-0 flex-1 truncate font-mono text-xs text-ink" title={link}>
+            <code
+              data-testid="patient-link"
+              className="min-w-0 flex-1 truncate font-mono text-xs text-ink"
+              title={link}
+            >
               {link}
             </code>
             <button

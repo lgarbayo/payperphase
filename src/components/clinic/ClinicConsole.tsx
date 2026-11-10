@@ -200,8 +200,11 @@ export function ClinicConsole({
       setExtraction(null);
       setCreateError(null);
       try {
-        const res = req.kind === "file" ? await clinicApi.extractFile(req.file) : await clinicApi.extractSample(req.sample.id);
-        setCaseKind(req.kind === "sample" ? req.sample.caseKind : inferCaseKind(res.extraction.lines.map((l) => l.code)));
+        const res =
+          req.kind === "file" ? await clinicApi.extractFile(req.file) : await clinicApi.extractSample(req.sample.id);
+        setCaseKind(
+          req.kind === "sample" ? req.sample.caseKind : inferCaseKind(res.extraction.lines.map((l) => l.code)),
+        );
         adoptPlan(null);
         setExtraction(res.extraction);
         setExtract({ status: "idle" });
@@ -452,9 +455,7 @@ export function ClinicConsole({
               </div>
             </Reveal>
             <TrustStrip locale={locale} />
-            {!readOnly && (
-              <NoteApprovalBar total={totalNotes} done={doneNotes} onToggleAll={toggleAllNotes} t={t} />
-            )}
+            {!readOnly && <NoteApprovalBar total={totalNotes} done={doneNotes} onToggleAll={toggleAllNotes} t={t} />}
             <PhaseReview
               plan={plan}
               groups={groups}
@@ -469,7 +470,7 @@ export function ClinicConsole({
             />
           </>
         ) : (
-          <EmptyPlan t={t} />
+          <EmptyPlan text={extraction ? t("planEmptyReady") : t("planEmpty")} />
         )}
       </section>
 
@@ -492,7 +493,7 @@ export function ClinicConsole({
       </section>
 
       {/* 4 · Edit plan + agent feed (Director deep links: #plan-editor, #agent-feed) */}
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
         <section id="plan-editor" className="flex min-w-0 scroll-mt-6 flex-col gap-4">
           <StepHeader
             n={4}
@@ -508,20 +509,20 @@ export function ClinicConsole({
             }
           />
           {plan && plan.status !== "draft" ? (
-            <>
-              {editResult && (
-                <DiffPanel result={editResult} locale={locale} t={t} onDismiss={() => setEditResult(null)} />
-              )}
-              <PlanEditor
-                plan={plan}
-                locale={locale}
-                t={t}
-                busy={busy}
-                error={editError}
-                onEdit={(edit, key) => void runEdit(edit, key)}
-                onDeliver={(phaseId) => void deliver(phaseId)}
-              />
-            </>
+            <PlanEditor
+              plan={plan}
+              locale={locale}
+              t={t}
+              busy={busy}
+              error={editError}
+              onEdit={(edit, key) => void runEdit(edit, key)}
+              onDeliver={(phaseId) => void deliver(phaseId)}
+              diffSlot={
+                editResult && (
+                  <DiffPanel result={editResult} locale={locale} t={t} onDismiss={() => setEditResult(null)} />
+                )
+              }
+            />
           ) : (
             <EmptyCard text={t("editorEmpty")} />
           )}
@@ -603,7 +604,7 @@ function EmptyCard({ text }: { text: string }) {
   );
 }
 
-function EmptyPlan({ t }: { t: ClinicT }) {
+function EmptyPlan({ text }: { text: string }) {
   return (
     <div
       data-testid="plan-empty"
@@ -621,7 +622,7 @@ function EmptyPlan({ t }: { t: ClinicT }) {
           </div>
         ))}
       </div>
-      <p className="text-center text-sm text-muted">{t("planEmpty")}</p>
+      <p className="text-center text-sm text-muted">{text}</p>
     </div>
   );
 }

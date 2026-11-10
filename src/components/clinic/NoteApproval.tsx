@@ -70,7 +70,9 @@ export function NoteApproval({ notes, ticked, onToggle, locale, t, readOnly, app
   if (notes.length === 0) return null;
   return (
     <fieldset className="flex flex-col gap-2">
-      <legend className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">{title ?? t("notesTitle")}</legend>
+      <legend className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">
+        {title ?? t("notesTitle")}
+      </legend>
       {notes.map((note) => {
         const checked = ticked.has(note.id);
         return (

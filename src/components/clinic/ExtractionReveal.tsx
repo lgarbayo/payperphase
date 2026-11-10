@@ -116,7 +116,9 @@ export function ExtractionReveal({
         <div className="min-w-0">
           <p className="flex flex-wrap items-center gap-2 text-sm text-muted">
             <span className="font-medium text-ink">{t("quoteRef", { ref: extraction.quoteRef })}</span>
-            {extraction.quoteDate && <span>· {t("quoteDate", { date: formatIsoDate(extraction.quoteDate, locale) })}</span>}
+            {extraction.quoteDate && (
+              <span>· {t("quoteDate", { date: formatIsoDate(extraction.quoteDate, locale) })}</span>
+            )}
           </p>
           <p className="truncate text-sm text-muted">
             {extraction.clinicName} · {extraction.dentistName} · {t("patientLabel")}: {extraction.patientName}
@@ -130,7 +132,7 @@ export function ExtractionReveal({
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
         <div className="overflow-hidden rounded-[var(--ppp-radius)] border border-border bg-surface shadow-[var(--ppp-shadow)]">
           <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
             <h3 className="text-sm font-semibold text-ink">{t("linesTitle")}</h3>
@@ -206,7 +208,11 @@ export function ExtractionReveal({
 function ConfidenceDot({ value, t }: { value: number; t: ClinicT }) {
   const pct = Math.round(value * 100);
   const color =
-    value >= 0.85 ? "var(--ppp-status-paid)" : value >= 0.6 ? "var(--ppp-status-upcoming)" : "var(--ppp-status-overdue)";
+    value >= 0.85
+      ? "var(--ppp-status-paid)"
+      : value >= 0.6
+        ? "var(--ppp-status-upcoming)"
+        : "var(--ppp-status-overdue)";
   const label = t("confidence", { pct });
   return (
     <span
@@ -277,14 +283,18 @@ function LineRow({
         )}
       </div>
 
-      <div className="col-start-2 flex flex-wrap gap-1 md:col-start-auto">
+      <div
+        className={cx(
+          "col-start-2 flex-wrap gap-1 md:col-start-auto md:flex",
+          line.teeth.length + invalidTeeth.length > 0 ? "flex" : "hidden",
+        )}
+      >
         {line.teeth.map((tooth) => (
           <ToothChip key={tooth} tooth={tooth} category={line.category} />
         ))}
         {invalidTeeth.map((tooth) => (
           <ToothChip key={`x${tooth}`} tooth={tooth} invalid title={t("invalidTooth", { tooth })} />
         ))}
-        {line.teeth.length === 0 && invalidTeeth.length === 0 && <span className="text-xs text-muted md:hidden">—</span>}
       </div>
 
       <div className="col-start-2 flex items-baseline justify-between gap-3 text-sm tabular-nums md:contents">

@@ -81,10 +81,18 @@ export function PaymentsOverview({ locale, t, refreshSignal = 0, currentPlanId, 
           <table className="w-full min-w-[640px] text-sm">
             <thead>
               <tr className="bg-surface-2/60 text-left text-[11px] font-medium uppercase tracking-wide text-muted">
-                <th scope="col" className="px-4 py-2 font-medium">{t("colPatient")}</th>
-                <th scope="col" className="px-4 py-2 font-medium">{t("colPlan")}</th>
-                <th scope="col" className="px-4 py-2 font-medium">{t("colCollected")}</th>
-                <th scope="col" className="px-4 py-2 font-medium">{t("colNextDue")}</th>
+                <th scope="col" className="px-4 py-2 font-medium">
+                  {t("colPatient")}
+                </th>
+                <th scope="col" className="px-4 py-2 font-medium">
+                  {t("colPlan")}
+                </th>
+                <th scope="col" className="px-4 py-2 font-medium">
+                  {t("colCollected")}
+                </th>
+                <th scope="col" className="px-4 py-2 font-medium">
+                  {t("colNextDue")}
+                </th>
                 <th scope="col" className="px-4 py-2" />
               </tr>
             </thead>
@@ -101,14 +109,22 @@ export function PaymentsOverview({ locale, t, refreshSignal = 0, currentPlanId, 
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <Badge tone={p.status === "approved" ? "primary" : "neutral"}>{t(PLAN_STATUS_LABEL[p.status])}</Badge>
+                      <Badge tone={p.status === "approved" ? "primary" : "neutral"}>
+                        {t(PLAN_STATUS_LABEL[p.status])}
+                      </Badge>
                     </td>
                     <td className="px-4 py-3">
                       <span data-testid={`payments-paid-${p.id}`} className="block tabular-nums text-ink">
-                        {t("paidOf", { paid: formatCents(p.paidCents, locale), total: formatCents(p.totalCents, locale) })}
+                        {t("paidOf", {
+                          paid: formatCents(p.paidCents, locale),
+                          total: formatCents(p.totalCents, locale),
+                        })}
                       </span>
                       <span aria-hidden className="mt-1.5 block h-1.5 w-32 overflow-hidden rounded-full bg-surface-2">
-                        <span className="block h-full rounded-full bg-status-paid transition-[width] duration-700" style={{ width: `${pct}%` }} />
+                        <span
+                          className="block h-full rounded-full bg-status-paid transition-[width] duration-700"
+                          style={{ width: `${pct}%` }}
+                        />
                       </span>
                     </td>
                     <td className="px-4 py-3" data-testid={`payments-next-${p.id}`}>
@@ -127,7 +143,12 @@ export function PaymentsOverview({ locale, t, refreshSignal = 0, currentPlanId, 
                           <Badge tone="neutral">{t("current")}</Badge>
                         ) : (
                           onManage && (
-                            <Button size="sm" variant="secondary" data-testid={`manage-${p.id}`} onClick={() => onManage(p.id)}>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              data-testid={`manage-${p.id}`}
+                              onClick={() => onManage(p.id)}
+                            >
                               {t("manage")}
                             </Button>
                           )

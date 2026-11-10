@@ -4,14 +4,7 @@
  * inline icons and the numbered section header. Display helpers only: no money or date arithmetic.
  */
 import type { ReactNode, SVGProps } from "react";
-import type {
-  CaseKind,
-  FitBand,
-  InvoiceStatus,
-  LineIssue,
-  PlanStatus,
-  ProcedureCategory,
-} from "@/contracts";
+import type { CaseKind, FitBand, InvoiceStatus, LineIssue, PlanStatus, ProcedureCategory } from "@/contracts";
 import { useT, type KeyOf } from "@/i18n";
 import { cx } from "@/lib/ui";
 
@@ -86,17 +79,7 @@ export function prefersReducedMotion(): boolean {
 }
 
 /** Numbered step header used by every console section. */
-export function StepHeader({
-  n,
-  title,
-  hint,
-  aside,
-}: {
-  n?: number;
-  title: string;
-  hint?: string;
-  aside?: ReactNode;
-}) {
+export function StepHeader({ n, title, hint, aside }: { n?: number; title: string; hint?: string; aside?: ReactNode }) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-3">
       <div className="flex items-start gap-3">
@@ -242,7 +225,10 @@ export function Spinner({ className }: { className?: string }) {
   return (
     <span
       aria-hidden
-      className={cx("inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-r-transparent", className)}
+      className={cx(
+        "inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-r-transparent",
+        className,
+      )}
     />
   );
 }

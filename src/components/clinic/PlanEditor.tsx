@@ -4,7 +4,7 @@
  * preset = GOLDEN_BONE_GRAFT_EDIT), remove a line, and mark a phase delivered. Each change goes to
  * POST /api/plans/:id/edit (or /deliver); the engine resizes, refits and reschedules.
  */
-import { useId, useState, type FormEvent } from "react";
+import { useId, useState, type FormEvent, type ReactNode } from "react";
 import {
   isValidFdi,
   ProcedureCodeSchema,
@@ -33,6 +33,8 @@ export interface PlanEditorProps {
   error?: string | null;
   onEdit: (edit: PlanEdit, key: string) => void;
   onDeliver: (phaseId: string) => void;
+  /** Rendered right under the preset bar (the DiffPanel lands next to the button that caused it). */
+  diffSlot?: ReactNode;
 }
 
 export const BONE_GRAFT_PRESET_KEY = "preset-bone-graft";
@@ -53,7 +55,7 @@ function presetState(plan: Plan): "available" | "done" | "hidden" {
   return isLocked(target) ? "hidden" : "available";
 }
 
-export function PlanEditor({ plan, locale, t, busy, error, onEdit, onDeliver }: PlanEditorProps) {
+export function PlanEditor({ plan, locale, t, busy, error, onEdit, onDeliver, diffSlot }: PlanEditorProps) {
   const [openForm, setOpenForm] = useState<string | null>(null);
   const lineById = new Map(plan.lines.map((l) => [l.id, l]));
   const preset = presetState(plan);
@@ -94,6 +96,8 @@ export function PlanEditor({ plan, locale, t, busy, error, onEdit, onDeliver }: 
           {error}
         </p>
       )}
+
+      {diffSlot}
 
       <ol className="flex flex-col gap-3">
         {plan.phases.map((phase) => {
@@ -273,10 +277,15 @@ function AddLineForm({
   const label = "flex flex-col gap-1 text-xs font-medium text-muted";
   return (
     <form data-testid={`add-line-form-${phase.id}`} onSubmit={submit} className="flex flex-col gap-3 py-1" noValidate>
-      <div className="grid gap-3 md:grid-cols-[minmax(0,2fr)_minmax(0,1.2fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-[minmax(0,2fr)_minmax(0,1.2fr)]">
         <label className={label} htmlFor={`${id}-desc`}>
           {t("lineDescription")}
-          <input id={`${id}-desc`} className={field} value={description} onChange={(e) => setDescription(e.target.value)} />
+          <input
+            id={`${id}-desc`}
+            className={field}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
         </label>
         <label className={label} htmlFor={`${id}-code`}>
           {t("lineCode")}
@@ -294,7 +303,7 @@ function AddLineForm({
           </select>
         </label>
       </div>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-[repeat(3,minmax(0,1fr))] gap-3">
         <label className={label} htmlFor={`${id}-teeth`}>
           {t("lineTeeth")}
           <input

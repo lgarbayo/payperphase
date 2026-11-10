@@ -14,15 +14,7 @@ import { LocaleProvider } from "@/i18n";
 import { ToastProvider } from "@/lib/ui/Toast";
 import { SAMPLE_PDFS } from "@data/seed";
 import { NOTE_LIBRARY } from "@data/seed/notes";
-import {
-  boneGraftResponse,
-  cachedGolden,
-  clinicView,
-  draftPlan,
-  mockFetch,
-  norm,
-  SUMMARIES,
-} from "./helpers";
+import { boneGraftResponse, cachedGolden, clinicView, draftPlan, mockFetch, norm, SUMMARIES } from "./helpers";
 
 const sse = vi.hoisted(() => ({ handler: null as null | ((e: DomainEvent) => void), planIds: [] as unknown[] }));
 
@@ -269,7 +261,9 @@ describe("clinic console · plan, notes and approval", () => {
     expect(api.find("POST /api/plans")[0]!.body).toEqual({ quoteId: GOLDEN_QUOTE_ID, caseKind: "implant" });
     expect(screen.getByTestId("plan-gantt").getAttribute("data-mode")).toBe("clinic");
     expect(screen.getByTestId("trust-strip")).toBeTruthy();
-    const amounts = ["ph1", "ph2", "ph3", "ph4"].map((id) => norm(screen.getByTestId(`phase-amount-${id}`).textContent));
+    const amounts = ["ph1", "ph2", "ph3", "ph4"].map((id) =>
+      norm(screen.getByTestId(`phase-amount-${id}`).textContent),
+    );
     expect(amounts).toEqual(["360,00 €", "1.500,00 €", "520,00 €", "1.690,00 €"]);
     const ph2 = screen.getByTestId("phase-review-ph2");
     expect(norm(ph2.textContent)).toContain("Dentro del rango de Paga en 3");
@@ -321,10 +315,17 @@ describe("clinic console · plan, notes and approval", () => {
     };
     expect(body.approvedBy).toBe("Dra. Lucía Ruiz");
     expect([...body.noteIds].sort()).toEqual(GOLDEN_PLAN.approvedNotes.map((n) => n.noteId).sort());
-    expect(body.summaries).toEqual([{ phaseId: "ph1", text: { es: "Fase 1: Diagnóstico, limpieza y extracción", en: "Phase 1: Diagnosis, cleaning and extraction" } }]);
+    expect(body.summaries).toEqual([
+      {
+        phaseId: "ph1",
+        text: { es: "Fase 1: Diagnóstico, limpieza y extracción", en: "Phase 1: Diagnosis, cleaning and extraction" },
+      },
+    ]);
 
     expect(screen.getByTestId("patient-link").textContent).toMatch(/\/p\/pln_ribera01$/);
-    await waitFor(() => expect(screen.getByTestId("patient-qr").getAttribute("src")).toMatch(/^data:image\/png;base64,/));
+    await waitFor(() =>
+      expect(screen.getByTestId("patient-qr").getAttribute("src")).toMatch(/^data:image\/png;base64,/),
+    );
     fireEvent.click(screen.getByTestId("copy-link"));
     await waitFor(() => expect(norm(screen.getByTestId("copy-link").textContent)).toBe("Copiado"));
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(expect.stringMatching(/\/p\/pln_ribera01$/));
@@ -415,7 +416,13 @@ describe("clinic console · editor, diff and agent", () => {
     expect((api.calls.at(-1)!.body as { edit: unknown }).edit).toEqual({
       kind: "ADD_LINE",
       phaseId: "ph3",
-      line: { description: "Corona provisional", code: "TEMPORARY_CROWN", teeth: [36, 46], qty: 2, unitPriceCents: 9_550 },
+      line: {
+        description: "Corona provisional",
+        code: "TEMPORARY_CROWN",
+        teeth: [36, 46],
+        qty: 2,
+        unitPriceCents: 9_550,
+      },
     });
 
     await waitFor(() => expect((screen.getByTestId("deliver-ph2") as HTMLButtonElement).disabled).toBe(false));
@@ -483,9 +490,9 @@ describe("clinic console · payments overview", () => {
     renderConsole({ plan: goldenPlan() });
     fireEvent.click(await screen.findByTestId("manage-pln_aligner1"));
     await waitFor(() =>
-      expect(within(document.getElementById("agent-feed")!).getByTestId("agent-feed-stub").getAttribute("data-plan-id")).toBe(
-        "pln_aligner1",
-      ),
+      expect(
+        within(document.getElementById("agent-feed")!).getByTestId("agent-feed-stub").getAttribute("data-plan-id"),
+      ).toBe("pln_aligner1"),
     );
     expect(api.find("GET /api/plans/pln_aligner1")).toHaveLength(1);
   });

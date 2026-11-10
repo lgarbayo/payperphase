@@ -57,6 +57,7 @@ export const clinicApi = {
 export function inferCaseKind(codes: readonly string[]): CaseKind {
   if (codes.some((c) => c === "ALIGNER_BATCH" || c === "ORTHO_RECORDS" || c === "RETAINER")) return "aligner";
   if (codes.includes("IMPLANT")) return "implant";
-  if (codes.some((c) => c === "SCALING_ROOT_PLANING" || c === "PERIO_SURGERY" || c === "PERIO_MAINTENANCE")) return "perio";
+  if (codes.some((c) => c === "SCALING_ROOT_PLANING" || c === "PERIO_SURGERY" || c === "PERIO_MAINTENANCE"))
+    return "perio";
   return "implant";
 }

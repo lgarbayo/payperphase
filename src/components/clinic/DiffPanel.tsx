@@ -76,7 +76,7 @@ export function diffHeadline(result: EditPlanResponse, locale: Locale, t: Clinic
     t,
   );
   parts.push(...moved);
-  if (parts.length === 0) parts.push(t("diffNoDateChange"));
+  if (parts.length === 0) parts.push(t("diffNoChange"));
   return parts.join(" · ");
 }
 
@@ -94,17 +94,28 @@ export function DiffPanel({ result, locale, t, onDismiss }: DiffPanelProps) {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-base font-semibold text-ink">{t("diffTitle")}</h3>
-            <Badge tone={diff.totalDeltaCents === 0 ? "neutral" : "primary"} data-testid="diff-total-delta" className="tabular-nums">
+            <Badge
+              tone={diff.totalDeltaCents === 0 ? "neutral" : "primary"}
+              data-testid="diff-total-delta"
+              className="tabular-nums"
+            >
               {signedCents(diff.totalDeltaCents, locale)}
             </Badge>
             <span data-testid="diff-total" className="text-xs tabular-nums text-muted">
-              {t("diffTotalLine", { from: formatCents(diff.totalBeforeCents, locale), to: formatCents(diff.totalAfterCents, locale) })} · v
-              {diff.fromVersion} → v{diff.toVersion}
+              {t("diffTotalLine", {
+                from: formatCents(diff.totalBeforeCents, locale),
+                to: formatCents(diff.totalAfterCents, locale),
+              })}{" "}
+              · v{diff.fromVersion} → v{diff.toVersion}
             </span>
           </div>
           <div className="flex items-center gap-2">
             {explanation && (
-              <ModeBadge mode={explanation.source === "live" ? "live" : "cached"} what={t("diffExplanationWhat")} locale={locale} />
+              <ModeBadge
+                mode={explanation.source === "live" ? "live" : "cached"}
+                what={t("diffExplanationWhat")}
+                locale={locale}
+              />
             )}
             {onDismiss && (
               <button
@@ -123,69 +134,91 @@ export function DiffPanel({ result, locale, t, onDismiss }: DiffPanelProps) {
           {diffHeadline(result, locale, t)}
         </p>
         {explanation && (
-          <p data-testid="diff-explanation" className="rounded-[var(--ppp-radius-sm)] bg-surface-2/70 px-3 py-2 text-sm leading-snug text-ink">
+          <p
+            data-testid="diff-explanation"
+            className="rounded-[var(--ppp-radius-sm)] bg-surface-2/70 px-3 py-2 text-sm leading-snug text-ink"
+          >
             {explanation.rendered[locale]}
           </p>
         )}
 
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[520px] text-sm">
-            <thead>
-              <tr className="text-left text-[11px] font-medium uppercase tracking-wide text-muted">
-                <th scope="col" className="py-1.5 pr-3 font-medium">{t("diffColPhase")}</th>
-                <th scope="col" className="py-1.5 pr-3 font-medium">{t("diffColAmount")}</th>
-                <th scope="col" className="py-1.5 pr-3 font-medium">{t("diffColFit")}</th>
-                <th scope="col" className="py-1.5 font-medium">{t("diffColVisit")}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {diff.phases.map((p) => {
-                const moved = p.startBefore !== p.startAfter;
-                return (
-                  <tr key={p.phaseId} data-testid={`diff-row-${p.phaseId}`} className="align-top">
-                    <td className="py-2 pr-3 font-medium text-ink">{t("phaseLabel", { n: p.n })}</td>
-                    <td className="py-2 pr-3 tabular-nums">
-                      {p.deltaCents === 0 ? (
-                        <span className="text-muted">{formatCents(p.amountAfterCents, locale)}</span>
-                      ) : (
-                        <span className="flex flex-wrap items-center gap-x-2">
-                          <span className="text-muted line-through decoration-muted/60">{formatCents(p.amountBeforeCents, locale)}</span>
-                          <Icon.Arrow width={12} height={12} className="text-muted" />
-                          <span className="font-semibold text-ink">{formatCents(p.amountAfterCents, locale)}</span>
-                          <span className={cx("text-xs font-medium", p.deltaCents > 0 ? "text-primary-strong" : "text-status-overdue")}>
-                            {signedCents(p.deltaCents, locale)}
-                          </span>
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-2 pr-3">
-                      <span className="flex flex-wrap items-center gap-1">
-                        {p.fitBefore !== p.fitAfter && (
-                          <>
-                            <Badge tone="neutral">{t(FIT_LABEL[p.fitBefore])}</Badge>
+        {diff.phases.length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[520px] text-sm">
+              <thead>
+                <tr className="text-left text-[11px] font-medium uppercase tracking-wide text-muted">
+                  <th scope="col" className="py-1.5 pr-3 font-medium">
+                    {t("diffColPhase")}
+                  </th>
+                  <th scope="col" className="py-1.5 pr-3 font-medium">
+                    {t("diffColAmount")}
+                  </th>
+                  <th scope="col" className="py-1.5 pr-3 font-medium">
+                    {t("diffColFit")}
+                  </th>
+                  <th scope="col" className="py-1.5 font-medium">
+                    {t("diffColVisit")}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {diff.phases.map((p) => {
+                  const moved = p.startBefore !== p.startAfter;
+                  return (
+                    <tr key={p.phaseId} data-testid={`diff-row-${p.phaseId}`} className="align-top">
+                      <td className="py-2 pr-3 font-medium text-ink">{t("phaseLabel", { n: p.n })}</td>
+                      <td className="py-2 pr-3 tabular-nums">
+                        {p.deltaCents === 0 ? (
+                          <span className="text-muted">{formatCents(p.amountAfterCents, locale)}</span>
+                        ) : (
+                          <span className="flex flex-wrap items-center gap-x-2">
+                            <span className="text-muted line-through decoration-muted/60">
+                              {formatCents(p.amountBeforeCents, locale)}
+                            </span>
                             <Icon.Arrow width={12} height={12} className="text-muted" />
-                          </>
+                            <span className="font-semibold text-ink">{formatCents(p.amountAfterCents, locale)}</span>
+                            <span
+                              className={cx(
+                                "text-xs font-medium",
+                                p.deltaCents > 0 ? "text-primary-strong" : "text-status-overdue",
+                              )}
+                            >
+                              {signedCents(p.deltaCents, locale)}
+                            </span>
+                          </span>
                         )}
-                        <Badge tone={FIT_TONE[p.fitAfter]}>{t(FIT_LABEL[p.fitAfter])}</Badge>
-                      </span>
-                    </td>
-                    <td className="py-2 tabular-nums">
-                      {moved ? (
-                        <span className="flex flex-wrap items-center gap-x-2">
-                          <span className="text-muted line-through decoration-muted/60">{formatIsoDate(p.startBefore, locale)}</span>
-                          <Icon.Arrow width={12} height={12} className="text-muted" />
-                          <span className="font-medium text-ink">{formatIsoDate(p.startAfter, locale)}</span>
+                      </td>
+                      <td className="py-2 pr-3">
+                        <span className="flex flex-wrap items-center gap-1">
+                          {p.fitBefore !== p.fitAfter && (
+                            <>
+                              <Badge tone="neutral">{t(FIT_LABEL[p.fitBefore])}</Badge>
+                              <Icon.Arrow width={12} height={12} className="text-muted" />
+                            </>
+                          )}
+                          <Badge tone={FIT_TONE[p.fitAfter]}>{t(FIT_LABEL[p.fitAfter])}</Badge>
                         </span>
-                      ) : (
-                        <span className="text-muted">{formatIsoDate(p.startAfter, locale)}</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                      </td>
+                      <td className="py-2 tabular-nums">
+                        {moved ? (
+                          <span className="flex flex-wrap items-center gap-x-2">
+                            <span className="text-muted line-through decoration-muted/60">
+                              {formatIsoDate(p.startBefore, locale)}
+                            </span>
+                            <Icon.Arrow width={12} height={12} className="text-muted" />
+                            <span className="font-medium text-ink">{formatIsoDate(p.startAfter, locale)}</span>
+                          </span>
+                        ) : (
+                          <span className="text-muted">{formatIsoDate(p.startAfter, locale)}</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {(added.length > 0 || removed.length > 0) && (
           <ul className="flex flex-col gap-1 text-sm">
@@ -193,7 +226,10 @@ export function DiffPanel({ result, locale, t, onDismiss }: DiffPanelProps) {
               <li key={`a-${l.id}`} className="flex items-start gap-2 text-ink">
                 <Icon.Plus width={14} height={14} className="mt-0.5 text-primary-strong" />
                 <span>
-                  {t("diffAdded", { line: l.description })} <span className="text-muted">· {t("phaseLabel", { n })} · {formatCents(l.totalCents, locale)}</span>
+                  {t("diffAdded", { line: l.description })}{" "}
+                  <span className="text-muted">
+                    · {t("phaseLabel", { n })} · {formatCents(l.totalCents, locale)}
+                  </span>
                 </span>
               </li>
             ))}
@@ -201,7 +237,10 @@ export function DiffPanel({ result, locale, t, onDismiss }: DiffPanelProps) {
               <li key={`r-${l.id}`} className="flex items-start gap-2 text-ink">
                 <Icon.Trash width={14} height={14} className="mt-0.5 text-status-overdue" />
                 <span>
-                  {t("diffRemoved", { line: l.description })} <span className="text-muted">· {t("phaseLabel", { n })} · {formatCents(l.totalCents, locale)}</span>
+                  {t("diffRemoved", { line: l.description })}{" "}
+                  <span className="text-muted">
+                    · {t("phaseLabel", { n })} · {formatCents(l.totalCents, locale)}
+                  </span>
                 </span>
               </li>
             ))}
