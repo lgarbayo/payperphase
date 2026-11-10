@@ -6,7 +6,7 @@ owns:
   - src/components/impact/**
   - src/i18n/impact.ts
   - tests/impact/**
-status: todo
+status: merged
 hours: 1.5
 criteria: [Potential Impact, Presentation, Design]
 ---
