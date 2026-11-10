@@ -1,38 +1,504 @@
 "use client";
 /**
  * OWNED BY WP-05. Client-only Bryntum Gantt (loaded via next/dynamic ssr:false from PlanGantt).
- * SCAFFOLD STUB: minimal "hello Gantt" that proves the trial package renders. Phase tasks are
- * manuallyScheduled — Bryntum never computes dates; src/engine does.
+ * The ONLY module that imports @bryntum/*.
+ *
+ * Bryntum draws, the engine decides:
+ * - every task is manuallyScheduled and comes from planToBryntum() (engine dates via toLocalDate);
+ * - TaskDrag.validatorFn → engine.validateMove (sync, memoised per day by the drag controller);
+ * - a valid drop previews engine.reschedule (successors glide) and calls onMoveCommitted;
+ * - an invalid drop snaps back (Bryntum) and calls onMoveRejected with the clinician note;
+ * - a new `plan` prop updates the records in place (animated), the baseline ghost stays.
  */
 import "@bryntum/gantt/gantt.css";
 import "@bryntum/gantt/svalbard-light.css";
 import "@bryntum/gantt/fontawesome/css/fontawesome.css";
 import "@bryntum/gantt/fontawesome/css/solid.css";
-import { BryntumGantt } from "@bryntum/gantt-react";
-import { useMemo } from "react";
-import { toLocalDate } from "@/lib/dates";
+import "@bryntum/gantt/locales/gantt.locale.Es.js";
+import "@bryntum/gantt/locales/gantt.locale.EnGb.js";
+import "./gantt.css";
+import { Gantt, LocaleManager, type DomConfig, type GanttConfig, type TaskModel } from "@bryntum/gantt";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { DeadlineWarning, Locale, Plan } from "@/contracts";
+import { daysBetween, fromLocalDate, toLocalDate } from "@/lib/dates";
+import { createDragController } from "./dragController";
+import {
+  afterLabel,
+  amountCell,
+  bandCell,
+  dependencyTipHtml,
+  dragTipHtml,
+  nameCell,
+  statusCell,
+  tooltipHtml,
+} from "./ganttText";
+import { GanttLegend, LEGEND_HEIGHT } from "./GanttLegend";
+import { syncProject, type ProjectLike } from "./projectSync";
+import { planToBryntum, shortDate, tg, type GanttTaskMeta, type PlanToBryntum } from "./toBryntum";
 import type { PlanGanttProps } from "./types";
 
-export default function GanttInner({ plan, locale, height = 420 }: PlanGanttProps) {
-  const project = useMemo(
-    () => ({
-      tasksData: plan.phases.map((p) => ({
-        id: p.id,
-        name: `${p.n}. ${p.title[locale]}`,
-        startDate: toLocalDate(p.startDate),
-        endDate: toLocalDate(p.endDate),
-        manuallyScheduled: true,
-      })),
-      dependenciesData: plan.phases.flatMap((p) =>
-        p.dependsOn.map((d) => ({ id: `${d.phaseId}-${p.id}`, fromTask: d.phaseId, toTask: p.id, lag: d.minLagDays, lagUnit: "day" })),
-      ),
-    }),
-    [plan, locale],
+const BRYNTUM_LOCALE: Record<Locale, string> = { es: "Es", en: "EnGb" };
+const FLASH_MS = 7000;
+
+type Shown = { plan: Plan; warnings?: DeadlineWarning[]; mapping: PlanToBryntum };
+
+function sameRange(a: PlanToBryntum | null, b: PlanToBryntum) {
+  return !!a && a.rangeIso.startDate === b.rangeIso.startDate && a.rangeIso.endDate === b.rangeIso.endDate;
+}
+
+export default function GanttInner(props: PlanGanttProps) {
+  const { plan, today, locale, mode, notes, ghostShifts, warnings, height = 420, hideLegend = false } = props;
+  const hostRef = useRef<HTMLDivElement>(null);
+  const ganttRef = useRef<Gantt | null>(null);
+  const latest = useRef(props);
+  latest.current = props;
+  const shownRef = useRef<Shown | null>(null);
+  const queueRef = useRef<Promise<unknown>>(Promise.resolve());
+  const lastAttemptRef = useRef<{ phaseId: string; date: string } | null>(null);
+  const lastPropPlanRef = useRef<Plan>(plan);
+  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [flash, setFlash] = useState<string | null>(null);
+  const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const metaOf = (id: string | number | undefined): GanttTaskMeta | undefined =>
+    id === undefined ? undefined : shownRef.current?.mapping.meta[String(id)];
+
+  const mappingFor = useCallback((p: Plan, w?: DeadlineWarning[]) => {
+    const cur = latest.current;
+    return planToBryntum(p, {
+      today: cur.today,
+      locale: cur.locale,
+      mode: cur.mode,
+      notes: cur.notes,
+      ghostShifts: cur.ghostShifts,
+      warnings: w ?? cur.warnings,
+    });
+  }, []);
+
+  /** Draw `p` (prop plan or engine preview). Updates are queued so they land in order. */
+  const renderPlan = useCallback(
+    (p: Plan, w?: DeadlineWarning[]) => {
+      const gantt = ganttRef.current;
+      if (!gantt) return;
+      const prev = shownRef.current?.mapping ?? null;
+      const next = mappingFor(p, w);
+      shownRef.current = { plan: p, warnings: w, mapping: next };
+      queueRef.current = queueRef.current
+        .then(async () => {
+          if (gantt.isDestroyed) return;
+          await syncProject(gantt.project as unknown as ProjectLike, prev, next);
+          if (gantt.isDestroyed) return;
+          if (!sameRange(prev, next)) gantt.setTimeSpan(next.range.startDate, next.range.endDate);
+          gantt.refreshRows();
+        })
+        .catch((err) => console.error("[PlanGantt] update failed", err));
+    },
+    [mappingFor],
   );
 
+  const showFlash = useCallback((message: string) => {
+    setFlash(message);
+    if (flashTimer.current) clearTimeout(flashTimer.current);
+    flashTimer.current = setTimeout(() => setFlash(null), FLASH_MS);
+  }, []);
+
+  const controller = useMemo(
+    () =>
+      createDragController({
+        getPlan: () => shownRef.current?.plan ?? latest.current.plan,
+        getToday: () => latest.current.today,
+        getLocale: () => latest.current.locale,
+        getNotes: () => latest.current.notes,
+        onMoveRejected: (info) => latest.current.onMoveRejected?.(info),
+        onMoveCommitted: (move) => latest.current.onMoveCommitted?.(move),
+        onPreview: (res) => renderPlan(res.plan, res.warnings),
+      }),
+    [renderPlan],
+  );
+
+  // ── Mount Bryntum once ────────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host) return;
+    let gantt: Gantt | null = null;
+    try {
+      void LocaleManager.applyLocale(BRYNTUM_LOCALE[latest.current.locale]);
+      const first = mappingFor(latest.current.plan);
+      shownRef.current = { plan: latest.current.plan, mapping: first };
+      lastPropPlanRef.current = latest.current.plan;
+      gantt = new Gantt({ appendTo: host, ...buildConfig(first) });
+      ganttRef.current = gantt;
+      setStatus("ready");
+    } catch (err) {
+      console.error("[PlanGantt] Bryntum failed to start", err);
+      setStatus("error");
+    }
+    return () => {
+      ganttRef.current = null;
+      gantt?.destroy();
+      if (flashTimer.current) clearTimeout(flashTimer.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Narrow parents: drop the band chip, then the status pill, so the timeline keeps its room ──
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host || typeof ResizeObserver === "undefined") return;
+    const apply = (width: number) => {
+      const gantt = ganttRef.current;
+      if (!gantt || gantt.isDestroyed) return;
+      const columns = gantt.columns as unknown as { getById(id: string): { hidden: boolean } | undefined };
+      const band = columns.getById("band");
+      const st = columns.getById("status");
+      if (band) band.hidden = width < 1080;
+      if (st) st.hidden = width < 860;
+    };
+    const ro = new ResizeObserver((entries) => apply(entries[0]?.contentRect.width ?? host.clientWidth));
+    ro.observe(host);
+    apply(host.clientWidth);
+    return () => ro.disconnect();
+  }, [status]);
+
+  // ── Props → chart (in place) ──────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const gantt = ganttRef.current;
+    if (!gantt || gantt.isDestroyed) return;
+    void LocaleManager.applyLocale(BRYNTUM_LOCALE[locale]);
+    for (const [id, key] of [
+      ["name", "colPhase"],
+      ["amount", "colAmount"],
+      ["status", "colStatus"],
+      ["band", "colBand"],
+    ] as const) {
+      const columns = gantt.columns as unknown as { getById(id: string): { text: string } | undefined };
+      const col = columns.getById(id);
+      if (col) col.text = tg(locale, key);
+    }
+    gantt.readOnly = mode !== "patient";
+    // A new plan from the parent wins; otherwise redraw what is shown (e.g. an unpersisted preview).
+    const source = plan !== lastPropPlanRef.current ? plan : (shownRef.current?.plan ?? plan);
+    const sourceWarnings = plan !== lastPropPlanRef.current ? undefined : shownRef.current?.warnings;
+    lastPropPlanRef.current = plan;
+    renderPlan(source, sourceWarnings);
+  }, [plan, today, locale, mode, notes, ghostShifts, warnings, renderPlan]);
+
+  function buildConfig(first: PlanToBryntum): Partial<GanttConfig> {
+    const L = () => latest.current.locale;
+    const cell =
+      (fn: (m: GanttTaskMeta, locale: Locale) => unknown) =>
+      ({ record }: { record: { id: string | number } }) => {
+        const m = metaOf(record.id);
+        return (m ? fn(m, L()) : "") as DomConfig | string;
+      };
+
+    return {
+      cls: "ppp-gantt",
+      project: { tasks: first.tasksData, dependencies: first.dependenciesData, timeRanges: first.timeRangesData },
+      startDate: first.range.startDate,
+      endDate: first.range.endDate,
+      viewPreset: {
+        id: "pppYearMonth",
+        base: "monthAndYear",
+        // Top lane is left blank for the time-range labels ("Hoy (simulado)", deadline), so they
+        // never cover a month name; months carry the year on the first cell and on January.
+        headers: [
+          { unit: "year", renderer: () => "" },
+          {
+            unit: "month",
+            renderer: (start: Date, end: Date, _cfg: unknown, index: number) => monthHeader(start, end, index, L()),
+          },
+        ],
+      },
+      forceFit: true,
+      autoAdjustTimeAxis: false,
+      weekStartDay: 1,
+      rowHeight: 38,
+      barMargin: 7,
+      snap: true,
+      timeResolution: { unit: "day", increment: 1 },
+      readOnly: latest.current.mode !== "patient",
+      transition: { changeEvent: true },
+      zoomOnMouseWheel: false,
+      zoomOnTimeAxisDoubleClick: false,
+      columns: [
+        {
+          id: "name",
+          type: "name",
+          text: tg(latest.current.locale, "colPhase"),
+          width: 228,
+          sortable: false,
+          renderer: cell(nameCell),
+        },
+        {
+          id: "amount",
+          text: tg(latest.current.locale, "colAmount"),
+          width: 92,
+          align: "end",
+          sortable: false,
+          renderer: cell(amountCell),
+        },
+        {
+          id: "status",
+          text: tg(latest.current.locale, "colStatus"),
+          width: 116,
+          sortable: false,
+          renderer: cell(statusCell),
+        },
+        {
+          id: "band",
+          text: tg(latest.current.locale, "colBand"),
+          width: 126,
+          sortable: false,
+          renderer: cell(bandCell),
+        },
+      ],
+      taskRenderer: ({ taskRecord }) => {
+        const m = metaOf(taskRecord.id);
+        // Text only on windows long enough to hold it (lab fabrication's 2 weeks stays clean).
+        if (m?.kind === "healing" && m.minLagDays !== undefined && daysBetween(m.startDate, m.endDate) >= 35) {
+          return { tag: "span", className: "ppp-heal-text", text: shortHealing(m, L()) };
+        }
+        return "";
+      },
+      features: {
+        baselines: {
+          template: ({ baseline }) => {
+            const b = baseline as unknown as { startDate: Date; cls?: { value?: string } | string };
+            const ghost = String((b.cls as { value?: string })?.value ?? b.cls ?? "").includes("ppp-ghost-shift");
+            const date = shortDate(fromLocalDate(b.startDate), L());
+            return `<div class="ppp-tip">${tg(L(), ghost ? "tipPreview" : "tipBaseline", { date })}</div>`;
+          },
+        },
+        dependencies: {
+          allowCreate: false,
+          showLagInTooltip: true,
+          radius: 6,
+          clickWidth: 6,
+          tooltipTemplate: (dependency) => {
+            const d = dependency as unknown as { id: string; lag: number; fromEvent?: { id: string }; toEvent?: { id: string } };
+            const from = metaOf(d.fromEvent?.id);
+            const to = metaOf(d.toEvent?.id);
+            if (!from || !to) return "";
+            const heal = metaOf(`heal-${from.phaseId}-${to.phaseId}`);
+            return dependencyTipHtml(from, to, d.lag, heal?.noteTitle, L());
+          },
+        },
+        dependencyEdit: false,
+        indicators: {
+          items: {
+            earlyDates: false,
+            lateDates: false,
+            constraintDate: false,
+            // TaskModel.deadlineDate drawn by Bryntum's deadline indicator, pinned to the exact day
+            // (the built-in snaps to the end of the month tick at this zoom).
+            deadlineDate: (taskRecord: TaskModel) => {
+              const m = metaOf(taskRecord.id);
+              // Once breached, the red deadline time range takes over (and the flag would cover the date label).
+              if (!m || m.kind !== "visit" || !m.deadlineDate || m.deadlineExceededDays) return null;
+              if (m.deadlineDate > (shownRef.current?.mapping.rangeIso.endDate ?? m.deadlineDate)) return null;
+              return {
+                startDate: toLocalDate(m.deadlineDate),
+                cls: `b-deadline-date ppp-deadline${m.deadlineExceededDays ? " ppp-deadline-hit" : ""}`,
+                name: tg(L(), "tipDeadline", { date: shortDate(m.deadlineDate, L()) }),
+              };
+            },
+            dueDate: (taskRecord: TaskModel) => {
+              const m = metaOf(taskRecord.id);
+              if (!m || m.kind !== "visit") return null;
+              return {
+                startDate: toLocalDate(m.dueDate),
+                iconCls: "fa fa-euro-sign",
+                cls: `ppp-ind-due ppp-status-${m.status}`,
+                name: tg(L(), "tipDue", { amount: afterLabel({ ...m, kind: "payment" }, L()), date: shortDate(m.dueDate, L()) }),
+              };
+            },
+          },
+        },
+        labels: {
+          // Date before the visit pill (the dependency line leaves from its end), amount after the diamond.
+          before: {
+            renderer: ({ taskRecord, domConfig }) => {
+              const m = metaOf(taskRecord.id);
+              domConfig.text = m?.kind === "visit" ? afterLabel(m, L()) : "";
+            },
+          },
+          after: {
+            renderer: ({ taskRecord, domConfig }) => {
+              const m = metaOf(taskRecord.id);
+              domConfig.text = m?.kind === "payment" ? afterLabel(m, L()) : "";
+            },
+          },
+        },
+        timeRanges: { showCurrentTimeLine: false, showHeaderElements: true },
+        taskTooltip: {
+          hoverDelay: 120,
+          maxWidth: 340,
+          template: ({ taskRecord }) => {
+            const m = metaOf(taskRecord.id);
+            return m ? tooltipHtml(m, L(), latest.current.notes) : "";
+          },
+        },
+        taskMenu: {
+          items: {
+            pppPay: {
+              text: tg(latest.current.locale, "menuPay"),
+              icon: "fa fa-credit-card",
+              weight: 100,
+              onItem: ({ taskRecord }) => {
+                const m = metaOf(taskRecord?.id as string);
+                if (m) latest.current.onPayPhase?.(m.phaseId);
+              },
+            },
+            pppDelay: {
+              text: tg(latest.current.locale, "menuAskDelay"),
+              icon: "fa fa-clock",
+              weight: 110,
+              onItem: ({ taskRecord }) => {
+                const m = metaOf(taskRecord?.id as string);
+                if (m) latest.current.onAskDelay?.(m.phaseId);
+              },
+            },
+          },
+          processItems: ({ taskRecord, items }) => {
+            for (const key of Object.keys(items)) if (key !== "pppPay" && key !== "pppDelay") items[key] = false;
+            const cur = latest.current;
+            const m = metaOf(taskRecord.id);
+            if (!m || cur.mode !== "patient") return false;
+            const canPay = Boolean(cur.onPayPhase) && (m.status === "due" || m.status === "overdue");
+            const canDelay = Boolean(cur.onAskDelay) && m.lock === null;
+            if (!canPay && !canDelay) return false;
+            items.pppPay = canPay ? { ...(items.pppPay as object), text: tg(cur.locale, "menuPay") } : false;
+            items.pppDelay = canDelay ? { ...(items.pppDelay as object), text: tg(cur.locale, "menuAskDelay") } : false;
+          },
+        },
+        taskDrag: {
+          showExactDropPosition: true,
+          tip: { maxWidth: 320 },
+          tooltipTemplate: ({ taskRecord, startDate }) => {
+            const m = metaOf(taskRecord.id);
+            if (!m) return "";
+            const date = fromLocalDate(startDate);
+            return dragTipHtml(m, date, L(), controller.validate(m.phaseId, date));
+          },
+          validatorFn: (taskRecords, startDate) => {
+            const m = metaOf(taskRecords[0]?.id);
+            if (!m || m.kind !== "visit") return { valid: false, message: "" };
+            const date = fromLocalDate(startDate);
+            lastAttemptRef.current = { phaseId: m.phaseId, date };
+            const verdict = controller.validate(m.phaseId, date);
+            return verdict.valid ? { valid: true, message: "" } : { valid: false, message: verdict.message };
+          },
+        },
+        // Calm, read-mostly chart: no editing UIs.
+        taskEdit: false,
+        cellEdit: false,
+        taskResize: false,
+        taskDragCreate: false,
+        percentBar: false,
+        cellMenu: false,
+        headerMenu: false,
+        scheduleMenu: false,
+        timeAxisHeaderMenu: false,
+        rowReorder: false,
+        sort: false,
+        columnReorder: false,
+        taskCopyPaste: false,
+        projectLines: false,
+        nonWorkingTime: false,
+        scheduleTooltip: false,
+        taskSegmentDrag: false,
+        taskSegmentResize: false,
+        rollups: false,
+      },
+      listeners: {
+        beforeTaskDrag: ({ taskRecord }: { taskRecord: TaskModel }) => {
+          const m = metaOf(taskRecord.id);
+          const ok = Boolean(
+            m && m.kind === "visit" && m.draggable && latest.current.mode === "patient" && controller.canDrag(m.phaseId),
+          );
+          if (ok) setFlash(null); // a new drag starts: drop the previous snap-back message
+          return ok;
+        },
+        afterTaskDrop: ({ taskRecords, valid }: { taskRecords: TaskModel[]; valid: boolean }) => {
+          const rec = taskRecords[0];
+          const m = metaOf(rec?.id);
+          if (!rec || !m || m.kind !== "visit") return;
+          const attempt = lastAttemptRef.current?.phaseId === m.phaseId ? lastAttemptRef.current.date : null;
+          lastAttemptRef.current = null;
+          if (!valid) {
+            if (!attempt) return;
+            const out = controller.snapBack(m.phaseId, attempt);
+            if (out.kind === "rejected") {
+              showFlash(out.verdict.message);
+              nudge(rec);
+            }
+            return;
+          }
+          const dropped = attempt ?? fromLocalDate(rec.startDate as Date);
+          const out = controller.drop(m.phaseId, dropped);
+          if (out.kind !== "committed") {
+            // Bryntum already moved the bar: put the engine's dates back.
+            const shown = shownRef.current;
+            if (shown) renderPlan(shown.plan, shown.warnings);
+            if (out.kind === "rejected") {
+              showFlash(out.verdict.message);
+              nudge(rec);
+            }
+          } else {
+            setFlash(null);
+          }
+        },
+      },
+    };
+  }
+
+  function nudge(rec: TaskModel) {
+    const el = ganttRef.current?.getElementFromTaskRecord(rec);
+    if (!el) return;
+    el.classList.remove("ppp-rejected");
+    void el.offsetWidth;
+    el.classList.add("ppp-rejected");
+    setTimeout(() => el.classList.remove("ppp-rejected"), 900);
+  }
+
+  const chartHeight = Math.max(160, height - (hideLegend ? 0 : LEGEND_HEIGHT));
   return (
-    <div style={{ height }} data-testid="plan-gantt">
-      <BryntumGantt project={project} viewPreset="weekAndMonth" columns={[{ type: "name", width: 260 }]} />
+    <div className="ppp-gantt-root" style={{ height }} data-testid="plan-gantt" data-mode={mode} data-status={status}>
+      <div ref={hostRef} className="ppp-gantt-host" style={{ height: chartHeight }} />
+      {status === "loading" && (
+        <div className="ppp-gantt-overlay" aria-live="polite">
+          {tg(locale, "loading")}
+        </div>
+      )}
+      {status === "error" && (
+        <div className="ppp-gantt-overlay ppp-gantt-overlay-error" role="alert">
+          {tg(locale, "error")}
+        </div>
+      )}
+      {!hideLegend && (
+        <GanttLegend
+          locale={locale}
+          mode={mode}
+          hasBaseline={Boolean(plan.baseline)}
+          hasPreview={Boolean(ghostShifts?.length)}
+          flash={flash}
+        />
+      )}
     </div>
   );
+}
+
+/** "nov 2026 · dic · ene 2027 · feb …": the year on the first readable month and on January. */
+function monthHeader(start: Date, end: Date, index: number, locale: Locale): string {
+  const days = Math.round((end.getTime() - start.getTime()) / 86_400_000);
+  if (index === 0 && days < 12) return ""; // a sliver of the previous month at the left edge
+  const month = new Intl.DateTimeFormat(locale === "es" ? "es-ES" : "en-GB", { month: "short" }).format(start).replace(".", "");
+  const firstReadable = index === 0 || (index === 1 && start.getDate() === 1);
+  return firstReadable || start.getMonth() === 0 ? `${month} ${start.getFullYear()}` : month;
+}
+
+function shortHealing(m: GanttTaskMeta, locale: Locale): string {
+  const days = m.minLagDays ?? 0;
+  return days % 7 === 0 ? tg(locale, "healingRowMinWeeks", { weeks: days / 7 }) : tg(locale, "healingRowMinDays", { days });
 }
