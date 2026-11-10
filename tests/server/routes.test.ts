@@ -169,12 +169,13 @@ describe("POST /api/plans/:id/whatif", () => {
 
   it("re-derives payment statuses for the new dates and publishes the transitions", async () => {
     vi.mocked(validateMove).mockReturnValueOnce({ ok: true });
+    vi.mocked(reschedule).mockImplementationOnce((plan) => delayedResult(plan));
     vi.mocked(applyPaymentStatuses).mockImplementationOnce((plan) => ({
       plan: { ...plan, phases: plan.phases.map((p) => (p.id === "ph2" ? { ...p, payment: { ...p.payment, status: "upcoming" } } : p)) },
       changes: [{ phaseId: "ph2", from: "scheduled", to: "upcoming" }],
     }));
     const bus = captureEvents();
-    const res = await whatifRoute(post(url, { phaseId: "ph2", newStartDate: "2026-11-24" }), ctx({ id: GOLDEN_PLAN_ID }));
+    const res = await whatifRoute(post(url, GOLDEN_DELAY_MOVE), ctx({ id: GOLDEN_PLAN_ID }));
     bus.stop();
     expect(res.status).toBe(200);
     expect(bus.types()).toEqual(["PLAN_RESCHEDULED", "PHASE_STATUS_CHANGED"]);
