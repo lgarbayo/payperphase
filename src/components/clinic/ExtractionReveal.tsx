@@ -99,7 +99,10 @@ export function ExtractionReveal({
     setFlash(true);
     setTimeout(() => setFlash(false), 1800);
     if (!first) return;
-    const go = () => document.getElementById(`quote-line-${first.id}`)?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+    const go = () => {
+      if (typeof document === "undefined") return;
+      document.getElementById(`quote-line-${first.id}`)?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+    };
     if (revealed) go();
     else {
       setCount(total);

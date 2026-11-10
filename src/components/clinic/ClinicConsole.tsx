@@ -79,7 +79,10 @@ function errText(prefix: string, e: unknown): string {
 }
 
 function scrollToId(id: string) {
-  setTimeout(() => document.getElementById(id)?.scrollIntoView?.({ behavior: "smooth", block: "start" }), 60);
+  setTimeout(() => {
+    if (typeof document === "undefined") return;
+    document.getElementById(id)?.scrollIntoView?.({ behavior: "smooth", block: "start" });
+  }, 60);
 }
 
 export function ClinicConsole({
@@ -102,7 +105,6 @@ export function ClinicConsole({
     status: "idle",
   });
   const [caseKind, setCaseKind] = useState<CaseKind>("implant");
-  const [revealDone, setRevealDone] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
@@ -196,7 +198,6 @@ export function ClinicConsole({
     async (req: DropzoneRequest) => {
       setExtract({ status: "loading", label: req.kind === "file" ? req.file.name : req.sample.label[locale] });
       setExtraction(null);
-      setRevealDone(false);
       setCreateError(null);
       try {
         const res = req.kind === "file" ? await clinicApi.extractFile(req.file) : await clinicApi.extractSample(req.sample.id);
@@ -410,11 +411,9 @@ export function ClinicConsole({
             locale={locale}
             t={t}
             stepMs={revealStepMs}
-            onRevealComplete={() => setRevealDone(true)}
             footer={
               <CreatePlanBar
                 t={t}
-                ready={revealDone}
                 created={!!plan}
                 creating={creating}
                 error={createError}
@@ -555,16 +554,15 @@ export function ClinicConsole({
   );
 }
 
+/** Rendered by ExtractionReveal only once every line is on screen and the checks have landed. */
 function CreatePlanBar({
   t,
-  ready,
   created,
   creating,
   error,
   onCreate,
 }: {
   t: ClinicT;
-  ready: boolean;
   created: boolean;
   creating: boolean;
   error: string | null;
@@ -588,7 +586,7 @@ function CreatePlanBar({
           <Icon.Arrow width={14} height={14} />
         </Button>
       ) : (
-        <Button size="lg" data-testid="create-plan" disabled={!ready || creating} onClick={onCreate}>
+        <Button size="lg" data-testid="create-plan" disabled={creating} onClick={onCreate}>
           {creating ? <Spinner /> : <Icon.Spark />}
           {creating ? t("creatingPlan") : t("createPlan")}
         </Button>
