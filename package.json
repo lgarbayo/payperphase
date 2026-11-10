@@ -16,7 +16,7 @@
     "test:watch": "vitest",
     "check": "npm run typecheck && npm run test",
     "e2e": "playwright test",
-    "seed": "tsx scripts/seed.ts"
+    "pdfs": "tsx scripts/pdfs/generate.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.7.0",

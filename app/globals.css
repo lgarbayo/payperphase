@@ -24,6 +24,19 @@
   --ppp-status-paid: #16a34a;
   --ppp-status-overdue: #dc2626;
 
+  /* Procedure categories (odontogram marks, line chips). One per ProcedureCategory. */
+  --ppp-cat-diagnostic: #64748b;
+  --ppp-cat-preventive: #0891b2;
+  --ppp-cat-surgical: #b45309;
+  --ppp-cat-implant: #0f766e;
+  --ppp-cat-prosthetic: #7c3aed;
+  --ppp-cat-restorative: #2563eb;
+  --ppp-cat-endodontic: #be185d;
+  --ppp-cat-periodontal: #c2410c;
+  --ppp-cat-orthodontic: #4f46e5;
+  --ppp-cat-other: #94a3b8;
+  --ppp-tooth-missing: #cbd5e1;
+
   --ppp-healing: #cbd5e1;
   --ppp-deadline: #dc2626;
   --ppp-ghost: rgba(16, 36, 58, 0.18);
