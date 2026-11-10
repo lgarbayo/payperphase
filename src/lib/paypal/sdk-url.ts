@@ -2,7 +2,16 @@
  * OWNED BY WP-04. Isomorphic (browser-safe, no server imports): the PayPal JS SDK v5 URL and the
  * config the browser needs. Client components import THIS file, never "@/lib/paypal" (server-only).
  */
+import { INSTALLMENTS, PAY_IN_3 } from "@/contracts/constants";
 import type { Locale } from "@/contracts/primitives";
+
+/**
+ * Pay Later (Spain) spans Pay in 3 (€20–€2,000) and 6/12/24-month installments (up to ~€5,000).
+ * The official message is only mounted inside this range; PayPal decides what it says.
+ */
+export function isInPayLaterRange(amountCents: number): boolean {
+  return Number.isSafeInteger(amountCents) && amountCents >= PAY_IN_3.minCents && amountCents <= INSTALLMENTS.maxCents;
+}
 
 export type SdkIntent = "capture" | "authorize";
 

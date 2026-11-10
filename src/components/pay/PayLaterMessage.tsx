@@ -1,13 +1,104 @@
 "use client";
 /**
  * OWNED BY WP-04. The OFFICIAL PayPal Pay Later message (JS SDK `messages` component), unedited,
- * data-pp-amount = phase amount. Never claim eligibility in our own copy.
- * SCAFFOLD STUB: empty placeholder.
+ * with data-pp-amount = the phase amount. Mounted only for amounts inside the Pay Later range; PayPal
+ * alone decides what it says. Our own copy never claims eligibility.
+ *
+ * Mock mode (no PayPal client id): no SDK is loaded; we show our neutral range line
+ * ("Dentro del rango de Paga en 3 (20 €–2.000 €)") with a ModeBadge, never an imitation of the message.
  */
+import { useEffect, useRef, useState } from "react";
 import type { Locale } from "@/contracts";
+import { translate } from "@/i18n/core";
+import { centsToPayPalValue } from "@/lib/money";
+import { buildSdkUrl, isInPayLaterRange, type PayPalClientConfig } from "@/lib/paypal/sdk-url";
+import { ModeBadge } from "@/lib/ui";
+import { loadPayPalSdk } from "./sdk";
+import { usePayPalConfig } from "./usePayPalConfig";
 
 export function PayLaterMessage({ amountCents, locale }: { amountCents: number; locale: Locale }) {
-  void amountCents;
-  void locale;
-  return <div data-testid="paylater-message" />;
+  const { config } = usePayPalConfig();
+  if (!isInPayLaterRange(amountCents)) return null;
+  const value = centsToPayPalValue(amountCents);
+
+  if (!config) {
+    // Reserve the line so the card does not jump when the message arrives.
+    return <div data-testid="paylater-message" data-pp-amount={value} aria-hidden className="min-h-5" />;
+  }
+
+  if (config.mode === "mock" || !config.clientId) {
+    return (
+      <div
+        data-testid="paylater-message"
+        data-pp-amount={value}
+        data-mode="mock"
+        className="flex flex-wrap items-center gap-2 text-xs text-muted"
+      >
+        <span>{translate("pay", locale, "payLaterRange")}</span>
+        <ModeBadge mode="mock" what={translate("pay", locale, "payLaterWhat")} locale={locale} />
+      </div>
+    );
+  }
+
+  return <OfficialMessage amountCents={amountCents} value={value} locale={locale} config={config} />;
+}
+
+function OfficialMessage({
+  amountCents,
+  value,
+  locale,
+  config,
+}: {
+  amountCents: number;
+  value: string;
+  locale: Locale;
+  config: PayPalClientConfig;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [rendered, setRendered] = useState(false);
+  const url = buildSdkUrl({
+    clientId: config.clientId ?? "",
+    locale,
+    intent: config.intent,
+    buyerCountry: config.buyerCountry,
+  });
+
+  useEffect(() => {
+    let disposed = false;
+    setRendered(false);
+    loadPayPalSdk(url)
+      .then((paypal) => {
+        if (disposed || !ref.current || !paypal.Messages) return;
+        ref.current.replaceChildren();
+        return paypal
+          .Messages({
+            amount: amountCents / 100,
+            currency: "EUR",
+            placement: "payment",
+            style: { layout: "text", logo: { type: "inline" }, text: { color: "black", size: 12 } },
+            onRender: () => {
+              if (!disposed) setRendered(true);
+            },
+          })
+          .render(ref.current);
+      })
+      .catch(() => {
+        /* No message is better than a broken one; the pay button shows its own load error. */
+      });
+    return () => {
+      disposed = true;
+    };
+  }, [url, amountCents]);
+
+  return (
+    <div
+      ref={ref}
+      data-testid="paylater-message"
+      data-pp-amount={value}
+      data-pp-currency="EUR"
+      data-mode="live"
+      data-rendered={rendered ? "true" : "false"}
+      className="min-h-5"
+    />
+  );
 }
