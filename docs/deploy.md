@@ -14,15 +14,19 @@ Render is only the host. The app is one Node 22 web service with a 1 GB persiste
    `NEXT_PUBLIC_*` values are inlined at build time, so changing them needs a redeploy.
 5. Verify: `npx tsx scripts/demo-check.ts https://<service>.onrender.com`. Add `--browser` to also confirm Bryntum task bars on `/gantt-lab` (needs `npx playwright install chromium`).
 
-Plan: **Starter** (always on, about $7/month, paid from credits). It never sleeps during judging (1-15 Dec). Health check: `/api/health`. Auto-deploys on every push to `main`; docs/fleet/tests-only changes are skipped.
+Plan (default `render.yaml`): **Starter** (always on, about $7/month, paid from credits). It never sleeps during judging (1-15 Dec). Health check: `/api/health`. Auto-deploys on every push to `main`; docs/fleet/tests-only changes are skipped.
 
 ## Persistent disk and seeding
 
 `DATA_DIR=/var/data` is the disk; `db.json` lives there and survives deploys. If it is missing (first boot, or the free plan which has no disk) the store reseeds on boot. "Reset demo" in the UI (or `POST /api/demo/reset`) returns to the seed at any time.
 
-## Free-plan option
+## Free-plan option (no Render credits)
 
-Delete the `disk:` block and set `plan: free`; `DATA_DIR` may stay (the store reseeds when `db.json` is absent, state is lost on each restart/deploy). The free plan sleeps after 15 minutes of inactivity, and a webhook arriving at a sleeping instance can fail. The return reconcile (WP-04) stays the source of truth. To reduce sleeping, set the GitHub repo variable `RENDER_URL`; `.github/workflows/keep-warm.yml` then pings `/api/health` every 10 minutes (no-op when unset).
+`render.free.yaml` is the same Blueprint with `plan: free`, no disk and `DATA_DIR=/tmp/payperphase-data` (a test keeps it in sync with `render.yaml`). To use it: **New** > **Blueprint** > connect the repo > **Advanced** (or the Blueprint settings) > *Blueprint file path* = `render.free.yaml`. Fill the secrets exactly as above.
+
+Trade-offs: the instance sleeps after 15 minutes idle (first request after that takes ~30-60 s), `db.json` is lost on every restart or deploy (the store reseeds on boot when `db.json` is missing, and "Reset demo" returns to the seed anyway), and a PayPal webhook arriving at a sleeping instance can fail. The return reconcile (WP-04) stays the source of truth.
+
+Keep it warm: in GitHub > repo **Settings** > **Secrets and variables** > **Actions** > **Variables**, add `RENDER_URL` = `https://<service>.onrender.com`. `.github/workflows/keep-warm.yml` then pings `/api/health` every 10 minutes (a no-op while the variable is unset). Before judging (1-15 Dec) upgrade to Starter if credits arrive: switch the Blueprint file path back to `render.yaml` (the disk is created on apply).
 
 ## Env reference
 

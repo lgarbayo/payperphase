@@ -1,0 +1,94 @@
+# OWNED BY WP-13. FREE-PLAN VARIANT of render.yaml (generated copy, kept in sync by
+# tests/deploy/render-yaml.test.ts). Use it only if there are no Render credits for Starter:
+# the instance sleeps after 15 min idle, has no disk (db.json lives in /tmp and reseeds on every
+# restart/deploy), and a webhook to a sleeping instance can fail (the return reconcile is the
+# source of truth). Pair it with .github/workflows/keep-warm.yml (repo variable RENDER_URL).
+# Apply with New > Blueprint > Advanced > Blueprint file path: render.free.yaml. See docs/deploy.md.
+# OWNED BY WP-13. Render Blueprint for PayPerPhase: https://render.com/docs/blueprint-spec
+#
+# One always-on web service (Starter, never the free plan, so it never sleeps during judging
+# 1-15 Dec) with a 1 GB persistent disk for the JSON store (DATA_DIR/db.json). The store seeds
+# on boot when db.json is missing. Redeploys automatically on every push to main.
+# How to create it, fill the secrets, roll back and read logs: docs/deploy.md.
+#
+# Every key in .env.example is declared below (tests/deploy/render-yaml.test.ts enforces it).
+# Secrets and account-specific values use `sync: false`: Render asks for them once, when the
+# Blueprint is created, and they never live in git. Every one is optional. A missing secret
+# puts that integration in mock mode (badge in the UI), and the build never needs any of them.
+services:
+  - type: web
+    name: payperphase
+    runtime: node
+    region: frankfurt
+    plan: free
+    branch: main
+    buildCommand: ./scripts/render-build.sh
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    # Docs, fleet notes and tests never change the running app; skip the redeploy (a service
+    # with a disk has a few seconds of downtime per deploy).
+    buildFilter:
+      ignoredPaths:
+        - "docs/**"
+        - "fleet/**"
+        - "tests/**"
+        - "**/*.md"
+    envVars:
+      # ---- Runtime / build ----
+      - key: NODE_VERSION
+        value: "22"
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+
+      # ---- App ----
+      # Set to this service's public URL (https://<name>.onrender.com) right after creation:
+      # it is not known before Render assigns it. PayPal return/cancel URLs are built from it.
+      - key: PUBLIC_BASE_URL
+        sync: false
+      - key: DATA_DIR
+        value: /tmp/payperphase-data
+      - key: SIM_START_DATE
+        value: "2026-11-16"
+      - key: FORCE_MOCKS
+        value: "0"
+
+      # ---- PayPal (sandbox only) ----
+      - key: PAYPAL_ENV
+        value: sandbox
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false
+      # Inlined into the browser bundle at BUILD time: changing it needs a redeploy.
+      - key: NEXT_PUBLIC_PAYPAL_CLIENT_ID
+        sync: false
+      - key: NEXT_PUBLIC_PAYPAL_BUYER_COUNTRY
+        value: ES
+      - key: PHASE_PAYMENT_INTENT
+        value: CAPTURE
+      - key: DEMO_PATIENT_EMAIL
+        sync: false
+      - key: DEMO_MERCHANT_EMAIL
+        sync: false
+
+      # ---- Anthropic ----
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ANTHROPIC_MODEL_EXTRACT
+        value: claude-sonnet-5-5
+      - key: ANTHROPIC_MODEL_WORDING
+        value: claude-sonnet-5-5
+      - key: ANTHROPIC_MODEL_AGENT
+        value: claude-sonnet-5-5
+      - key: ANTHROPIC_MODEL_CHAT
+        value: claude-haiku-5-5
+      - key: AGENT_MODE
+        value: auto
+
+      # ---- Build only (fallback, normally unused) ----
+      # Only read by scripts/render-build.sh when the public npm trial alias fails to install.
+      - key: BRYNTUM_NPM_TOKEN
+        sync: false

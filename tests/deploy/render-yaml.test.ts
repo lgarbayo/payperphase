@@ -154,3 +154,27 @@ describe("render.yaml (Render Blueprint)", () => {
     expect(mode & 0o111, "render-build.sh must be executable (git mode 100755)").not.toBe(0);
   });
 });
+
+describe("render.free.yaml (free-plan fallback)", () => {
+  const free = readFileSync(path.join(root, "render.free.yaml"), "utf8");
+  const strip = (s: string) =>
+    s
+      .split("\n")
+      .filter((l) => !l.trim().startsWith("#"))
+      .join("\n");
+
+  it("is plan: free with no disk, and a DATA_DIR that is writable without one", () => {
+    expect(free).toMatch(/^\s+plan:\s*free\s*$/m);
+    expect(free).not.toMatch(/^\s+disk:/m);
+    expect(free).toMatch(/key:\s*DATA_DIR\s*\n\s+value:\s*\/tmp\//);
+  });
+
+  it("is otherwise identical to render.yaml (same build, start, health check, env vars)", () => {
+    const normalise = (s: string) =>
+      strip(s)
+        .replace(/plan:\s*\w+/, "plan: X")
+        .replace(/\n\s+disk:\n(\s{6,}.*\n)+/, "\n")
+        .replace(/value:\s*(\/var\/data|\/tmp\/payperphase-data)/, "value: DIR");
+    expect(normalise(free)).toBe(normalise(renderYaml));
+  });
+});
