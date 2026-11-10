@@ -154,8 +154,9 @@ function NotDueButton({ amount, t }: { amount: string; t: T }) {
     <div className="flex flex-col gap-1.5">
       <Button size="lg" className="w-full" disabled data-testid="pay-phase" aria-describedby={id}>
         <CalendarIcon />
-        <span>{t("payWithPayPal")}</span>
-        <span className="tabular-nums">· {amount}</span>
+        <span>
+          {t("payWithPayPal")} · <span className="tabular-nums">{amount}</span>
+        </span>
       </Button>
       <p id={id} data-testid="pay-phase-reason" className="text-xs text-muted">
         {t("notDueReason")}
@@ -217,8 +218,13 @@ function MockPayButton({ planId, phaseId, amount, locale, t, onSettled, onFail, 
         onClick={() => void pay()}
       >
         {working ? <Spinner /> : <LockIcon />}
-        <span>{working ? t("working") : t("mockPay")}</span>
-        {!working && <span className="tabular-nums">· {amount}</span>}
+        {working ? (
+          <span>{t("working")}</span>
+        ) : (
+          <span>
+            {t("mockPay")} · <span className="tabular-nums">{amount}</span>
+          </span>
+        )}
       </Button>
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <ModeBadge mode="mock" what={t("mockWhat")} locale={locale} />
