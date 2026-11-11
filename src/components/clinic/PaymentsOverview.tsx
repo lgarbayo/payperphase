@@ -3,13 +3,14 @@
  * OWNED BY WP-07. Payments overview: every plan (GET /api/plans) with its collected total and the
  * next due payment. Refetches whenever `refreshSignal` changes (the console bumps it on SSE events).
  */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import type { Locale, PlanSummary } from "@/contracts";
 import { useT } from "@/i18n";
 import { formatIsoDate } from "@/lib/dates";
 import { formatCents } from "@/lib/money";
 import { Badge, Button, cx, StatusPill } from "@/lib/ui";
 import { clinicApi } from "./api";
+import { PayPalTrail } from "./PayPalTrail";
 import { CASE_LABEL, Icon, PLAN_STATUS_LABEL, type ClinicT } from "./shared";
 
 export interface PaymentsOverviewProps {
@@ -27,6 +28,7 @@ export function PaymentsOverview({ locale, t, refreshSignal = 0, currentPlanId, 
   const tc = useT("common");
   const [state, setState] = useState<State>({ status: "loading" });
   const seq = useRef(0);
+  const [trailOpen, setTrailOpen] = useState(false);
 
   const load = useCallback(async () => {
     const mine = ++seq.current;
@@ -100,8 +102,10 @@ export function PaymentsOverview({ locale, t, refreshSignal = 0, currentPlanId, 
               {state.plans.map((p) => {
                 const current = p.id === currentPlanId;
                 const pct = p.totalCents > 0 ? Math.min(100, Math.round((p.paidCents / p.totalCents) * 100)) : 0;
+                const trailShown = current && trailOpen;
                 return (
-                  <tr key={p.id} data-testid={`payments-row-${p.id}`} className={cx(current && "bg-primary/5")}>
+                  <Fragment key={p.id}>
+                  <tr data-testid={`payments-row-${p.id}`} className={cx(current && "bg-primary/5")}>
                     <td className="px-4 py-3">
                       <span className="block font-medium text-ink">{p.patientAlias}</span>
                       <span className="block text-xs text-muted">
@@ -140,7 +144,22 @@ export function PaymentsOverview({ locale, t, refreshSignal = 0, currentPlanId, 
                     <td className="px-4 py-3">
                       <span className="flex items-center justify-end gap-2">
                         {current ? (
-                          <Badge tone="neutral">{t("current")}</Badge>
+                          <>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              data-testid={`paypal-trail-toggle-${p.id}`}
+                              aria-expanded={trailShown}
+                              aria-controls={`paypal-trail-${p.id}`}
+                              onClick={() => setTrailOpen((o) => !o)}
+                            >
+                              {t("trailToggle")}
+                              <span aria-hidden className={cx("inline-block transition-transform", trailShown && "rotate-180")}>
+                                ▾
+                              </span>
+                            </Button>
+                            <Badge tone="neutral">{t("current")}</Badge>
+                          </>
                         ) : (
                           onManage && (
                             <Button
@@ -165,6 +184,15 @@ export function PaymentsOverview({ locale, t, refreshSignal = 0, currentPlanId, 
                       </span>
                     </td>
                   </tr>
+                  {trailShown && (
+                    <tr data-testid={`paypal-trail-row-${p.id}`} className="bg-primary/5">
+                      <td colSpan={5} id={`paypal-trail-${p.id}`} className="px-4 pb-4 pt-1">
+                        <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">{t("trailTitle")}</h4>
+                        <PayPalTrail planId={p.id} locale={locale} t={t} />
+                      </td>
+                    </tr>
+                  )}
+                  </Fragment>
                 );
               })}
             </tbody>

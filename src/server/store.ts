@@ -29,6 +29,7 @@ import {
   type PlanStore,
   type PlanSummary,
   type SimClock,
+  type WebhookEventRecord,
 } from "@/contracts";
 import { applyPaymentStatuses } from "@/engine";
 import { serverEnv } from "@/env";
@@ -72,6 +73,8 @@ export interface ServerStore extends PlanStore {
   refreshPaymentStatuses(): Promise<PlanStatusChange[]>;
   /** Absolute path of db.json, or null for an in-memory store. */
   dbPath(): string | null;
+  /** The plan's PayPal webhook audit records (alias "demo" allowed), oldest first by receivedAt. */
+  listWebhookEvents(planId: string): Promise<WebhookEventRecord[]>;
 }
 
 export interface StoreOptions {
@@ -428,6 +431,15 @@ function makeStore(st: () => StoreState): ServerStore {
       return read(st(), (db) => {
         const real = resolveIn(db, planId) ?? planId;
         return db.agentSteps.filter((s) => s.planId === real);
+      });
+    },
+
+    async listWebhookEvents(planId) {
+      return read(st(), (db) => {
+        const real = resolveIn(db, planId) ?? planId;
+        return Object.values(db.webhookEvents)
+          .filter((e) => e.planId === real)
+          .sort((a, b) => (a.receivedAt < b.receivedAt ? -1 : a.receivedAt > b.receivedAt ? 1 : 0));
       });
     },
 
