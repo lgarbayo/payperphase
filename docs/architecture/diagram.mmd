@@ -1,0 +1,25 @@
+%% PayPerPhase architecture. Rule: Claude reads, code decides money and dates, the dentist approves every word.
+%% docs/architecture/diagram.svg is the hand-drawn rendering of the same design.
+flowchart LR
+  classDef claude fill:#dbeafe,stroke:#2563eb,color:#0f172a
+  classDef code fill:#dcfce7,stroke:#15803d,color:#0f172a
+  classDef human fill:#fef3c7,stroke:#b45309,color:#0f172a
+  classDef ext fill:#ffffff,stroke:#64748b,color:#0f172a
+
+  PDF["Clinic uploads presupuesto PDF"]:::ext --> EXT["Claude Sonnet 5.5<br/>reads lines, teeth, printed prices"]:::claude
+  EXT --> CHK["Checks in code<br/>euros to cents, re-sum, FDI teeth"]:::code
+  CHK --> ENG["Phase engine<br/>phases, healing, dates, cents, Pay in 3 fit"]:::code
+  ENG --> APP["Dentist approves plan and notes"]:::human
+  APP --> PAT["Patient page<br/>Bryntum Gantt, ledger, exposure meter"]:::ext
+
+  PAT -->|drag| VAL["Engine validates the move<br/>illegal drags snap back"]:::code
+  PAT -->|pay phase| GATE["Order gate<br/>amount from store, phase must be due"]:::code
+  GATE --> ORD["PayPal Orders v2<br/>one order per phase"]:::ext
+  ORD --> TR["One transition()<br/>capture, webhook, return reconcile"]:::code
+  TR -->|SSE| PAT
+
+  APP -->|plan approved| AG["Billing agent<br/>Claude Sonnet 5.5 tool loop"]:::claude
+  EDIT["Dentist edits plan, one Approve click"]:::human --> AG
+  AG --> GUARD["Guard<br/>amount, EUR, number, recipient, allowlist"]:::code
+  GUARD --> TK["PayPal Agent Toolkit<br/>Invoicing v2"]:::ext
+  TK --> INV["Sandbox invoice and QR code"]:::ext
