@@ -1,27 +1,19 @@
 /**
- * OWNED BY WP-09. POST /api/plans/:id/edit — dentist plan edit → engine.applyEdit + diffPlans +
- * explainDiff, then PLAN_EDITED (the agent reissues the invoice). SCAFFOLD STUB.
+ * OWNED BY WP-09. POST /api/plans/:id/edit: dentist plan edit → engine.applyEdit + diffPlans,
+ * saved, PLAN_EDITED {diff} (the agent reissues the invoice), plus the explainDiff wording.
  */
-import { EditPlanRequestSchema, type EditPlanResponse } from "@/contracts";
-import { explainDiff } from "@/ai/wording";
-import { applyEdit, diffPlans } from "@/engine";
-import { apiError, json, nowIso, parseJson } from "@/lib/http";
-import { publish } from "@/server/events";
-import { store } from "@/server/store";
+import { EditPlanRequestSchema } from "@/contracts";
+import { json, parseJson } from "@/lib/http";
+import { handleRoute } from "@/server/errors";
+import { editPlan } from "@/server/plans";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const parsed = await parseJson(req, EditPlanRequestSchema);
-  if (!parsed.ok) return parsed.response;
-  const before = await store.getPlan(id);
-  if (!before) return apiError("NOT_FOUND", "Plan not found", 404);
-  const after = applyEdit(before, parsed.data.edit, nowIso());
-  const diff = diffPlans(before, after);
-  const explanation = await explainDiff(diff, after);
-  await store.savePlan(after);
-  publish({ type: "PLAN_EDITED", planId: after.id, diff });
-  const body: EditPlanResponse = { plan: after, diff, explanation };
-  return json(body);
+  return handleRoute(async () => {
+    const { id } = await params;
+    const parsed = await parseJson(req, EditPlanRequestSchema);
+    if (!parsed.ok) return parsed.response;
+    return json(await editPlan(id, parsed.data));
+  });
 }
