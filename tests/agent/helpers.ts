@@ -5,12 +5,18 @@ import { GOLDEN_PLAN_ID, goldenPlan } from "@/contracts/fixtures/implantCase";
 import { __setAgentDeps } from "@/agent";
 import { createMockInvoiceTools, resetMockInvoices } from "@/agent/mockTools";
 import type { LlmClient } from "@/agent/loop";
-import { store } from "@/server/store";
+import { __resetStoreForTests, store } from "@/server/store";
 
 export const PLAN_ID = GOLDEN_PLAN_ID;
 
+/**
+ * Fresh first-boot store (beat B2, in memory under Vitest). Not `store.resetDemo()`: that re-ids the
+ * hero to a random pln_ and publishes DEMO_RESET/PLAN_APPROVED, while these tests drive the golden
+ * pln_ribera01 plan and its PPP-RIBE-* invoice numbers explicitly.
+ */
 export async function resetWorld(): Promise<void> {
-  await store.resetDemo();
+  __resetStoreForTests();
+  await store.init();
   resetMockInvoices();
   __setAgentDeps(null);
 }
