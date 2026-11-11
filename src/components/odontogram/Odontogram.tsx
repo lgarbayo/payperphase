@@ -388,7 +388,7 @@ function Tooth({ p, layout, summary, highlighted, label, hatchId, reduce, skipEn
         x={cx}
         y={p.upper ? -5 : BOX_H + 14}
         textAnchor="middle"
-        style={{ fontSize: 15, fontFamily: "var(--ppp-font)", fontVariantNumeric: "tabular-nums" }}
+        style={{ fontSize: 17, fontFamily: "var(--ppp-font)", fontVariantNumeric: "tabular-nums" }}
         fill={summary ? "var(--ppp-ink)" : "var(--ppp-muted)"}
         fontWeight={summary ? 700 : 500}
       >
