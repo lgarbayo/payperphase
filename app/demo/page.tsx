@@ -1,13 +1,9 @@
 /**
- * OWNED BY WP-14. Director Mode hub (/demo?director=1). SCAFFOLD STUB.
+ * OWNED BY WP-14. Public demo hub (/demo): Reset demo, beat deep links, cards, sample PDFs.
+ * Director Mode itself is mounted once by the root layout.
  */
-import { DirectorMode } from "@/components/director/DirectorMode";
+import { DemoHub } from "@/components/director/DemoHub";
 
 export default function DemoPage() {
-  return (
-    <main className="p-10">
-      <h1 className="text-2xl font-semibold">Demo</h1>
-      <DirectorMode />
-    </main>
-  );
+  return <DemoHub />;
 }
