@@ -65,13 +65,15 @@ describe("GET/POST /api/clock", () => {
     const calls = vi.mocked(applyPaymentStatuses).mock.calls;
     expect(calls.map(([p, d]) => [p.id, d]).sort()).toEqual([
       [GOLDEN_PLAN_ID, "2027-01-04"],
+      ["pln_ribera02", "2027-01-04"],
+      ["pln_ribera03", "2027-01-04"],
       ["pln_second01", "2027-01-04"],
     ]);
 
     // one PHASE_STATUS_CHANGED per returned change, then CLOCK_ADVANCED last
-    expect(bus.types()).toEqual(["PHASE_STATUS_CHANGED", "PHASE_STATUS_CHANGED", "CLOCK_ADVANCED"]);
+    expect(bus.types()).toEqual([...Array<string>(4).fill("PHASE_STATUS_CHANGED"), "CLOCK_ADVANCED"]);
     const changed = bus.events.filter((e) => e.type === "PHASE_STATUS_CHANGED");
-    expect(changed.map((e) => ("planId" in e ? e.planId : "")).sort()).toEqual([GOLDEN_PLAN_ID, "pln_second01"]);
+    expect(changed.map((e) => ("planId" in e ? e.planId : "")).sort()).toEqual([GOLDEN_PLAN_ID, "pln_ribera02", "pln_ribera03", "pln_second01"]);
     expect(changed[0]).toMatchObject({ phaseId: "ph2", from: "scheduled", to: "upcoming" });
     expect(bus.events.at(-1)).toMatchObject({ type: "CLOCK_ADVANCED", from: SIM_DEFAULT_START, to: "2027-01-04" });
     // setEventSimToday was updated before publishing

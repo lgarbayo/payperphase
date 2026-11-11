@@ -238,7 +238,8 @@ describe("POST /api/plans/:id/approve", () => {
     ]);
     expect(plan.phases[0]!.summary).toEqual(body.summaries[0]!.text);
     expect(plan.phases[1]!.summary).toBeUndefined();
-    expect(captureBaseline).toHaveBeenCalledTimes(1);
+    // seedCases() also runs the engine for the seed plans; count only this draft's baseline.
+    expect(vi.mocked(captureBaseline).mock.calls.filter(([p]) => p.id === "pln_draft001")).toHaveLength(1);
     expect(plan.baseline?.phases.map((b) => b.startDate)).toEqual(plan.phases.map((p) => p.startDate));
     expect(plan.phases[0]!.payment.status).toBe("due");
 
@@ -410,7 +411,7 @@ describe("POST /api/plans (create) and GET /api/plans[/:id]", () => {
     expect(plan.status).toBe("draft");
     expect(plan.quoteId).toBe(GOLDEN_QUOTE_ID);
 
-    const input = vi.mocked(buildPlan).mock.calls[0]![0];
+    const input = vi.mocked(buildPlan).mock.calls.at(-1)![0];
     expect(input.extraction.quoteId).toBe(GOLDEN_QUOTE_ID);
     expect(input.caseKind).toBe("implant");
     expect(input.startDate).toBe(SIM_DEFAULT_START);
@@ -426,7 +427,8 @@ describe("POST /api/plans (create) and GET /api/plans[/:id]", () => {
   it("honours startDate, 404s on an unknown quote, 422 on a bad body", async () => {
     const ok = await createPlan(post(`${BASE}/plans`, { quoteId: GOLDEN_QUOTE_ID, caseKind: "implant", startDate: "2026-11-23" }));
     expect(ok.status).toBe(201);
-    expect(vi.mocked(buildPlan).mock.calls[0]![0].startDate).toBe("2026-11-23");
+    // The route looks up seed templates (which build the seed plans) before its own buildPlan call.
+    expect(vi.mocked(buildPlan).mock.calls.at(-1)![0].startDate).toBe("2026-11-23");
     const missing = await createPlan(post(`${BASE}/plans`, { quoteId: "q_nope" }));
     expect(missing.status).toBe(404);
     expect(await errorCode(missing)).toBe("UNKNOWN_QUOTE");
@@ -438,7 +440,8 @@ describe("POST /api/plans (create) and GET /api/plans[/:id]", () => {
     await store.savePlan(draft("pln_draft004"));
     const res = await listPlans();
     const { plans } = ListPlansResponseSchema.parse(await res.json());
-    expect(plans.map((p) => p.id)).toEqual([GOLDEN_PLAN_ID, "pln_draft004"]);
+    expect(plans[0]!.id).toBe(GOLDEN_PLAN_ID);
+    expect(plans.map((p) => p.id).sort()).toEqual([GOLDEN_PLAN_ID, "pln_draft004", "pln_ribera02", "pln_ribera03"].sort());
     expect(plans[0]).toMatchObject({ totalCents: 407_000, paidCents: 0, nextDue: { phaseId: "ph1", status: "due" } });
   });
 
