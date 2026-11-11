@@ -48,7 +48,7 @@ describe("live chat (claude-haiku-5-5)", () => {
     const docs = content.filter((b) => b.type === "document");
     expect(docs).toHaveLength(PLAN.approvedNotes.length - 1); // every approved note except the referral
     expect(docs.every((d) => d.citations.enabled === true && d.source.media_type === "text/plain")).toBe(true);
-    const maxNote = docs[docIndexOf("HEALING_EXTRACTION_MAX_6M")];
+    const maxNote = docs[docIndexOf("HEALING_EXTRACTION_MAX_6M")]!;
     expect(maxNote.title).toBe("No esperar demasiado · Fase 2: Colocación de implantes · Aprobado por Dra. Lucía Ruiz");
     expect(maxNote.source.data).toBe(NOTE_LIBRARY.HEALING_EXTRACTION_MAX_6M.text.es);
     expect(content.at(-1)).toEqual({ type: "text", text: "¿Puedo tomar ibuprofeno?" });
