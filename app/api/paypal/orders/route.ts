@@ -1,7 +1,11 @@
-/** OWNED BY WP-04. POST /api/paypal/orders {planId, phaseId} — amount read server-side. SCAFFOLD STUB. */
+/**
+ * OWNED BY WP-04. POST /api/paypal/orders {planId, phaseId} → CreatePhaseOrderResponse.
+ * The amount is read server-side from the stored plan; any amount in the body is ignored (and
+ * stripped by the schema). 409 when the phase is not payable yet (no prepayment).
+ */
 import { CreatePhaseOrderRequestSchema } from "@/contracts";
 import { apiError, json, parseJson } from "@/lib/http";
-import { createPhaseOrder, PaymentNotAllowedError } from "@/lib/paypal";
+import { createPhaseOrder, PaymentNotAllowedError, PayPalApiError } from "@/lib/paypal";
 
 export const dynamic = "force-dynamic";
 
@@ -9,9 +13,10 @@ export async function POST(req: Request) {
   const parsed = await parseJson(req, CreatePhaseOrderRequestSchema);
   if (!parsed.ok) return parsed.response;
   try {
-    return json(await createPhaseOrder(parsed.data), 201);
+    return json(await createPhaseOrder({ planId: parsed.data.planId, phaseId: parsed.data.phaseId }), 201);
   } catch (e) {
     if (e instanceof PaymentNotAllowedError) return apiError(e.reason, e.message, 409);
+    if (e instanceof PayPalApiError) return apiError(e.issue ?? e.errorName ?? "PAYPAL_ERROR", e.message, 502);
     throw e;
   }
 }

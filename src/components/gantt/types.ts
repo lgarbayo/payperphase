@@ -1,5 +1,5 @@
 /** OWNED BY WP-05. Public props of <PlanGantt/> — consumers (WP-06, WP-07, WP-14) rely on these. */
-import type { ClinicalNote, Locale, MoveRequest, NoteId, PhaseShift, Plan } from "@/contracts";
+import type { ClinicalNote, DeadlineWarning, Locale, MoveRequest, NoteId, PhaseShift, Plan } from "@/contracts";
 
 export interface PlanGanttProps {
   plan: Plan;
@@ -20,6 +20,13 @@ export interface PlanGanttProps {
   onPayPhase?: (phaseId: string) => void;
   /** taskMenu "What if I delay?". */
   onAskDelay?: (phaseId: string) => void;
-  /** Height in px (Bryntum needs a sized parent). Default 420. */
+  /** Height in px (Bryntum needs a sized parent). Default 420. Includes the legend strip. */
   height?: number;
+  /**
+   * Optional engine warnings (e.g. `WhatIfResult.warnings` from the last persisted what-if). The chart
+   * also derives deadline breaches from `deadlineFor`, so this is only needed to pass the engine's own.
+   */
+  warnings?: DeadlineWarning[];
+  /** Hide the legend strip under the chart (default false). */
+  hideLegend?: boolean;
 }
