@@ -221,7 +221,7 @@ export default function GanttInner(props: PlanGanttProps) {
       autoAdjustTimeAxis: false,
       weekStartDay: 1,
       rowHeight: 38,
-      barMargin: 7,
+      barMargin: 4,
       snap: true,
       timeResolution: { unit: "day", increment: 1 },
       readOnly: latest.current.mode !== "patient",
