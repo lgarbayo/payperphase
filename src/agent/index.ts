@@ -65,10 +65,30 @@ function newRunId(): string {
 /** Triggers whose run is skipped entirely (no feed noise) when there is nothing to do. */
 const QUIET = new Set<TriggerPayload["type"]>(["PLAN_APPROVED", "PAYMENT_CAPTURED", "PHASE_STATUS_CHANGED"]);
 
+/** Short, camera-safe labels for the feed when the Claude call fails. */
+const LLM_ERROR_LABELS: Record<string, string> = {
+  "400": "bad request",
+  "401": "auth",
+  "403": "forbidden",
+  "404": "not found",
+  "408": "timeout",
+  "413": "too large",
+  "429": "rate limited",
+  "500": "server error",
+  "502": "bad gateway",
+  "503": "unavailable",
+  "504": "timeout",
+  "529": "overloaded",
+};
+
 function fallbackReason(o: Exclude<LoopOutcome, { kind: "done" }>): string {
   if (o.kind === "refusal") return o.category ? `refusal: ${o.category}` : "refusal";
   if (o.kind === "aborted") return `> ${o.iterations} iterations`;
-  return o.message.slice(0, 120);
+  // The feed is on camera: keep raw API payloads out of it and log them instead.
+  console.warn("[agent] LLM run failed, using the deterministic playbook:", o.message);
+  const status = /\b([45]\d{2})\b/.exec(o.message)?.[1];
+  if (status) return `HTTP ${status}${LLM_ERROR_LABELS[status] ? ` ${LLM_ERROR_LABELS[status]}` : ""}`;
+  return /timeout|timed out/i.test(o.message) ? "timeout" : "error";
 }
 
 async function explainEdit(run: AgentRun, payload: Extract<TriggerPayload, { type: "PLAN_EDITED" }>, plan: Plan) {
