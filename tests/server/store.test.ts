@@ -101,7 +101,9 @@ describe("persistence", () => {
     const reopened = open();
     const back = await reopened.getPlan("pln_other001");
     expect(back).toEqual(saved);
-    expect((await reopened.listPlans()).map((p) => p.id)).toEqual([GOLDEN_PLAN_ID, "pln_other001"]); // hero first
+    const ids = (await reopened.listPlans()).map((p) => p.id);
+    expect(ids[0]).toBe(GOLDEN_PLAN_ID); // hero first
+    expect(ids.sort()).toEqual([GOLDEN_PLAN_ID, "pln_other001", "pln_ribera02", "pln_ribera03"].sort());
   });
 
   it("returns copies: mutating a returned plan never changes the store", async () => {
