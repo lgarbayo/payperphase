@@ -2,7 +2,7 @@
 
 **Dental treatment you pay for phase by phase, as you receive it. Never in advance.**
 
-PayPerPhase turns a Spanish dental *presupuesto* (quote) into a **pre-treatment, multi-phase plan with clinical healing windows**. The patient pays each phase with PayPal on the day it is delivered, so the money at risk if a clinic closes is **€0**. Built for Spain and EUR. It is not a post-visit bill explainer and not a freelancer milestone tool.
+PayPerPhase turns a Spanish dental *presupuesto* (quote) into a **pre-treatment, multi-phase plan with clinical healing windows**. It is **pay per phase**: the patient pays each phase with PayPal on the day it is delivered, so the money at risk if a clinic closes is **€0**. Built for Spain and EUR. It is not a post-visit bill explainer and not a freelancer milestone tool.
 
 Built for the [PayPal AI Hackathon 2026](https://paypalaihackathon.devpost.com/).
 
