@@ -55,7 +55,7 @@ type Feedback =
     }
   | { kind: "deadline"; warning: DeadlineWarning };
 
-const GANTT_HEIGHT = 400;
+const GANTT_HEIGHT = 560;
 
 function isWhatIfResponse(x: unknown): x is WhatIfResponse {
   if (!x || typeof x !== "object") return false;
