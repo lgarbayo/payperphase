@@ -22,7 +22,13 @@ export const LINKED_LOAN_ILLUSTRATIVE = { months: 24, aprBasisPoints: 0 } as con
 
 /** Official Spanish consumer guidance on financed dental treatment when a clinic closes. */
 export const DSCA_SOURCE_URL =
-  "https://www.dsca.gob.es/ca/consumo/preguntas-frecuentes/tenia-tratamiento-dental-financiado-entidad-que-propuso-clinica-pero";
+  "https://www.dsca.gob.es/es/consumo/preguntas-frecuentes/tenia-tratamiento-dental-financiado-entidad-que-propuso-clinica-pero";
+
+/** DSCA consumer advice page on dental clinics (carries «Recomendamos no pagar el importe total del tratamiento por adelantado.»). */
+export const DSCA_ADVICE_URL = "https://www.dsca.gob.es/es/consumo/notas-informativas/bienes-y-servicios/clinicas-dentales";
+
+/** Ministerio de Consumo press note, 17/11/2020: 101,481 affected people, 65% with a linked loan, right to stop paying instalments. */
+export const MONCLOA_DENTIX_URL = "https://www.lamoncloa.gob.es/serviciosdeprensa/notasprensa/consumo/Paginas/2020/171120-dentix.aspx";
 
 /** PayPal invoice_number max length. Our scheme: PPP-{plan4}-F{n}-v{k}. */
 export const INVOICE_NUMBER_MAX = 25;

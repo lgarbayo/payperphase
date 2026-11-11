@@ -5,7 +5,7 @@
  */
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { DSCA_SOURCE_URL, GDPR_COPY } from "@/contracts/constants";
+import { DSCA_SOURCE_URL, GDPR_COPY, MONCLOA_DENTIX_URL } from "@/contracts/constants";
 import { useLocale, useT } from "@/i18n";
 import { cx } from "@/lib/ui/cx";
 import { PlanPreview } from "./PlanPreview";
@@ -27,16 +27,20 @@ export function Landing() {
               {t("heroTitleA")} <span className="text-primary">{t("heroTitleB")}</span>
             </h1>
             <p className="max-w-xl text-lg leading-relaxed text-muted">{t("heroLead")}</p>
-            <div className="flex flex-wrap items-center gap-3">
-              <CtaLink href="/demo" variant="primary">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-4">
+              <CtaLink href="/p/demo" variant="primary">
                 {t("ctaDemo")}
               </CtaLink>
               <CtaLink href="/clinic" variant="secondary">
                 {t("ctaClinic")}
               </CtaLink>
-              <CtaLink href="/p/demo" variant="secondary">
-                {t("ctaPatient")}
-              </CtaLink>
+              <Link
+                href="/demo"
+                data-testid="cta-director"
+                className="px-2 py-2 text-sm font-medium text-muted underline decoration-border underline-offset-4 transition-colors hover:text-ink hover:decoration-primary"
+              >
+                {t("ctaDirector")} →
+              </Link>
             </div>
             <TrustStrip locale={locale} className="self-start" />
           </div>
@@ -52,9 +56,23 @@ export function Landing() {
             <p data-testid="hook" className="text-balance text-2xl font-medium leading-snug tracking-tight md:text-3xl">
               {t("hookText")}
             </p>
+            <p className="text-sm text-slate-400">
+              <a
+                data-testid="moncloa-source"
+                href={MONCLOA_DENTIX_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline decoration-slate-500 underline-offset-4 hover:text-slate-200"
+              >
+                {t("hookSources")}
+              </a>
+            </p>
           </div>
-          <div className="flex flex-col gap-4 border-l border-white/15 pl-6 text-base leading-relaxed text-slate-300">
-            <p>{t("hookMore")}</p>
+          <div className="flex flex-col gap-4 border-t border-white/15 pt-6 text-base leading-relaxed text-slate-300 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+            <p data-testid="hook-2026">{t("hookMore")}</p>
+            <p data-testid="hook-claim" className="font-medium text-white">
+              {t("hookClaim")}
+            </p>
             <p className="text-sm">
               {t("hookSourceLead")}{" "}
               <a
@@ -106,18 +124,20 @@ export function Landing() {
           <PositioningLine locale={locale} className="mt-5 max-w-3xl text-lg" />
 
           <div className="mt-8 overflow-x-auto rounded-[var(--ppp-radius)] border border-border">
-            <table data-testid="comparison" className="w-full min-w-[34rem] border-collapse text-left text-sm">
+            <table data-testid="comparison" className="w-full border-collapse text-left text-xs sm:text-sm md:min-w-[34rem]">
               <thead>
                 <tr className="bg-surface-2 text-xs uppercase tracking-wide text-muted">
-                  <th scope="col" className="px-4 py-3 font-medium" />
-                  <th scope="col" className="px-4 py-3 text-center font-medium">
+                  <th scope="col" className="px-2 py-3 sm:px-4">
+                    <span className="sr-only">{t("positioningEyebrow")}</span>
+                  </th>
+                  <th scope="col" className="bg-primary/10 px-2 py-3 text-center font-semibold text-primary-strong sm:px-4">
+                    {t("colPpp")}
+                  </th>
+                  <th scope="col" className="px-2 py-3 text-center font-medium sm:px-4">
                     {t("colUpfront")}
                   </th>
-                  <th scope="col" className="px-4 py-3 text-center font-medium">
+                  <th scope="col" className="px-2 py-3 text-center font-medium sm:px-4">
                     {t("colLoan")}
-                  </th>
-                  <th scope="col" className="bg-primary/10 px-4 py-3 text-center font-semibold text-primary-strong">
-                    {t("colPpp")}
                   </th>
                 </tr>
               </thead>
@@ -131,12 +151,12 @@ export function Landing() {
                   ] as const
                 ).map(([row, a, b]) => (
                   <tr key={row} className="border-t border-border">
-                    <th scope="row" className="px-4 py-3.5 font-medium text-ink">
+                    <th scope="row" className="px-2 py-3.5 font-medium text-ink sm:px-4">
                       {t(row)}
                     </th>
+                    <Mark ok highlight yes={t("yes")} no={t("no")} />
                     <Mark ok={a} yes={t("yes")} no={t("no")} />
                     <Mark ok={b} yes={t("yes")} no={t("no")} />
-                    <Mark ok highlight yes={t("yes")} no={t("no")} />
                   </tr>
                 ))}
               </tbody>
@@ -193,7 +213,7 @@ function CtaLink({ href, variant, children }: { href: string; variant: "primary"
 
 function Mark({ ok, yes, no, highlight }: { ok: boolean; yes: string; no: string; highlight?: boolean }) {
   return (
-    <td className={cx("px-4 py-3.5 text-center", highlight && "bg-primary/5")}>
+    <td className={cx("px-2 py-3.5 text-center sm:px-4", highlight && "bg-primary/5")}>
       <span
         role="img"
         aria-label={ok ? yes : no}
