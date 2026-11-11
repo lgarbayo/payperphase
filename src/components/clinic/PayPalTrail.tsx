@@ -194,7 +194,7 @@ export function PayPalTrail({ planId, locale, t, pollMs = TRAIL_POLL_MS }: PayPa
       <p className="text-xs text-muted">{t("trailHint")}</p>
 
       {state.status === "loading" && (
-        <div role="status" aria-label={t("trailLoading")} className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <div role="status" aria-label={t("trailLoading")} className="grid gap-3 lg:grid-cols-2">
           {[0, 1, 2, 3].map((i) => (
             <div key={i} aria-hidden className="h-24 animate-pulse rounded-[var(--ppp-radius-sm)] bg-surface-2" />
           ))}
@@ -218,7 +218,7 @@ export function PayPalTrail({ planId, locale, t, pollMs = TRAIL_POLL_MS }: PayPa
           <p data-testid="paypal-trail-mode" className="font-mono text-[11px] text-muted">
             {state.data.modes.paypal === "mock" ? t("trailMockMode") : t("trailLiveMode")}
           </p>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-3 lg:grid-cols-2">
             {state.data.phases.map((ph) => (
               <PhaseTrail
                 key={ph.phaseId}
