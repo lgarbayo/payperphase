@@ -124,19 +124,25 @@ export function Landing() {
           <PositioningLine locale={locale} className="mt-5 max-w-3xl text-lg" />
 
           <div className="mt-8 overflow-x-auto rounded-[var(--ppp-radius)] border border-border">
-            <table data-testid="comparison" className="w-full border-collapse text-left text-xs sm:text-sm md:min-w-[34rem]">
+            <table data-testid="comparison" className="w-full table-fixed border-collapse text-left text-xs sm:text-sm md:table-auto md:min-w-[34rem]">
+              <colgroup>
+                <col className="w-[34%] md:w-auto" />
+                <col className="w-[26%] md:w-auto" />
+                <col className="w-[20%] md:w-auto" />
+                <col className="w-[20%] md:w-auto" />
+              </colgroup>
               <thead>
-                <tr className="bg-surface-2 text-xs uppercase tracking-wide text-muted">
+                <tr className="bg-surface-2 text-[11px] leading-tight text-muted sm:text-xs sm:uppercase sm:tracking-wide">
                   <th scope="col" className="px-2 py-3 sm:px-4">
                     <span className="sr-only">{t("positioningEyebrow")}</span>
                   </th>
-                  <th scope="col" className="bg-primary/10 px-2 py-3 text-center font-semibold text-primary-strong sm:px-4">
+                  <th scope="col" className="bg-primary/10 px-1 py-3 text-center font-semibold text-primary-strong sm:px-4">
                     {t("colPpp")}
                   </th>
-                  <th scope="col" className="px-2 py-3 text-center font-medium sm:px-4">
+                  <th scope="col" className="px-1 py-3 text-center font-medium sm:px-4">
                     {t("colUpfront")}
                   </th>
-                  <th scope="col" className="px-2 py-3 text-center font-medium sm:px-4">
+                  <th scope="col" className="px-1 py-3 text-center font-medium sm:px-4">
                     {t("colLoan")}
                   </th>
                 </tr>

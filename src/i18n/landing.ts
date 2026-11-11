@@ -49,7 +49,7 @@ export default {
       "Cada fase se cobra con PayPal el día de la visita. Ejemplo verificado en sandbox: 360 € → 3 × 120,00 €, sin intereses.",
     // Positioning
     positioning:
-      "Tu cicatrización fija las fechas de pago · cada fase cabe en Paga en 3 de PayPal · nada se cobra antes del tratamiento · 0 € perdidos si la clínica cierra",
+      "Tu cicatrización fija las fechas de pago · cada fase cabe en Paga en 3 de PayPal · nada se cobra antes del tratamiento · 0 € perdidos si la clínica cierra",
     positioningEyebrow: "Frente a las alternativas",
     positioningTitle: "Lo único que pagas es lo que ya has recibido",
     colUpfront: "Pagar por adelantado",
@@ -185,7 +185,7 @@ export default {
     step3Body:
       "Each phase is charged with PayPal on the day of the visit. Verified in the sandbox: €360 → 3 × €120.00, interest-free.",
     positioning:
-      "Your healing sets the payment dates · every phase fits PayPal Pay in 3 · nothing is charged before treatment · €0 lost if the clinic closes",
+      "Your healing sets the payment dates · every phase fits PayPal Pay in 3 · nothing is charged before treatment · €0 lost if the clinic closes",
     positioningEyebrow: "Against the alternatives",
     positioningTitle: "The only thing you pay is what you have already received",
     colUpfront: "Pay upfront",
