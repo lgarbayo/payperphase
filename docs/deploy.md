@@ -4,6 +4,7 @@ Render is only the host. The app is one Node 22 web service with a 1 GB persiste
 
 ## Create the service (about 5 minutes, one time)
 
+0. Wait until branch `wp/WP-13` is merged into `main` **on GitHub**. Before that, `main` holds only a scaffold `render.yaml` (no plan, disk or build command) and `render.free.yaml` does not exist.
 1. Push the repo to GitHub (branch `main`).
 2. Render dashboard > **New** > **Blueprint** > connect the GitHub repo > select branch `main`. Render reads `render.yaml`.
 3. Fill the prompted values (all optional; any blank secret leaves that integration in mock mode with a "Mock" badge):
@@ -26,7 +27,7 @@ Plan (default `render.yaml`): **Starter** (always on, about $7/month, paid from 
 
 Trade-offs: the instance sleeps after 15 minutes idle (first request after that takes ~30-60 s), `db.json` is lost on every restart or deploy (the store reseeds on boot when `db.json` is missing, and "Reset demo" returns to the seed anyway), and a PayPal webhook arriving at a sleeping instance can fail. The return reconcile (WP-04) stays the source of truth.
 
-Keep it warm: in GitHub > repo **Settings** > **Secrets and variables** > **Actions** > **Variables**, add `RENDER_URL` = `https://<service>.onrender.com`. `.github/workflows/keep-warm.yml` then pings `/api/health` every 10 minutes (a no-op while the variable is unset). Before judging (1-15 Dec) upgrade to Starter if credits arrive: switch the Blueprint file path back to `render.yaml` (the disk is created on apply).
+Keep it warm: in GitHub > repo **Settings** > **Secrets and variables** > **Actions** > **Variables**, add `RENDER_URL` = `https://<service>.onrender.com`. `.github/workflows/keep-warm.yml` then pings `/api/health` every 10 minutes (a no-op while the variable is unset). Cost: on a private repo every run bills at least 1 GitHub Actions minute, so about 144 minutes a day, more than the Free plan's monthly allowance over a few weeks. Set the variable only around recording and judging, or once the repo is public (Actions minutes are free on public repos). Before judging (1-15 Dec) upgrade to Starter if credits arrive: switch the Blueprint file path back to `render.yaml` (the disk is created on apply).
 
 ## Env reference
 
