@@ -207,7 +207,9 @@ describe("PAYMENT_CAPTURED and PHASE_STATUS_CHANGED", () => {
 describe("streaming and persistence", () => {
   it("every step is stored and published as AGENT_STEP; invoice changes publish INVOICE_UPDATED", async () => {
     const seen: DomainEvent[] = [];
-    const off = subscribe((e) => seen.push(e));
+    const off = subscribe((e) => {
+      seen.push(e);
+    });
     try {
       await issue();
     } finally {
