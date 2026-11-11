@@ -52,18 +52,20 @@ export const TODAY_RANGE_ID = "ppp-today";
 export const LEGEND_HEIGHT = 40;
 export const GANTT_ROW_HEIGHT = 38;
 const GANTT_HEADER_HEIGHT = 70;
+/** Footer summary row ("Pagas este mes"). */
+export const GANTT_SUMMARY_HEIGHT = 40;
 const GANTT_SCROLLBAR_PAD = 16;
 const GANTT_MIN_HEIGHT = 240;
 const GANTT_MAX_HEIGHT = 680;
 
 /**
  * Pixel height that shows every row of the plan with no internal vertical scrollbar:
- * two-lane header + rows + legend strip + a scrollbar pad, clamped to [240, 680].
+ * two-lane header + rows + summary footer + legend strip + a scrollbar pad, clamped to [240, 680].
  * `hideLegend` drops the legend strip (the chart then needs 40 px less).
  */
 export function ganttHeightFor(m: Pick<PlanToBryntum, "tasksData">, opts: { hideLegend?: boolean } = {}): number {
   const legend = opts.hideLegend ? 0 : LEGEND_HEIGHT;
-  const raw = GANTT_HEADER_HEIGHT + m.tasksData.length * GANTT_ROW_HEIGHT + legend + GANTT_SCROLLBAR_PAD;
+  const raw = GANTT_HEADER_HEIGHT + m.tasksData.length * GANTT_ROW_HEIGHT + GANTT_SUMMARY_HEIGHT + legend + GANTT_SCROLLBAR_PAD;
   return Math.min(GANTT_MAX_HEIGHT, Math.max(GANTT_MIN_HEIGHT, raw));
 }
 

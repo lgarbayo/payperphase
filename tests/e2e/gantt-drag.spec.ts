@@ -9,7 +9,8 @@
  * visit bars) and the API dates, never hard-coded, and the mouse moves in small steps.
  *
  * What it proves (screenshots land in test-results/gantt-drag/, for humans only):
- *   1 the whole plan is visible (visit-ph4 and pay-ph4 inside the Gantt viewport, no band column, ≥28 px pills)
+ *   1 the whole plan is visible (visit-ph4 and pay-ph4 inside the Gantt viewport, no band column, ≥28 px pills,
+ *     the payments-per-month summary row)
  *   2 no leftover drag zones on a drag-free load
  *   3 dragging visit-ph3 ~43 days earlier: the healing zone and the safe window are drawn mid-drag,
  *     the drop snaps back (flash + move-alert), the engine's ph3 date is unchanged, the zones are gone
@@ -94,6 +95,8 @@ test("Gantt hero: whole plan, constraint zones while dragging, snap-back and a v
     // The patient chart never shows the "Forma de pago" column (the phase cards carry that chip).
     await expect(root(page).locator('[data-column="band"], [data-column-id="band"]')).toHaveCount(0);
     await expect(root(page).getByText(/Forma de pago|Payment$/)).toHaveCount(0);
+    // The footer row sums the payments due per month tick (hero plan: 360 € in November).
+    await expect(root(page).locator(".ppp-sum").first()).toContainText("360");
     // A drag-free load leaves no constraint zones behind.
     await expect(zones(page)).toHaveCount(0);
     await page.screenshot({ path: path.join(SHOTS, "1-whole-plan.png") });

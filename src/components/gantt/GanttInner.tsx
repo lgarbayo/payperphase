@@ -18,6 +18,7 @@ import "@bryntum/gantt/locales/gantt.locale.Es.js";
 import "@bryntum/gantt/locales/gantt.locale.EnGb.js";
 import "./gantt.css";
 import { Gantt, LocaleManager, type DomConfig, type GanttConfig, type TaskModel } from "@bryntum/gantt";
+import type { CSSProperties } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { DeadlineWarning, Locale, Plan } from "@/contracts";
 import { daysBetween, fromLocalDate, toLocalDate } from "@/lib/dates";
@@ -28,13 +29,14 @@ import {
   bandCell,
   dependencyTipHtml,
   dragTipHtml,
+  escapeHtml,
   nameCell,
   statusCell,
   tooltipHtml,
 } from "./ganttText";
 import { GanttLegend, LEGEND_HEIGHT } from "./GanttLegend";
 import { syncProject, type ProjectLike } from "./projectSync";
-import { planToBryntum, shortDate, tg, type GanttTaskMeta, type PlanToBryntum } from "./toBryntum";
+import { amountLabel, planToBryntum, shortDate, tg, type GanttTaskMeta, type PlanToBryntum } from "./toBryntum";
 import type { PlanGanttProps } from "./types";
 
 const BRYNTUM_LOCALE: Record<Locale, string> = { es: "Es", en: "EnGb" };
@@ -341,6 +343,17 @@ export default function GanttInner(props: PlanGanttProps) {
           },
         },
         timeRanges: { showCurrentTimeLine: false, showHeaderElements: true },
+        // Footer "Pagas este mes": the money over time, summed from the payment milestones due in each month tick.
+        summary: {
+          showTooltip: false,
+          summaries: [
+            {
+              label: tg(latest.current.locale, "summaryPaid"),
+              renderer: ({ startDate, endDate }: { startDate: Date; endDate: Date }) =>
+                monthPaymentsHtml(shownRef.current?.mapping.meta ?? {}, fromLocalDate(startDate), fromLocalDate(endDate), L()),
+            },
+          ] as never, // the shipped typings model a summary as a tick, not as { label, renderer }
+        },
         taskTooltip: {
           hoverDelay: 120,
           maxWidth: 340,
@@ -526,7 +539,13 @@ export default function GanttInner(props: PlanGanttProps) {
 
   const chartHeight = Math.max(160, height - (hideLegend ? 0 : LEGEND_HEIGHT));
   return (
-    <div className="ppp-gantt-root" style={{ height }} data-testid="plan-gantt" data-mode={mode} data-status={status}>
+    <div
+      className="ppp-gantt-root"
+      style={{ height, "--ppp-sum-label": JSON.stringify(tg(locale, "summaryPaid")) } as CSSProperties}
+      data-testid="plan-gantt"
+      data-mode={mode}
+      data-status={status}
+    >
       <div ref={hostRef} className="ppp-gantt-host" style={{ height: chartHeight }} />
       {status === "loading" && (
         <div className="ppp-gantt-overlay" aria-live="polite">
@@ -549,6 +568,18 @@ export default function GanttInner(props: PlanGanttProps) {
       )}
     </div>
   );
+}
+
+/** Sum of the payment milestones due in [from, to) as one coloured amount ("" when none). */
+function monthPaymentsHtml(meta: Record<string, GanttTaskMeta>, from: string, to: string, locale: Locale): string {
+  const due = Object.values(meta).filter((m) => m.kind === "payment" && m.dueDate >= from && m.dueDate < to);
+  if (due.length === 0) return "";
+  const cents = due.reduce((sum, m) => sum + m.amountCents, 0);
+  // All paid → green; otherwise the most urgent open status.
+  const status = due.every((m) => m.status === "paid")
+    ? "paid"
+    : (["overdue", "due", "processing", "upcoming"] as const).find((st) => due.some((m) => m.status === st)) ?? "scheduled";
+  return `<span class="ppp-sum ppp-status-${status}">${escapeHtml(amountLabel(cents, locale))}</span>`;
 }
 
 /** "nov 2026 · dic · ene 2027 · feb …": the year on the first readable month and on January. */

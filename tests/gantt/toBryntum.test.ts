@@ -7,6 +7,7 @@ import { needsReload } from "@/components/gantt/projectSync";
 import { amountCell, bandCell, escapeHtml, nameCell, statusCell, tooltipHtml } from "@/components/gantt/ganttText";
 import {
   GANTT_ROW_HEIGHT,
+  GANTT_SUMMARY_HEIGHT,
   LEGEND_HEIGHT,
   ganttHeightFor,
   DEP_END_TO_START,
@@ -252,12 +253,12 @@ describe("cells and tooltips", () => {
 });
 
 describe("ganttHeightFor", () => {
-  it("golden plan: 11 rows = header 70 + 11×38 + legend 40 + pad 16 = 544", () => {
+  it("golden plan: 11 rows = header 70 + 11×38 + summary 40 + legend 40 + pad 16 = 584", () => {
     const m = map();
     expect(m.tasksData).toHaveLength(11);
-    expect(ganttHeightFor(m)).toBe(70 + 11 * GANTT_ROW_HEIGHT + LEGEND_HEIGHT + 16);
-    expect(ganttHeightFor(m)).toBe(544);
-    expect(ganttHeightFor(m, { hideLegend: true })).toBe(544 - LEGEND_HEIGHT);
+    expect(ganttHeightFor(m)).toBe(70 + 11 * GANTT_ROW_HEIGHT + GANTT_SUMMARY_HEIGHT + LEGEND_HEIGHT + 16);
+    expect(ganttHeightFor(m)).toBe(584);
+    expect(ganttHeightFor(m, { hideLegend: true })).toBe(584 - LEGEND_HEIGHT);
   });
 
   it("every seed case gets a height that fits all its rows, inside [240, 680]", () => {
@@ -266,7 +267,7 @@ describe("ganttHeightFor", () => {
       const h = ganttHeightFor(m);
       expect(h, c.key).toBeGreaterThanOrEqual(240);
       expect(h, c.key).toBeLessThanOrEqual(680);
-      const needed = 70 + m.tasksData.length * GANTT_ROW_HEIGHT + LEGEND_HEIGHT + 16;
+      const needed = 70 + m.tasksData.length * GANTT_ROW_HEIGHT + GANTT_SUMMARY_HEIGHT + LEGEND_HEIGHT + 16;
       // Unclamped plans show every row; clamped ones are capped at 680.
       expect(h, c.key).toBe(Math.min(680, Math.max(240, needed)));
     }
