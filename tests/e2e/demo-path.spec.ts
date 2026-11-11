@@ -228,6 +228,9 @@ test("demo path: PDF quote → plan → pay → what-if → closure → agent �
     const source = page.getByTestId("closure-source");
     await expect(source).toHaveAttribute("href", /dsca\.gob\.es/);
     await expect(source).toContainText("dsca.gob.es");
+    // The counters count up for ~1 s: wait for the settled value so the screenshot is not taken mid-animation.
+    await expect(page.getByTestId("closure-loan-owed").locator("[aria-hidden]")).toHaveText("3.710,00 €", { timeout: 5_000 });
+    await expect(page.getByTestId("closure-ppp-owed").locator("[aria-hidden]")).toHaveText("0,00 €", { timeout: 5_000 });
     await shot(page, "07-patient-closure", false);
     await page.getByTestId("closure-close").click();
     await expect(panel).toBeHidden();

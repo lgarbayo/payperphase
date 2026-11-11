@@ -12,13 +12,15 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const CASES: Array<{ locale: Locale; loan: string; zero: string; illustrative: RegExp; source: RegExp }> = [
+const CASES: Array<{ locale: Locale; loan: string; zero: string; illustrative: RegExp; source: RegExp; lead: string; continuity: RegExp }> = [
   {
     locale: "es",
     loan: "3.710,00 €",
     zero: "0,00 €",
     illustrative: /Ilustrativo: préstamo de 24 meses al 0 % que financia todo el presupuesto/,
     source: /Fuente: dsca\.gob\.es — preguntas frecuentes sobre tratamientos dentales financiados/,
+    lead: "Te toca reclamar",
+    continuity: /Tu plan, las notas aprobadas por tu dentista y tus recibos siguen en este enlace/,
   },
   {
     locale: "en",
@@ -26,6 +28,8 @@ const CASES: Array<{ locale: Locale; loan: string; zero: string; illustrative: R
     zero: "€0.00",
     illustrative: /Illustrative: a 24-month 0% loan financing the whole quote/,
     source: /Source: dsca\.gob\.es — FAQ on financed dental treatment/,
+    lead: "Yours to claim back",
+    continuity: /Your plan, the notes approved by your dentist and your receipts stay on this link/,
   },
 ];
 
@@ -65,9 +69,13 @@ describe("impact visuals on the golden plan (ph1 paid and delivered)", () => {
         expect(text).toMatch(c.locale === "es" ? /Ilustrativo/ : /Illustrative/);
         expect(text).toMatch(c.illustrative);
         expect(text).toMatch(c.source);
+        expect(text).toContain(c.lead);
+        expect(text).not.toMatch(/still owe|aún debes|debes /i);
+        expect(norm(within(panel).getByTestId("closure-continuity").textContent)).toMatch(c.continuity);
 
         const link = within(panel).getByTestId("closure-source") as HTMLAnchorElement;
         expect(link.getAttribute("href")).toBe(DSCA_SOURCE_URL);
+        expect(DSCA_SOURCE_URL).toContain("dsca.gob.es/es/");
         expect(link.getAttribute("target")).toBe("_blank");
         expect(link.getAttribute("rel")).toContain("noopener");
       });

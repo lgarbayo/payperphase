@@ -10,9 +10,9 @@ export default {
     heroTitleB: "Nunca por adelantado.",
     heroLead:
       "Sube el presupuesto de tu clínica y PayPerPhase lo convierte en un calendario clínico: cada fase se paga con PayPal el día que la recibes, ajustada al rango de Pay in 3.",
-    ctaDemo: "Ver la demo",
+    ctaDemo: "Ver un plan de ejemplo",
+    ctaDirector: "Demo guiada",
     ctaClinic: "Consola de la clínica",
-    ctaPatient: "Vista del paciente",
     previewLabel: "Plan de ejemplo",
     previewCaption: "Ilustrativo · paciente sintético · fechas simuladas · solo sandbox",
     previewPhase1: "Diagnóstico y extracción",
@@ -27,9 +27,12 @@ export default {
     // Problem
     hookEyebrow: "El problema",
     hookText:
-      "En 2020 una de las mayores cadenas dentales de España cerró de la noche a la mañana. Miles de pacientes siguieron pagando préstamos por implantes que nunca recibieron.",
+      "2020: una gran cadena dental cierra de un día para otro. 101.481 pacientes tenían tratamientos pagados sin terminar; el 65 %, con un préstamo vinculado.",
+    hookSources: "Ministerio de Consumo, 17/11/2020",
     hookMore:
-      "Pasó antes con iDental en 2018. Con un préstamo vinculado a la clínica, el tratamiento y la deuda caminan por separado: tú debes el total aunque la clínica ya no exista.",
+      "En 2026 volvió a pasar: otra cadena entró en concurso en septiembre y en octubre ya no le quedaba ninguna clínica abierta, con más de 30.000 tratamientos parados.",
+    hookClaim:
+      "Con un préstamo vinculado puedes dejar de pagar lo no recibido, pero te toca reclamarlo por escrito.",
     hookSourceLead: "Fuente oficial:",
     hookSourceLink: "dsca.gob.es · Preguntas frecuentes sobre tratamiento dental financiado",
     // How it works
@@ -46,7 +49,7 @@ export default {
       "Cada fase se cobra con PayPal el día de la visita. Ejemplo verificado en sandbox: 360 € → 3 × 120,00 €, sin intereses.",
     // Positioning
     positioning:
-      "Presupuesto previo al tratamiento · ventanas clínicas de cicatrización · pago por fase · 0 € de exposición",
+      "Tu cicatrización fija las fechas de pago · cada fase cabe en Paga en 3 de PayPal · nada se cobra antes del tratamiento · 0 € perdidos si la clínica cierra",
     positioningEyebrow: "Frente a las alternativas",
     positioningTitle: "Lo único que pagas es lo que ya has recibido",
     colUpfront: "Pagar por adelantado",
@@ -126,12 +129,14 @@ export default {
     hubSamplePending: "Se generan con npm run pdfs",
     hubFlowTitle: "Recorrido completo",
     // Cards
-    cardsHook1: "En 2020 una de las mayores cadenas dentales de España cerró de la noche a la mañana.",
-    cardsHook1Sub: "Miles de pacientes siguieron pagando préstamos por implantes que nunca recibieron.",
-    cardsHook2Source: "Fuente oficial",
+    cardsHook1: "2020: una gran cadena dental cierra de un día para otro.",
+    cardsHook1Sub: "101.481 pacientes tenían tratamientos pagados sin terminar; el 65 %, con un préstamo vinculado.",
+    cardsHook2Source: "Consejo oficial",
     cardsHook2Org: "Ministerio de Derechos Sociales, Consumo y Agenda 2030",
-    cardsHook2Faq: "Preguntas frecuentes de consumo",
-    cardsHook2Question: "«Tenía tratamiento dental financiado con la entidad que propuso la clínica, pero…»",
+    cardsHook2Faq: "Consejos de consumo · Clínicas dentales",
+    cardsHook2Question: "«Recomendamos no pagar el importe total del tratamiento por adelantado.»",
+    cardsHook2Note: "Cita literal de la página del Ministerio.",
+    cardsHook2Answer: "PayPerPhase lo hace por defecto.",
     cardsTitleMain: "PayPerPhase: paga tu tratamiento dental fase a fase, a medida que lo recibes. Nunca por adelantado.",
     cardsNext: "→ o espacio para avanzar",
     cardsClosingTagline: "Paga tu tratamiento dental fase a fase, cuando lo recibes. Nunca por adelantado.",
@@ -144,9 +149,9 @@ export default {
     heroTitleB: "Never in advance.",
     heroLead:
       "Upload your clinic's quote and PayPerPhase turns it into a clinical calendar: each phase is paid with PayPal on the day you receive it, sized to fit the Pay in 3 range.",
-    ctaDemo: "See the demo",
+    ctaDemo: "See a sample plan",
+    ctaDirector: "Guided demo",
     ctaClinic: "Clinic console",
-    ctaPatient: "Patient view",
     previewLabel: "Sample plan",
     previewCaption: "Illustrative · synthetic patient · simulated dates · sandbox only",
     previewPhase1: "Diagnosis and extraction",
@@ -160,9 +165,12 @@ export default {
     previewNext: "Next",
     hookEyebrow: "The problem",
     hookText:
-      "In 2020 one of Spain's biggest dental chains closed overnight. Thousands of patients kept paying loans for implants they never received.",
+      "2020: a big dental chain closes overnight. 101,481 patients had paid-for treatments left unfinished; 65% of them with a linked loan.",
+    hookSources: "Spanish Ministry of Consumer Affairs, 17/11/2020",
     hookMore:
-      "It happened before with iDental in 2018. With a loan tied to the clinic, the treatment and the debt travel separately: you owe the full amount even if the clinic no longer exists.",
+      "It happened again in 2026: another chain entered insolvency in September and by October had no clinic left open, with more than 30,000 treatments stalled.",
+    hookClaim:
+      "With a linked loan you can stop paying for what you did not receive, but it is on you to claim it in writing.",
     hookSourceLead: "Official source:",
     hookSourceLink: "dsca.gob.es · FAQ on financed dental treatment",
     howEyebrow: "How it works",
@@ -177,7 +185,7 @@ export default {
     step3Body:
       "Each phase is charged with PayPal on the day of the visit. Verified in the sandbox: €360 → 3 × €120.00, interest-free.",
     positioning:
-      "Pre-treatment quote · clinical healing windows · pay per phase · €0 exposure",
+      "Your healing sets the payment dates · every phase fits PayPal Pay in 3 · nothing is charged before treatment · €0 lost if the clinic closes",
     positioningEyebrow: "Against the alternatives",
     positioningTitle: "The only thing you pay is what you have already received",
     colUpfront: "Pay upfront",
@@ -253,12 +261,14 @@ export default {
     hubSamplesNote: "Synthetic quotes, ready to drag onto the clinic console.",
     hubSamplePending: "Generated with npm run pdfs",
     hubFlowTitle: "Full walkthrough",
-    cardsHook1: "In 2020 one of Spain's biggest dental chains closed overnight.",
-    cardsHook1Sub: "Thousands of patients kept paying loans for implants they never received.",
-    cardsHook2Source: "Official source",
+    cardsHook1: "2020: a big dental chain closes overnight.",
+    cardsHook1Sub: "101,481 patients had paid-for treatments left unfinished; 65% of them with a linked loan.",
+    cardsHook2Source: "Official advice",
     cardsHook2Org: "Spanish Ministry of Social Rights, Consumer Affairs and the 2030 Agenda",
-    cardsHook2Faq: "Consumer FAQ",
-    cardsHook2Question: "“I had dental treatment financed by the lender the clinic suggested, but…”",
+    cardsHook2Faq: "Consumer advice · Dental clinics",
+    cardsHook2Question: "«Recomendamos no pagar el importe total del tratamiento por adelantado.»",
+    cardsHook2Note: "Verbatim, from the ministry's page. In English: “We recommend not paying the full amount of the treatment in advance.”",
+    cardsHook2Answer: "PayPerPhase does that by default.",
     cardsTitleMain: "PayPerPhase: pay for dental treatment phase by phase, as you receive it. Never in advance.",
     cardsNext: "→ or space to advance",
     cardsClosingTagline: "Pay for dental treatment phase by phase, as you receive it. Never in advance.",

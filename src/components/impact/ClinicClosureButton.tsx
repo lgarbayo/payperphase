@@ -259,6 +259,12 @@ function ClosurePanel({
                 {t("closureNoUndelivered")}
               </p>
             )}
+            {undelivered.length > 0 ? (
+              <p data-testid="closure-continuity" className="mt-3 flex items-start gap-2 text-sm leading-relaxed text-ink">
+                <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-status-paid" />
+                {t("closureContinuity")}
+              </p>
+            ) : null}
           </section>
 
           <footer className="mt-6 space-y-1 border-t border-border pt-4 text-sm text-muted">
