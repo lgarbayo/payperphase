@@ -13,6 +13,7 @@ import {
 import { ExtractionResultSchema } from "./extraction";
 import { ClinicalNoteSchema, NoteIdSchema } from "./notes";
 import { PlanSchema, PlanSummarySchema } from "./plan";
+import { HERO_PLAN_ALIAS } from "./constants";
 import { CaseKindSchema, IsoDateSchema, LocalizedTextSchema, PhaseIdSchema, PlanIdSchema } from "./primitives";
 import { DemoBeatSchema, SimClockSchema } from "./server";
 
@@ -132,8 +133,9 @@ export const AgentApproveRequestSchema = z.object({
   decision: z.enum(["approve", "reject"]),
 });
 export type AgentApproveRequest = z.infer<typeof AgentApproveRequestSchema>;
-// POST /api/agent/run { planId } — manual trigger (Director Mode)
-export const AgentRunRequestSchema = z.object({ planId: PlanIdSchema });
+// POST /api/agent/run { planId } — manual trigger (Director Mode). Also POST /api/agent/guard-test (key G).
+// Accepts the hero alias "demo": Director Mode sends it and both handlers resolve it with store.resolvePlanId.
+export const AgentRunRequestSchema = z.object({ planId: z.union([PlanIdSchema, z.literal(HERO_PLAN_ALIAS)]) });
 
 // POST /api/chat  (ChatRequestSchema → ChatResponseSchema, see ./ai)
 

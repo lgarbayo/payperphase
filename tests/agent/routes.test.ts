@@ -73,6 +73,18 @@ describe("POST /api/agent/guard-test (Director key G)", () => {
     expect((await postGuardTest(post({ planId: "pln_nopeabcd" }))).status).toBe(404);
   });
 
+  it("accepts the demo alias that Director Mode sends (key G)", async () => {
+    await store.resetDemo();
+    usePlaybookDeps();
+    const hero = await store.getPlan("demo");
+    expect(hero).toBeTruthy();
+    await executeRun(hero!.id, "PLAN_APPROVED", { type: "PLAN_APPROVED" });
+    const res = await postGuardTest(post({ planId: "demo" }));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ rejected: true });
+    expect((await postGuardTest(post({ planId: "not-a-plan" }))).status).toBe(422);
+  });
+
   it("rejects the old €1,500 against the engine's €1,950 with the amount reason", async () => {
     await applyEditedGolden();
     const body = await (await postGuardTest(post({ planId: PLAN_ID }))).json();
