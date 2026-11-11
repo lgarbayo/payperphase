@@ -79,7 +79,7 @@ export type Route =
   | { kind: "referral" };
 
 export function routeQuestion(question: string, plan: Plan): Route {
-  const s = norm(question);
+  const s = norm(question).replace(/\b(sala de espera|lista de espera|waiting (?:room|list))\b/g, " ");
   if (MEDICAL_WORDS.test(s)) return { kind: "referral" };
   if (!DELAY_WORDS.test(s)) return { kind: "referral" };
   const amount = parseAmount(question);
