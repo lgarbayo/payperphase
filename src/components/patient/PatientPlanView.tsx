@@ -401,7 +401,7 @@ export function PatientPlanView({ initial, planRef }: PatientPlanViewProps) {
         data-open={chatOpen}
         className={cx(
           "fixed inset-y-0 right-0 z-40 w-full max-w-[420px] flex-col border-l border-border bg-surface shadow-2xl",
-          "xl:sticky xl:inset-auto xl:top-6 xl:z-auto xl:h-[calc(100vh-3rem)] xl:max-w-none xl:self-start xl:rounded-[var(--ppp-radius)] xl:border xl:shadow-[var(--ppp-shadow)]",
+          "xl:sticky xl:inset-auto xl:top-6 xl:z-auto xl:h-[calc(100vh-6rem)] xl:max-w-none xl:self-start xl:rounded-[var(--ppp-radius)] xl:border xl:shadow-[var(--ppp-shadow)]",
           chatOpen ? "flex" : "hidden",
         )}
       >
