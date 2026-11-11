@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Suspense, type ReactNode } from "react";
+import { WordmarkMark } from "@/components/brand/Wordmark";
 import { DirectorMode } from "@/components/director/DirectorMode";
+import { ShellCompliance } from "@/components/shell/ShellCompliance";
 import { LocaleProvider } from "@/i18n";
-import { ComplianceBadge } from "@/lib/ui";
 import { LocaleToggle } from "@/lib/ui/LocaleToggle";
 import { ToastProvider } from "@/lib/ui/Toast";
 import "./globals.css";
@@ -21,7 +22,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <ToastProvider>
             <div className="flex min-h-screen flex-col">
               <header className="flex items-center justify-between border-b border-border bg-surface px-6 py-3">
-                <a href="/" className="font-semibold tracking-tight text-primary-strong">
+                <a href="/" className="inline-flex items-center gap-2 font-semibold tracking-tight text-primary-strong">
+                  <WordmarkMark size={22} />
                   PayPerPhase
                 </a>
                 <LocaleToggle />
@@ -39,15 +41,5 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         </LocaleProvider>
       </body>
     </html>
-  );
-}
-
-function ShellCompliance() {
-  // Both languages on the server render; the client toggle only affects feature pages.
-  return (
-    <div className="flex flex-col gap-0.5 md:flex-row md:gap-4">
-      <ComplianceBadge locale="es" />
-      <ComplianceBadge locale="en" />
-    </div>
   );
 }

@@ -19,6 +19,7 @@ import { goldenView, jsonResponse, paidPhase1View, viewOf } from "./fixtures";
 const h = vi.hoisted(() => ({
   gantt: null as null | PlanGanttProps,
   chat: null as null | PlanChatProps,
+  closure: null as null | { phaseTitles?: Record<string, { es: string; en: string }> },
   sse: { planId: undefined as string | null | undefined, handler: null as null | ((e: DomainEvent) => void) },
 }));
 
@@ -54,11 +55,14 @@ vi.mock("@/components/impact/ExposureMeter", () => ({
   ExposureMeter: () => <div data-testid="exposure-meter" />,
 }));
 vi.mock("@/components/impact/ClinicClosureButton", () => ({
-  ClinicClosureButton: () => (
-    <button type="button" data-testid="closure-button">
-      closure
-    </button>
-  ),
+  ClinicClosureButton: (props: { phaseTitles?: Record<string, { es: string; en: string }> }) => {
+    h.closure = props;
+    return (
+      <button type="button" data-testid="closure-button">
+        closure
+      </button>
+    );
+  },
 }));
 vi.mock("@/lib/sse/useDomainEvents", () => ({
   useDomainEvents: (planId: string | null | undefined, handler: (e: DomainEvent) => void) => {
@@ -149,7 +153,22 @@ describe("golden view (B2: phase 1 due today)", () => {
       expect(within(card(id)).queryByTestId("pay-phase")).toBeNull();
       expect(within(card(id)).queryByTestId("paylater-message")).toBeNull();
     }
-    expect(norm(within(card("ph2")).getByTestId("pay-on-visit").textContent)).toBe("Se paga el día de la visita · 12 ene 2027");
+    expect(norm(within(card("ph2")).getByTestId("pay-on-visit").textContent)).toBe("1.500,00 € · se paga el 12 ene 2027, el día que la recibes");
+    for (const id of ["ph2", "ph3", "ph4"]) {
+      const locked = within(card(id)).getByTestId("pay-on-visit") as HTMLButtonElement;
+      expect(locked.disabled).toBe(true);
+      expect(locked.getAttribute("aria-disabled")).toBe("true");
+      expect(locked.querySelector("svg")).not.toBeNull();
+      expect(within(card(id)).getByTestId("pay-locked-caption").textContent).toBe("PayPerPhase no cobra antes del tratamiento.");
+      expect(within(card(id)).queryByTestId("phase-capture-id")).toBeNull();
+    }
+  });
+
+  it("a paid phase shows the PayPal capture id", () => {
+    renderView(paidPhase1View());
+    expect(card("ph1").getAttribute("data-status")).toBe("paid");
+    expect(norm(within(card("ph1")).getByTestId("phase-capture-id").textContent)).toBe("PayPal · captura MOCK-CAPTURE-1");
+    expect(within(card("ph1")).queryByTestId("pay-on-visit")).toBeNull();
   });
 
   it("shows title, visit date, amount, fit badge and status on each card", () => {
@@ -191,11 +210,27 @@ describe("golden view (B2: phase 1 due today)", () => {
     expect(modes).toEqual(expect.arrayContaining(["PayPal · Simulación", "Asistente · Simulación"]));
   });
 
-  it("hides mode badges for live integrations", () => {
+  it("live integrations: green 'PayPal · sandbox' and 'Claude · en directo' badges, no mock badge", () => {
     const view = goldenView();
     view.modes = { paypal: "live", paypalWebhooks: "live", anthropic: "live", agent: "llm" };
     renderView(view);
     expect(document.querySelectorAll("[data-mode='mock'], [data-mode='cached']")).toHaveLength(0);
+    expect(norm(screen.getByTestId("live-badge-paypal").textContent)).toBe("PayPal · sandbox");
+    expect(norm(screen.getByTestId("live-badge-claude").textContent)).toBe("Claude · en directo");
+    fireEvent.click(screen.getByTestId("locale-en"));
+    expect(norm(screen.getByTestId("live-badge-claude").textContent)).toBe("Claude · live");
+  });
+
+  it("mock mode shows no live badge", () => {
+    renderView();
+    expect(screen.queryByTestId("live-badge-paypal")).toBeNull();
+    expect(screen.queryByTestId("live-badge-claude")).toBeNull();
+  });
+
+  it("hands the phase titles to the closure modal", () => {
+    renderView();
+    expect(h.closure?.phaseTitles?.ph4).toEqual(goldenPlan().phases[3]!.title);
+    expect(Object.keys(h.closure?.phaseTitles ?? {})).toEqual(["ph1", "ph2", "ph3", "ph4"]);
   });
 
   it("has the director deep-link anchors #gantt and #closure", () => {
@@ -527,7 +562,7 @@ describe("statuses and chrome", () => {
     plan.phases[0]!.payment.status = "overdue";
     renderView(viewOf(plan, "2026-12-29"));
     expect(within(card("ph2")).queryByTestId("pay-phase")).toBeNull();
-    expect(norm(within(card("ph2")).getByTestId("pay-on-visit").textContent)).toBe("Se paga el día de la visita · 12 ene 2027");
+    expect(norm(within(card("ph2")).getByTestId("pay-on-visit").textContent)).toBe("1.500,00 € · se paga el 12 ene 2027, el día que la recibes");
     expect((within(card("ph1")).getByTestId("pay-phase") as HTMLButtonElement).disabled).toBe(false);
     expect(card("ph1").textContent).toContain("Pendiente desde el 16 nov 2026");
   });
@@ -570,7 +605,7 @@ describe("ES/EN toggle", () => {
     expect(card("ph1").textContent).toContain("Phase 1");
     expect(card("ph1").textContent).toContain("Diagnosis, cleaning and extraction");
     expect(norm(within(card("ph1")).getByTestId("fit-badge").textContent)).toBe("Within Pay in 3 range (€20–€2,000)");
-    expect(norm(within(card("ph2")).getByTestId("pay-on-visit").textContent)).toBe("Paid on the day of the visit · 12 Jan 2027");
+    expect(norm(within(card("ph2")).getByTestId("pay-on-visit").textContent)).toBe("€1,500.00 · paid on 12 Jan 2027, the day you receive it");
     expect(norm(screen.getByTestId("ledger-total").textContent)).toBe("Paid €0.00 · received €0.00");
     expect(screen.getByTestId("patient-alias").textContent).toBe("María G. (fictional)");
     expect(norm(screen.getByTestId("sim-clock").textContent)).toBe("Simulated · 16 Nov 2026");

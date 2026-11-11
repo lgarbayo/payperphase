@@ -129,7 +129,7 @@ describe("<AgentFeed/> audit trail", () => {
     expect(call.textContent).toContain("Factura PPP-RIBE-F2-v2 creada (borrador)");
     // run badges
     expect(screen.getByTestId("mode-badge").getAttribute("data-mode")).toBe("llm");
-    expect(screen.getByTestId("mode-badge").textContent).toBe("LLM");
+    expect(screen.getByTestId("mode-badge").textContent).toBe("Claude");
     expect(screen.getAllByText(/PayPal · Simulación/).length).toBeGreaterThan(0);
     // explanation
     expect(nb(screen.getByText(/Fase 2: \+450,00/).textContent ?? "")).toContain("+450,00 €");
@@ -160,6 +160,31 @@ describe("<AgentFeed/> audit trail", () => {
     renderFeed();
     expect(await screen.findByText("prueba del guard")).toBeTruthy();
     expect(screen.getByTestId("mode-badge").textContent).toBe("Playbook");
+  });
+
+  it("a live (non-mock) run shows 'Claude' and the green PayPal sandbox badge instead of the mock badge", async () => {
+    const live = trail();
+    live.steps = live.steps.map((x) => ({ ...x, mock: false }));
+    mockFetch(() => ({ body: live }));
+    renderFeed();
+    await screen.findByTestId("agent-run");
+    expect(screen.getByTestId("mode-badge").textContent).toBe("Claude");
+    expect(screen.getByTestId("mode-badge").getAttribute("title")).toBe("Bucle de herramientas de Claude → PayPal Agent Toolkit");
+    // the run header and the feed header both carry it; the mock badge is gone
+    expect(screen.getAllByTestId("sandbox-badge").length).toBe(2);
+    expect(nb(screen.getAllByTestId("sandbox-badge")[0]!.textContent ?? "")).toContain("PayPal sandbox · Agent Toolkit");
+    expect(document.querySelector("[data-mode='mock']")).toBeNull();
+    // the raw approval status is translated
+    const chip = screen.getAllByTestId("approval-status")[0]!;
+    expect(chip.getAttribute("data-status")).toBe("pending");
+    expect(chip.textContent).toBe("pendiente");
+  });
+
+  it("a mock run keeps the mock badge and no sandbox badge", async () => {
+    mockFetch(() => ({ body: trail() }));
+    renderFeed();
+    await screen.findByTestId("agent-run");
+    expect(screen.queryByTestId("sandbox-badge")).toBeNull();
   });
 
   it("expands the redacted JSON of a call", async () => {
