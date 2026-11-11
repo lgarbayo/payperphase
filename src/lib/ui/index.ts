@@ -4,6 +4,7 @@ export { Button } from "./Button";
 export { Card } from "./Card";
 export { ComplianceBadge } from "./ComplianceBadge";
 export { cx } from "./cx";
+export { LiveBadge } from "./LiveBadge";
 export { ModeBadge } from "./ModeBadge";
 export { SimClockBadge } from "./SimClockBadge";
 export { StatusPill } from "./StatusPill";

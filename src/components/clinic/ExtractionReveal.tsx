@@ -132,7 +132,7 @@ export function ExtractionReveal({
         </div>
       </div>
 
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(420px,480px)]">
         <div className="overflow-hidden rounded-[var(--ppp-radius)] border border-border bg-surface shadow-[var(--ppp-shadow)]">
           <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
             <h3 className="text-sm font-semibold text-ink">{t("linesTitle")}</h3>
@@ -180,7 +180,7 @@ export function ExtractionReveal({
           <h3 className="text-sm font-semibold text-ink">{t("odontogramTitle")}</h3>
           <p className="text-xs text-muted">{t("odontogramHint")}</p>
           <div className="mt-2">
-            <Odontogram marks={marks} highlight={hoverTeeth ?? pulse} revealStaggerMs={0} locale={locale} size="md" />
+            <Odontogram marks={marks} highlight={hoverTeeth ?? pulse} revealStaggerMs={70} locale={locale} size="md" />
           </div>
         </aside>
       </div>

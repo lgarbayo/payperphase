@@ -15,6 +15,10 @@ export default {
     retry: "Reintentar",
     language: "Idioma",
     sandbox: "Sandbox",
+    livePayPal: "PayPal · sandbox",
+    liveClaude: "Claude · en directo",
+    livePayPalTitle: "Los pagos pasan por PayPal en modo sandbox, con dinero de prueba.",
+    liveClaudeTitle: "Las respuestas las genera Claude en directo.",
   },
   en: {
     appName: "PayPerPhase",
@@ -29,5 +33,9 @@ export default {
     retry: "Retry",
     language: "Language",
     sandbox: "Sandbox",
+    livePayPal: "PayPal · sandbox",
+    liveClaude: "Claude · live",
+    livePayPalTitle: "Payments go through PayPal in sandbox mode, with test money.",
+    liveClaudeTitle: "Answers are generated live by Claude.",
   },
 } as const satisfies Dictionary;

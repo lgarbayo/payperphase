@@ -29,7 +29,7 @@ import { Reveal } from "@/components/motion";
 import { useLocale, useT } from "@/i18n";
 import { formatIsoDate } from "@/lib/dates";
 import { formatCents } from "@/lib/money";
-import { Button, Card, cx, ModeBadge, SimClockBadge } from "@/lib/ui";
+import { Button, Card, cx, LiveBadge, ModeBadge, SimClockBadge } from "@/lib/ui";
 import { useToast } from "@/lib/ui/Toast";
 import { ApprovedNotes } from "./ApprovedNotes";
 import { describeShifts, formatPatientAlias } from "./format";
@@ -94,6 +94,7 @@ export function PatientPlanView({ initial, planRef }: PatientPlanViewProps) {
   );
   const approvals = useMemo(() => new Map(plan.approvedNotes.map((a) => [a.noteId, a] as const)), [plan.approvedNotes]);
   const phaseById = useMemo(() => new Map(plan.phases.map((p) => [p.id, p] as const)), [plan.phases]);
+  const phaseTitles = useMemo(() => Object.fromEntries(plan.phases.map((p) => [p.id, p.title])), [plan.phases]);
 
   // Deep-link: /p/demo?chat=1 opens the chat panel.
   useEffect(() => {
@@ -235,6 +236,8 @@ export function PatientPlanView({ initial, planRef }: PatientPlanViewProps) {
           <div className="flex flex-wrap items-center gap-2">
             <LiveIndicator refreshing={live.refreshing} lastEventAt={live.lastEventAt} label={live.refreshing ? t("updating") : t("live")} />
             <SimClockBadge today={clock.today} locale={locale} />
+            <LiveBadge service="paypal" mode={modes.paypal} locale={locale} />
+            <LiveBadge service="claude" mode={modes.anthropic} locale={locale} />
             <ModeBadge mode={modes.paypal} what="PayPal" locale={locale} />
             <ModeBadge mode={modes.anthropic} what={t("modeAssistant")} locale={locale} />
             <Button
@@ -380,7 +383,7 @@ export function PatientPlanView({ initial, planRef }: PatientPlanViewProps) {
               </header>
               <div className="flex flex-1 flex-col gap-4">
                 <ExposureMeter report={exposure} locale={locale} />
-                <ClinicClosureButton stress={stress} locale={locale} />
+                <ClinicClosureButton stress={stress} locale={locale} phaseTitles={phaseTitles} />
               </div>
             </Card>
           </section>

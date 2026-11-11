@@ -3,7 +3,7 @@
  * OWNED BY WP-06. One card per clinical phase: title (+ approved summary), visit date, amount,
  * the Pay in 3 range badge, status, and the payment action:
  *   due/overdue → <PayPhaseButton/> + <PayLaterMessage/> (the only payable states)
- *   scheduled/upcoming → "Se paga el día de la visita · {fecha}"
+ *   scheduled/upcoming → a disabled, locked "se paga el {fecha}, el día que la recibes" refusal + caption
  *   processing → "Confirmando tu pago…"
  *   paid → "Pagado ✓ · recibido"
  * Pure formatting: amounts and dates come from the engine via the server view.
@@ -18,7 +18,7 @@ import { formatIsoDate } from "@/lib/dates";
 import { formatCents } from "@/lib/money";
 import { Badge, Card, cx, STATUS_COLOR_VAR, StatusPill } from "@/lib/ui";
 import { formatFit, formatTeeth } from "./format";
-import { CalendarIcon, CheckCircleIcon, CheckIcon, ClockIcon, ToothIcon } from "./icons";
+import { CalendarIcon, CheckCircleIcon, CheckIcon, LockIcon, ToothIcon } from "./icons";
 
 export interface PhaseCardProps {
   planId: string;
@@ -153,6 +153,15 @@ export function PhaseCard({ planId, phase, locale, pulse = 0, highlighted, onPai
               {phase.delivery.deliveredOn && (
                 <p className="pl-[22px] text-xs text-muted">{t("paidOn", { date: formatIsoDate(phase.delivery.deliveredOn, locale) })}</p>
               )}
+              {phase.payment.captureId && (
+                <p
+                  className="break-all pl-[22px] font-mono text-[11px] text-muted"
+                  data-testid="phase-capture-id"
+                  title={phase.payment.captureId}
+                >
+                  {t("captureLine", { id: phase.payment.captureId })}
+                </p>
+              )}
             </div>
           ) : status === "processing" ? (
             <p className="flex items-center gap-2 text-sm font-medium text-status-processing" role="status">
@@ -160,16 +169,31 @@ export function PhaseCard({ planId, phase, locale, pulse = 0, highlighted, onPai
               {t("processing")}
             </p>
           ) : (
-            <p
-              className={cx(
-                "flex items-center gap-1.5 text-sm",
-                status === "upcoming" ? "font-medium text-status-upcoming" : "text-muted",
-              )}
-              data-testid="pay-on-visit"
-            >
-              <ClockIcon className="shrink-0" />
-              {t("payOnVisit", { date: formatIsoDate(phase.payment.dueDate, locale) })}
-            </p>
+            <div className="flex flex-col gap-1.5">
+              <button
+                type="button"
+                disabled
+                aria-disabled="true"
+                data-testid="pay-on-visit"
+                className={cx(
+                  "flex w-full cursor-not-allowed items-center gap-2 rounded-[10px] border border-dashed px-3 py-2.5 text-left text-sm leading-snug",
+                  status === "upcoming"
+                    ? "border-status-upcoming/50 bg-status-upcoming/5 text-status-upcoming"
+                    : "border-border bg-surface-2 text-muted",
+                )}
+              >
+                <LockIcon className="shrink-0" />
+                <span>
+                  {t("payLockedLabel", {
+                    amount: formatCents(phase.amountCents, locale),
+                    date: formatIsoDate(phase.payment.dueDate, locale),
+                  })}
+                </span>
+              </button>
+              <p className="text-xs text-muted" data-testid="pay-locked-caption">
+                {t("payLockedCaption")}
+              </p>
+            </div>
           )}
         </footer>
       </Card>

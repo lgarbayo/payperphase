@@ -227,7 +227,15 @@ function StepRow({
             {step.kind === "approval_granted" ? "✓" : "⏸"} {step.tool ?? "send_invoice"}
           </Chip>
           {phase ? <Chip tone="neutral">{phase}</Chip> : null}
-          {approval ? <Badge tone={approval.status === "failed" || approval.status === "rejected" ? "overdue" : approval.status === "pending" ? "upcoming" : "paid"}>{approval.status}</Badge> : null}
+          {approval ? (
+            <Badge
+              data-testid="approval-status"
+              data-status={approval.status}
+              tone={approval.status === "failed" || approval.status === "rejected" ? "overdue" : approval.status === "pending" ? "upcoming" : "paid"}
+            >
+              {t(`approvalStatus_${approval.status}` as AgentKey)}
+            </Badge>
+          ) : null}
           <span className="ml-auto text-xs text-muted">{time}</span>
         </div>
         <p className="mt-1 text-ink">{text}</p>
@@ -268,6 +276,16 @@ function StepRow({
   );
 }
 
+/** Green "PayPal sandbox · Agent Toolkit": shown where the mock badge sits when no step ran on the mock. */
+function SandboxBadge({ t }: { t: T }) {
+  return (
+    <Badge tone="paid" title={t("sandboxBadgeTitle")} data-testid="sandbox-badge">
+      <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-status-paid" />
+      {t("sandboxBadge")}
+    </Badge>
+  );
+}
+
 function RunCard({ run, locale, t, approvals }: { run: Run; locale: Locale; t: T; approvals: Map<string, PendingApproval> }) {
   const rows = useMemo(() => toRows(run.steps.filter((s) => s.kind !== "run_started")), [run.steps]);
   const mode = run.steps[run.steps.length - 1]!.mode;
@@ -281,7 +299,7 @@ function RunCard({ run, locale, t, approvals }: { run: Run; locale: Locale; t: T
         <Badge tone={mode === "llm" ? "primary" : "neutral"} title={mode === "llm" ? t("modeLlmTitle") : t("modePlaybookTitle")} data-testid="mode-badge" data-mode={mode}>
           {mode === "llm" ? t("modeLlm") : t("modePlaybook")}
         </Badge>
-        {mock ? <ModeBadge mode="mock" what="PayPal" locale={locale} /> : null}
+        {mock ? <ModeBadge mode="mock" what="PayPal" locale={locale} /> : <SandboxBadge t={t} />}
         {!run.finished ? (
           <Badge tone="processing" data-testid="run-running">
             {t("running")}
@@ -476,7 +494,7 @@ export function AgentFeed({ planId, locale }: { planId: string; locale: Locale }
           <p className="text-xs text-muted">{t("subtitle")}</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-          {mock ? <ModeBadge mode="mock" what="PayPal" locale={locale} /> : null}
+          {mock ? <ModeBadge mode="mock" what="PayPal" locale={locale} /> : all.length > 0 ? <SandboxBadge t={t} /> : null}
           <Badge tone="paid" data-testid="live-badge">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-status-paid" aria-hidden />
             {t("live")}

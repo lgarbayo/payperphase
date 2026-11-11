@@ -28,6 +28,8 @@ export function LocaleProvider({ children, initial = "es" }: { children: ReactNo
       const stored = window.localStorage.getItem(STORAGE_KEY);
       const next = fromUrl === "en" || fromUrl === "es" ? fromUrl : stored === "en" || stored === "es" ? stored : null;
       if (next) setLocaleState(next);
+      // A judge opening /?lang=en stays in English in new tabs: persist the URL choice.
+      if (fromUrl === "en" || fromUrl === "es") window.localStorage.setItem(STORAGE_KEY, fromUrl);
     } catch {
       /* storage unavailable: keep default */
     }
