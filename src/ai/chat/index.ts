@@ -5,14 +5,16 @@
  * out of scope gets the fixed referral. Never throws for model or network trouble: it degrades to cached.
  */
 import type { ChatRequest, ChatResponse, IsoDate, Plan } from "@/contracts";
-import { modes } from "@/env";
+import { defaultClaudeClient, type ClaudeClient } from "../extract/claude";
 import { delayResponse, referralResponse } from "./compose";
 import { simulateDelay, t } from "./delay";
+import { answerLive } from "./live";
 import { routeQuestion } from "./router";
 
 export { groundingCheck, type GroundingResult, type GroundingSources } from "./ground";
 export { simulateDelay, SimulateDelayInputSchema, addMonths, type DelayResult, type SimulateDelayInput } from "./delay";
 export { routeQuestion, parseAmount } from "./router";
+export { answerLive, chatSystemPrompt, CHAT_TIMEOUT_MS } from "./live";
 export { takeChatToken, resetChatRateLimit, CHAT_RATE_LIMIT } from "./rateLimit";
 
 export class ChatPlanNotFoundError extends Error {
@@ -26,8 +28,9 @@ export interface ChatDeps {
   /** Tests inject the plan and simulated day; production reads them from the store. */
   plan?: Plan;
   today?: IsoDate;
-  /** false forces the deterministic router even when a key is set. */
-  live?: boolean;
+  /** undefined → live client from env (null without a key, so the deterministic router answers);
+   *  null → deterministic router only; object → that client (tests). */
+  client?: ClaudeClient | null;
   /** Publish CHAT_PREVIEW for a what-if (default true). */
   publishPreview?: boolean;
 }
@@ -60,9 +63,10 @@ export function answerMock(req: ChatRequest, plan: Plan, today: IsoDate): ChatRe
 
 export async function answerPatientQuestion(req: ChatRequest, deps: ChatDeps = {}): Promise<ChatResponse> {
   const { plan, today } = await loadContext(req, deps);
-  const response = answerMock(req, plan, today);
+  const client = deps.client === undefined ? defaultClaudeClient() : deps.client;
+  // Live when a key is set; any API trouble degrades to the deterministic router (labelled cached).
+  const response = (client && (await answerLive(client, req, plan, today))) || answerMock(req, plan, today);
   if (deps.publishPreview !== false) await publishPreview(response, plan.id);
   return response;
 }
 
-export { modes as chatModes };
