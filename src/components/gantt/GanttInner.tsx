@@ -154,9 +154,16 @@ export default function GanttInner(props: PlanGanttProps) {
     const apply = (width: number) => {
       const gantt = ganttRef.current;
       if (!gantt || gantt.isDestroyed) return;
-      const columns = gantt.columns as unknown as { getById(id: string): { hidden: boolean } | undefined };
+      const columns = gantt.columns as unknown as { getById(id: string): { hidden: boolean; width: number } | undefined };
       const band = columns.getById("band");
       const st = columns.getById("status");
+      // Phones (patients open the plan from the QR code): only the phase column stays, ~150 px wide,
+      // so the timeline keeps ≥200 px and "Hoy (simulado)" is readable.
+      const phone = width < 640;
+      const amount = columns.getById("amount");
+      const name = columns.getById("name");
+      if (amount) amount.hidden = phone;
+      if (name) name.width = phone ? 150 : 228;
       // Patient mode never shows "Forma de pago": the phase cards already carry that chip.
       if (band) band.hidden = latest.current.mode === "patient" || width < 1080;
       if (st) st.hidden = width < 860;
@@ -213,7 +220,8 @@ export default function GanttInner(props: PlanGanttProps) {
           { unit: "year", renderer: () => "" },
           {
             unit: "month",
-            renderer: (start: Date, end: Date, _cfg: unknown, index: number) => monthHeader(start, end, index, L()),
+            renderer: (start: Date, end: Date, _cfg: unknown, index: number) =>
+              monthHeader(start, end, index, L(), (hostRef.current?.clientWidth ?? 1000) < 640),
           },
         ],
       },
@@ -544,11 +552,12 @@ export default function GanttInner(props: PlanGanttProps) {
 }
 
 /** "nov 2026 · dic · ene 2027 · feb …": the year on the first readable month and on January. */
-function monthHeader(start: Date, end: Date, index: number, locale: Locale): string {
+function monthHeader(start: Date, end: Date, index: number, locale: Locale, compact = false): string {
   const days = Math.round((end.getTime() - start.getTime()) / 86_400_000);
   if (index === 0 && days < 12) return ""; // a sliver of the previous month at the left edge
   const month = new Intl.DateTimeFormat(locale === "es" ? "es-ES" : "en-GB", { month: "short" }).format(start).replace(".", "");
   const firstReadable = index === 0 || (index === 1 && start.getDate() === 1);
+  if (compact) return month; // ~28 px per month on a phone: no room for the year
   return firstReadable || start.getMonth() === 0 ? `${month} ${start.getFullYear()}` : month;
 }
 
