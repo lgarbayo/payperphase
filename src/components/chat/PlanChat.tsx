@@ -38,11 +38,20 @@ export function PlanChat({ planId, locale, onGhostPreview }: PlanChatProps) {
   const nextId = useRef(1);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const itemsRef = useRef<Item[]>([]);
   itemsRef.current = items;
 
+  // A new answer scrolls to its first line (so reading starts at the top); the patient's own message and
+  // the thinking dots scroll to the bottom, above the pinned composer.
   useEffect(() => {
-    endRef.current?.scrollIntoView?.({ behavior: "smooth", block: "end" });
+    const last = items[items.length - 1];
+    if (endRef.current) endRef.current.style.scrollMarginBottom = `${(formRef.current?.offsetHeight ?? 0) + 8}px`;
+    if (last?.role === "assistant" && !busy) {
+      document.querySelector(`[data-item-id="${last.id}"]`)?.scrollIntoView?.({ behavior: "smooth", block: "start" });
+    } else {
+      endRef.current?.scrollIntoView?.({ behavior: "smooth", block: "end" });
+    }
   }, [items, busy]);
 
   const ask = useCallback(
@@ -135,6 +144,7 @@ export function PlanChat({ planId, locale, onGhostPreview }: PlanChatProps) {
               ) : item.role === "assistant" ? (
                 <AssistantTurn
                   key={item.id}
+                  itemId={item.id}
                   response={item.response}
                   locale={locale}
                   ghostActive={ghostId === item.id}
@@ -160,6 +170,7 @@ export function PlanChat({ planId, locale, onGhostPreview }: PlanChatProps) {
 
       {/* Composer: pinned to the bottom of the scrolling panel. */}
       <form
+        ref={formRef}
         onSubmit={onSubmit}
         className="sticky -bottom-4 -mx-4 -mb-4 mt-2 border-t border-border bg-surface/95 px-4 pb-4 pt-3 backdrop-blur"
       >

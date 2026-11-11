@@ -25,6 +25,7 @@ export function UserBubble({ text }: { text: string }) {
 }
 
 export interface AssistantTurnProps {
+  itemId: number;
   response: ChatResponse;
   locale: Locale;
   ghostActive: boolean;
@@ -33,11 +34,17 @@ export interface AssistantTurnProps {
   onReferral: () => void;
 }
 
-export function AssistantTurn({ response, locale, ghostActive, onToggleGhost, referralSent, onReferral }: AssistantTurnProps) {
+export function AssistantTurn({ itemId, response, locale, ghostActive, onToggleGhost, referralSent, onReferral }: AssistantTurnProps) {
   const t = useT("chat");
   const { whatIf } = response;
   return (
-    <li data-testid="chat-message" data-role="assistant" data-refused={response.refused} className="flex flex-col items-start gap-2">
+    <li
+      data-testid="chat-message"
+      data-role="assistant"
+      data-item-id={itemId}
+      data-refused={response.refused}
+      className="flex scroll-mt-2 flex-col items-start gap-2"
+    >
       <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-muted">
         <span>{t("assistant")}</span>
         <ModeBadge mode={response.source} what={t("modeAssistant")} locale={locale} />
