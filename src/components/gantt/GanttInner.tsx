@@ -18,6 +18,7 @@ import "@bryntum/gantt/locales/gantt.locale.Es.js";
 import "@bryntum/gantt/locales/gantt.locale.EnGb.js";
 import "./gantt.css";
 import { Gantt, LocaleManager, type DomConfig, type GanttConfig, type TaskModel } from "@bryntum/gantt";
+import type { CSSProperties } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { DeadlineWarning, Locale, Plan } from "@/contracts";
 import { daysBetween, fromLocalDate, toLocalDate } from "@/lib/dates";
@@ -28,17 +29,21 @@ import {
   bandCell,
   dependencyTipHtml,
   dragTipHtml,
+  escapeHtml,
   nameCell,
   statusCell,
   tooltipHtml,
 } from "./ganttText";
 import { GanttLegend, LEGEND_HEIGHT } from "./GanttLegend";
 import { syncProject, type ProjectLike } from "./projectSync";
-import { planToBryntum, shortDate, tg, type GanttTaskMeta, type PlanToBryntum } from "./toBryntum";
+import { amountLabel, planToBryntum, shortDate, tg, type GanttTaskMeta, type PlanToBryntum } from "./toBryntum";
 import type { PlanGanttProps } from "./types";
 
 const BRYNTUM_LOCALE: Record<Locale, string> = { es: "Es", en: "EnGb" };
 const FLASH_MS = 7000;
+/** Temporary drag-time constraint zones. Never produced by planToBryntum, so projectSync never touches them. */
+const ZONE_HEAL_ID = "ppp-zone-heal";
+const ZONE_SAFE_ID = "ppp-zone-safe";
 
 type Shown = { plan: Plan; warnings?: DeadlineWarning[]; mapping: PlanToBryntum };
 
@@ -128,12 +133,15 @@ export default function GanttInner(props: PlanGanttProps) {
       lastPropPlanRef.current = latest.current.plan;
       gantt = new Gantt({ appendTo: host, ...buildConfig(first) });
       ganttRef.current = gantt;
+      // Esc / drag aborted: no drop event, so the zones must go here (not in GanttListeners' typings).
+      (gantt as unknown as { on(name: string, fn: () => void): void }).on("taskDragAbortFinalized", () => clearZones());
       setStatus("ready");
     } catch (err) {
       console.error("[PlanGantt] Bryntum failed to start", err);
       setStatus("error");
     }
     return () => {
+      clearZones();
       ganttRef.current = null;
       gantt?.destroy();
       if (flashTimer.current) clearTimeout(flashTimer.current);
@@ -148,17 +156,25 @@ export default function GanttInner(props: PlanGanttProps) {
     const apply = (width: number) => {
       const gantt = ganttRef.current;
       if (!gantt || gantt.isDestroyed) return;
-      const columns = gantt.columns as unknown as { getById(id: string): { hidden: boolean } | undefined };
+      const columns = gantt.columns as unknown as { getById(id: string): { hidden: boolean; width: number } | undefined };
       const band = columns.getById("band");
       const st = columns.getById("status");
-      if (band) band.hidden = width < 1080;
+      // Phones (patients open the plan from the QR code): only the phase column stays, ~150 px wide,
+      // so the timeline keeps ≥200 px and "Hoy (simulado)" is readable.
+      const phone = width < 640;
+      const amount = columns.getById("amount");
+      const name = columns.getById("name");
+      if (amount) amount.hidden = phone;
+      if (name) name.width = phone ? 150 : 228;
+      // Patient mode never shows "Forma de pago": the phase cards already carry that chip.
+      if (band) band.hidden = latest.current.mode === "patient" || width < 1080;
       if (st) st.hidden = width < 860;
     };
     const ro = new ResizeObserver((entries) => apply(entries[0]?.contentRect.width ?? host.clientWidth));
     ro.observe(host);
     apply(host.clientWidth);
     return () => ro.disconnect();
-  }, [status]);
+  }, [status, mode]);
 
   // ── Props → chart (in place) ──────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -206,7 +222,8 @@ export default function GanttInner(props: PlanGanttProps) {
           { unit: "year", renderer: () => "" },
           {
             unit: "month",
-            renderer: (start: Date, end: Date, _cfg: unknown, index: number) => monthHeader(start, end, index, L()),
+            renderer: (start: Date, end: Date, _cfg: unknown, index: number) =>
+              monthHeader(start, end, index, L(), (hostRef.current?.clientWidth ?? 1000) < 640),
           },
         ],
       },
@@ -214,7 +231,7 @@ export default function GanttInner(props: PlanGanttProps) {
       autoAdjustTimeAxis: false,
       weekStartDay: 1,
       rowHeight: 38,
-      barMargin: 7,
+      barMargin: 4,
       snap: true,
       timeResolution: { unit: "day", increment: 1 },
       readOnly: latest.current.mode !== "patient",
@@ -255,6 +272,8 @@ export default function GanttInner(props: PlanGanttProps) {
       ],
       taskRenderer: ({ taskRecord }) => {
         const m = metaOf(taskRecord.id);
+        // Visit pills carry their phase number (white on the status colour), so they read at plan scale.
+        if (m?.kind === "visit") return { tag: "span", className: "ppp-visit-n", text: String(m.n) };
         // Text only on windows long enough to hold it (lab fabrication's 2 weeks stays clean).
         if (m?.kind === "healing" && m.minLagDays !== undefined && daysBetween(m.startDate, m.endDate) >= 35) {
           return { tag: "span", className: "ppp-heal-text", text: shortHealing(m, L()) };
@@ -303,16 +322,9 @@ export default function GanttInner(props: PlanGanttProps) {
                 name: tg(L(), "tipDeadline", { date: shortDate(m.deadlineDate, L()) }),
               };
             },
-            dueDate: (taskRecord: TaskModel) => {
-              const m = metaOf(taskRecord.id);
-              if (!m || m.kind !== "visit") return null;
-              return {
-                startDate: toLocalDate(m.dueDate),
-                iconCls: "fa fa-euro-sign",
-                cls: `ppp-ind-due ppp-status-${m.status}`,
-                name: tg(L(), "tipDue", { amount: afterLabel({ ...m, kind: "payment" }, L()), date: shortDate(m.dueDate, L()) }),
-              };
-            },
+            // The € indicator on visit pills is gone on purpose: the pill now carries the phase number and
+            // the payment diamond row right below already shows the money (docs pass: mention the diamond row).
+            dueDate: false,
           },
         },
         labels: {
@@ -331,6 +343,17 @@ export default function GanttInner(props: PlanGanttProps) {
           },
         },
         timeRanges: { showCurrentTimeLine: false, showHeaderElements: true },
+        // Footer "Pagas este mes": the money over time, summed from the payment milestones due in each month tick.
+        summary: {
+          showTooltip: false,
+          summaries: [
+            {
+              label: tg(latest.current.locale, "summaryPaid"),
+              renderer: ({ startDate, endDate }: { startDate: Date; endDate: Date }) =>
+                monthPaymentsHtml(shownRef.current?.mapping.meta ?? {}, fromLocalDate(startDate), fromLocalDate(endDate), L()),
+            },
+          ] as never, // the shipped typings model a summary as a tick, not as { label, renderer }
+        },
         taskTooltip: {
           hoverDelay: 120,
           maxWidth: 340,
@@ -417,10 +440,15 @@ export default function GanttInner(props: PlanGanttProps) {
           const ok = Boolean(
             m && m.kind === "visit" && m.draggable && latest.current.mode === "patient" && controller.canDrag(m.phaseId),
           );
-          if (ok) setFlash(null); // a new drag starts: drop the previous snap-back message
+          clearZones();
+          if (ok && m) {
+            setFlash(null); // a new drag starts: drop the previous snap-back message
+            showZones(m);
+          }
           return ok;
         },
         afterTaskDrop: ({ taskRecords, valid }: { taskRecords: TaskModel[]; valid: boolean }) => {
+          clearZones();
           const rec = taskRecords[0];
           const m = metaOf(rec?.id);
           if (!rec || !m || m.kind !== "visit") return;
@@ -453,6 +481,53 @@ export default function GanttInner(props: PlanGanttProps) {
     };
   }
 
+  /** Remove the drag-time zones (idempotent: valid drop, invalid drop, next drag start, unmount). */
+  function clearZones() {
+    const gantt = ganttRef.current;
+    if (!gantt || gantt.isDestroyed) return;
+    const store = gantt.project.timeRangeStore as unknown as { getById(id: string): unknown; remove(r: unknown): void };
+    for (const id of [ZONE_HEAL_ID, ZONE_SAFE_ID]) {
+      const rec = store.getById(id);
+      if (rec) store.remove(rec);
+    }
+  }
+
+  /**
+   * Make validatorFn's invisible rule visible while a visit is dragged: the hatched "still healing" span
+   * (pred end → engine minEndDate) and the soft-green safe window (minEndDate → clinical deadline).
+   * Built only from the healing meta the engine already produced (no second rule here).
+   */
+  function showZones(visit: GanttTaskMeta) {
+    const gantt = ganttRef.current;
+    const shown = shownRef.current;
+    if (!gantt || gantt.isDestroyed || !shown) return;
+    const heal = Object.values(shown.mapping.meta).find(
+      (h) => h.kind === "healing" && h.phaseId === visit.phaseId && h.minEndDate,
+    );
+    if (!heal?.minEndDate) return;
+    const loc = latest.current.locale;
+    const records: object[] = [
+      {
+        id: ZONE_HEAL_ID,
+        name: tg(loc, "zoneHealing", { date: shortDate(heal.minEndDate, loc) }),
+        startDate: toLocalDate(heal.startDate),
+        endDate: toLocalDate(heal.minEndDate),
+        cls: "ppp-zone ppp-zone-heal",
+      },
+    ];
+    const safeEnd = heal.maxEndDate ?? visit.deadlineDate;
+    if (safeEnd && safeEnd > heal.minEndDate) {
+      records.push({
+        id: ZONE_SAFE_ID,
+        name: tg(loc, "zoneSafe"),
+        startDate: toLocalDate(heal.minEndDate),
+        endDate: toLocalDate(safeEnd),
+        cls: "ppp-zone ppp-zone-safe",
+      });
+    }
+    gantt.project.timeRangeStore.add(records as never);
+  }
+
   function nudge(rec: TaskModel) {
     const el = ganttRef.current?.getElementFromTaskRecord(rec);
     if (!el) return;
@@ -464,7 +539,13 @@ export default function GanttInner(props: PlanGanttProps) {
 
   const chartHeight = Math.max(160, height - (hideLegend ? 0 : LEGEND_HEIGHT));
   return (
-    <div className="ppp-gantt-root" style={{ height }} data-testid="plan-gantt" data-mode={mode} data-status={status}>
+    <div
+      className="ppp-gantt-root"
+      style={{ height, "--ppp-sum-label": JSON.stringify(tg(locale, "summaryPaid")) } as CSSProperties}
+      data-testid="plan-gantt"
+      data-mode={mode}
+      data-status={status}
+    >
       <div ref={hostRef} className="ppp-gantt-host" style={{ height: chartHeight }} />
       {status === "loading" && (
         <div className="ppp-gantt-overlay" aria-live="polite">
@@ -489,12 +570,25 @@ export default function GanttInner(props: PlanGanttProps) {
   );
 }
 
+/** Sum of the payment milestones due in [from, to) as one coloured amount ("" when none). */
+function monthPaymentsHtml(meta: Record<string, GanttTaskMeta>, from: string, to: string, locale: Locale): string {
+  const due = Object.values(meta).filter((m) => m.kind === "payment" && m.dueDate >= from && m.dueDate < to);
+  if (due.length === 0) return "";
+  const cents = due.reduce((sum, m) => sum + m.amountCents, 0);
+  // All paid → green; otherwise the most urgent open status.
+  const status = due.every((m) => m.status === "paid")
+    ? "paid"
+    : (["overdue", "due", "processing", "upcoming"] as const).find((st) => due.some((m) => m.status === st)) ?? "scheduled";
+  return `<span class="ppp-sum ppp-status-${status}">${escapeHtml(amountLabel(cents, locale))}</span>`;
+}
+
 /** "nov 2026 · dic · ene 2027 · feb …": the year on the first readable month and on January. */
-function monthHeader(start: Date, end: Date, index: number, locale: Locale): string {
+function monthHeader(start: Date, end: Date, index: number, locale: Locale, compact = false): string {
   const days = Math.round((end.getTime() - start.getTime()) / 86_400_000);
   if (index === 0 && days < 12) return ""; // a sliver of the previous month at the left edge
   const month = new Intl.DateTimeFormat(locale === "es" ? "es-ES" : "en-GB", { month: "short" }).format(start).replace(".", "");
   const firstReadable = index === 0 || (index === 1 && start.getDate() === 1);
+  if (compact) return month; // ~28 px per month on a phone: no room for the year
   return firstReadable || start.getMonth() === 0 ? `${month} ${start.getFullYear()}` : month;
 }
 

@@ -48,6 +48,27 @@ export type LockReason = "paid" | "delivered" | "past" | "mode";
 export const DEP_END_TO_START = 2;
 export const TODAY_RANGE_ID = "ppp-today";
 
+/** Legend strip under the chart (GanttLegend). Lives here so the height maths stays pure. */
+export const LEGEND_HEIGHT = 40;
+export const GANTT_ROW_HEIGHT = 38;
+const GANTT_HEADER_HEIGHT = 70;
+/** Footer summary row ("Pagas este mes"). */
+export const GANTT_SUMMARY_HEIGHT = 40;
+const GANTT_SCROLLBAR_PAD = 16;
+const GANTT_MIN_HEIGHT = 240;
+const GANTT_MAX_HEIGHT = 680;
+
+/**
+ * Pixel height that shows every row of the plan with no internal vertical scrollbar:
+ * two-lane header + rows + summary footer + legend strip + a scrollbar pad, clamped to [240, 680].
+ * `hideLegend` drops the legend strip (the chart then needs 40 px less).
+ */
+export function ganttHeightFor(m: Pick<PlanToBryntum, "tasksData">, opts: { hideLegend?: boolean } = {}): number {
+  const legend = opts.hideLegend ? 0 : LEGEND_HEIGHT;
+  const raw = GANTT_HEADER_HEIGHT + m.tasksData.length * GANTT_ROW_HEIGHT + GANTT_SUMMARY_HEIGHT + legend + GANTT_SCROLLBAR_PAD;
+  return Math.min(GANTT_MAX_HEIGHT, Math.max(GANTT_MIN_HEIGHT, raw));
+}
+
 export const visitTaskId = (phaseId: string) => `visit-${phaseId}`;
 export const paymentTaskId = (phaseId: string) => `pay-${phaseId}`;
 export const healingTaskId = (fromPhaseId: string, toPhaseId: string) => `heal-${fromPhaseId}-${toPhaseId}`;

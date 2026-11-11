@@ -2,9 +2,14 @@ import { describe, expect, it } from "vitest";
 import type { PaymentStatus, Plan } from "@/contracts";
 import { GOLDEN_PLAN, GOLDEN_START_DATE, goldenPlan } from "@/contracts/fixtures/implantCase";
 import { NOTE_LIBRARY } from "@data/seed/notes";
+import { seedCases } from "@data/seed";
 import { needsReload } from "@/components/gantt/projectSync";
 import { amountCell, bandCell, escapeHtml, nameCell, statusCell, tooltipHtml } from "@/components/gantt/ganttText";
 import {
+  GANTT_ROW_HEIGHT,
+  GANTT_SUMMARY_HEIGHT,
+  LEGEND_HEIGHT,
+  ganttHeightFor,
   DEP_END_TO_START,
   TODAY_RANGE_ID,
   planToBryntum,
@@ -244,5 +249,34 @@ describe("cells and tooltips", () => {
     expect(escapeHtml(`<img src=x onerror="a">`)).toBe("&lt;img src=x onerror=&quot;a&quot;&gt;");
     const evil = { ...visit, title: "<script>x</script>" };
     expect(tooltipHtml(evil, "es", {})).not.toContain("<script>");
+  });
+});
+
+describe("ganttHeightFor", () => {
+  it("golden plan: 11 rows = header 70 + 11×38 + summary 40 + legend 40 + pad 16 = 584", () => {
+    const m = map();
+    expect(m.tasksData).toHaveLength(11);
+    expect(ganttHeightFor(m)).toBe(70 + 11 * GANTT_ROW_HEIGHT + GANTT_SUMMARY_HEIGHT + LEGEND_HEIGHT + 16);
+    expect(ganttHeightFor(m)).toBe(584);
+    expect(ganttHeightFor(m, { hideLegend: true })).toBe(584 - LEGEND_HEIGHT);
+  });
+
+  it("every seed case gets a height that fits all its rows, inside [240, 680]", () => {
+    for (const c of seedCases()) {
+      const m = map(c.plan);
+      const h = ganttHeightFor(m);
+      expect(h, c.key).toBeGreaterThanOrEqual(240);
+      expect(h, c.key).toBeLessThanOrEqual(680);
+      const needed = 70 + m.tasksData.length * GANTT_ROW_HEIGHT + GANTT_SUMMARY_HEIGHT + LEGEND_HEIGHT + 16;
+      // Unclamped plans show every row; clamped ones are capped at 680.
+      expect(h, c.key).toBe(Math.min(680, Math.max(240, needed)));
+    }
+  });
+
+  it("clamps tiny and huge row counts", () => {
+    const rows = (n: number) => ({ tasksData: new Array(n).fill(null) as GanttTaskData[] });
+    expect(ganttHeightFor(rows(0))).toBe(240);
+    expect(ganttHeightFor(rows(1))).toBe(240);
+    expect(ganttHeightFor(rows(40))).toBe(680);
   });
 });

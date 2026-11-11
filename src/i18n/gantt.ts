@@ -69,6 +69,11 @@ export default {
     legendBaseline: "Plan aprobado",
     legendPreview: "Vista previa",
     legendDeadline: "Límite clínico",
+    summaryPaid: "Pagas este mes",
+    summaryTip: "{{amount}} en {{month}}",
+    zoneHealing: "Cicatrizando · no antes del {{date}}",
+    zoneSafe: "Ventana segura",
+
     legendDrag: "Arrastra una visita futura para simular un retraso",
     legendReadonly: "Solo lectura",
   },
@@ -139,6 +144,11 @@ export default {
     legendBaseline: "Approved plan",
     legendPreview: "Preview",
     legendDeadline: "Clinical deadline",
+    summaryPaid: "Paid this month",
+    summaryTip: "{{amount}} in {{month}}",
+    zoneHealing: "Healing · not before {{date}}",
+    zoneSafe: "Safe window",
+
     legendDrag: "Drag a future visit to simulate a delay",
     legendReadonly: "Read only",
   },
