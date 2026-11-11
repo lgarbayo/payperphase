@@ -12,5 +12,9 @@ export async function register(): Promise<void> {
     await boot();
     const { startAgent } = await import("@/agent");
     startAgent();
+    // On a freshly seeded DB the hero is "approved and sent" but has no invoices yet: tell the agent,
+    // exactly as after a reset (no-op when the DB already existed).
+    const { announceBootState } = await import("@/server/boot");
+    await announceBootState();
   }
 }
