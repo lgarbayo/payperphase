@@ -69,6 +69,9 @@ export default {
     legendBaseline: "Plan aprobado",
     legendPreview: "Vista previa",
     legendDeadline: "Límite clínico",
+    zoneHealing: "Cicatrizando · no antes del {{date}}",
+    zoneSafe: "Ventana segura",
+
     legendDrag: "Arrastra una visita futura para simular un retraso",
     legendReadonly: "Solo lectura",
   },
@@ -139,6 +142,9 @@ export default {
     legendBaseline: "Approved plan",
     legendPreview: "Preview",
     legendDeadline: "Clinical deadline",
+    zoneHealing: "Healing · not before {{date}}",
+    zoneSafe: "Safe window",
+
     legendDrag: "Drag a future visit to simulate a delay",
     legendReadonly: "Read only",
   },

@@ -39,6 +39,9 @@ import type { PlanGanttProps } from "./types";
 
 const BRYNTUM_LOCALE: Record<Locale, string> = { es: "Es", en: "EnGb" };
 const FLASH_MS = 7000;
+/** Temporary drag-time constraint zones. Never produced by planToBryntum, so projectSync never touches them. */
+const ZONE_HEAL_ID = "ppp-zone-heal";
+const ZONE_SAFE_ID = "ppp-zone-safe";
 
 type Shown = { plan: Plan; warnings?: DeadlineWarning[]; mapping: PlanToBryntum };
 
@@ -128,12 +131,15 @@ export default function GanttInner(props: PlanGanttProps) {
       lastPropPlanRef.current = latest.current.plan;
       gantt = new Gantt({ appendTo: host, ...buildConfig(first) });
       ganttRef.current = gantt;
+      // Esc / drag aborted: no drop event, so the zones must go here (not in GanttListeners' typings).
+      (gantt as unknown as { on(name: string, fn: () => void): void }).on("taskDragAbortFinalized", () => clearZones());
       setStatus("ready");
     } catch (err) {
       console.error("[PlanGantt] Bryntum failed to start", err);
       setStatus("error");
     }
     return () => {
+      clearZones();
       ganttRef.current = null;
       gantt?.destroy();
       if (flashTimer.current) clearTimeout(flashTimer.current);
@@ -151,14 +157,15 @@ export default function GanttInner(props: PlanGanttProps) {
       const columns = gantt.columns as unknown as { getById(id: string): { hidden: boolean } | undefined };
       const band = columns.getById("band");
       const st = columns.getById("status");
-      if (band) band.hidden = width < 1080;
+      // Patient mode never shows "Forma de pago": the phase cards already carry that chip.
+      if (band) band.hidden = latest.current.mode === "patient" || width < 1080;
       if (st) st.hidden = width < 860;
     };
     const ro = new ResizeObserver((entries) => apply(entries[0]?.contentRect.width ?? host.clientWidth));
     ro.observe(host);
     apply(host.clientWidth);
     return () => ro.disconnect();
-  }, [status]);
+  }, [status, mode]);
 
   // ── Props → chart (in place) ──────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -255,6 +262,8 @@ export default function GanttInner(props: PlanGanttProps) {
       ],
       taskRenderer: ({ taskRecord }) => {
         const m = metaOf(taskRecord.id);
+        // Visit pills carry their phase number (white on the status colour), so they read at plan scale.
+        if (m?.kind === "visit") return { tag: "span", className: "ppp-visit-n", text: String(m.n) };
         // Text only on windows long enough to hold it (lab fabrication's 2 weeks stays clean).
         if (m?.kind === "healing" && m.minLagDays !== undefined && daysBetween(m.startDate, m.endDate) >= 35) {
           return { tag: "span", className: "ppp-heal-text", text: shortHealing(m, L()) };
@@ -303,16 +312,9 @@ export default function GanttInner(props: PlanGanttProps) {
                 name: tg(L(), "tipDeadline", { date: shortDate(m.deadlineDate, L()) }),
               };
             },
-            dueDate: (taskRecord: TaskModel) => {
-              const m = metaOf(taskRecord.id);
-              if (!m || m.kind !== "visit") return null;
-              return {
-                startDate: toLocalDate(m.dueDate),
-                iconCls: "fa fa-euro-sign",
-                cls: `ppp-ind-due ppp-status-${m.status}`,
-                name: tg(L(), "tipDue", { amount: afterLabel({ ...m, kind: "payment" }, L()), date: shortDate(m.dueDate, L()) }),
-              };
-            },
+            // The € indicator on visit pills is gone on purpose: the pill now carries the phase number and
+            // the payment diamond row right below already shows the money (docs pass: mention the diamond row).
+            dueDate: false,
           },
         },
         labels: {
@@ -417,10 +419,15 @@ export default function GanttInner(props: PlanGanttProps) {
           const ok = Boolean(
             m && m.kind === "visit" && m.draggable && latest.current.mode === "patient" && controller.canDrag(m.phaseId),
           );
-          if (ok) setFlash(null); // a new drag starts: drop the previous snap-back message
+          clearZones();
+          if (ok && m) {
+            setFlash(null); // a new drag starts: drop the previous snap-back message
+            showZones(m);
+          }
           return ok;
         },
         afterTaskDrop: ({ taskRecords, valid }: { taskRecords: TaskModel[]; valid: boolean }) => {
+          clearZones();
           const rec = taskRecords[0];
           const m = metaOf(rec?.id);
           if (!rec || !m || m.kind !== "visit") return;
@@ -451,6 +458,53 @@ export default function GanttInner(props: PlanGanttProps) {
         },
       },
     };
+  }
+
+  /** Remove the drag-time zones (idempotent: valid drop, invalid drop, next drag start, unmount). */
+  function clearZones() {
+    const gantt = ganttRef.current;
+    if (!gantt || gantt.isDestroyed) return;
+    const store = gantt.project.timeRangeStore as unknown as { getById(id: string): unknown; remove(r: unknown): void };
+    for (const id of [ZONE_HEAL_ID, ZONE_SAFE_ID]) {
+      const rec = store.getById(id);
+      if (rec) store.remove(rec);
+    }
+  }
+
+  /**
+   * Make validatorFn's invisible rule visible while a visit is dragged: the hatched "still healing" span
+   * (pred end → engine minEndDate) and the soft-green safe window (minEndDate → clinical deadline).
+   * Built only from the healing meta the engine already produced (no second rule here).
+   */
+  function showZones(visit: GanttTaskMeta) {
+    const gantt = ganttRef.current;
+    const shown = shownRef.current;
+    if (!gantt || gantt.isDestroyed || !shown) return;
+    const heal = Object.values(shown.mapping.meta).find(
+      (h) => h.kind === "healing" && h.phaseId === visit.phaseId && h.minEndDate,
+    );
+    if (!heal?.minEndDate) return;
+    const loc = latest.current.locale;
+    const records: object[] = [
+      {
+        id: ZONE_HEAL_ID,
+        name: tg(loc, "zoneHealing", { date: shortDate(heal.minEndDate, loc) }),
+        startDate: toLocalDate(heal.startDate),
+        endDate: toLocalDate(heal.minEndDate),
+        cls: "ppp-zone ppp-zone-heal",
+      },
+    ];
+    const safeEnd = heal.maxEndDate ?? visit.deadlineDate;
+    if (safeEnd && safeEnd > heal.minEndDate) {
+      records.push({
+        id: ZONE_SAFE_ID,
+        name: tg(loc, "zoneSafe"),
+        startDate: toLocalDate(heal.minEndDate),
+        endDate: toLocalDate(safeEnd),
+        cls: "ppp-zone ppp-zone-safe",
+      });
+    }
+    gantt.project.timeRangeStore.add(records as never);
   }
 
   function nudge(rec: TaskModel) {

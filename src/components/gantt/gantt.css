@@ -39,7 +39,7 @@
   --b-widget-font-family: var(--ppp-font);
   --b-font-family: var(--ppp-font);
   --b-grid-header-font-weight: 600;
-  --b-gantt-task-min-width: 16px;
+  --b-gantt-task-min-width: 28px;
   --b-baseline-wrap-size: 0.4;
   --b-baseline-flex: 1;
   --ppp-bar: var(--ppp-status-scheduled);
@@ -223,7 +223,7 @@
 
 /* ── Visit bars: a 1-day visit is a few px wide at plan scale, so it is drawn as a pill ─────────── */
 .ppp-gantt .b-gantt-task-wrap[data-task-id^="visit-"] {
-  min-width: 16px;
+  min-width: 28px;
 }
 .ppp-gantt .b-gantt-task.ppp-visit,
 .ppp-gantt .ppp-visit .b-gantt-task {
@@ -231,13 +231,42 @@
   --b-sch-event-border-color: var(--ppp-bar);
   background: var(--ppp-bar);
   border-color: var(--ppp-bar);
-  border-radius: 5px;
-  min-width: 12px;
+  border-radius: 6px;
+  min-width: 28px;
   box-shadow: 0 1px 2px color-mix(in srgb, var(--ppp-ink) 18%, transparent);
+}
+/* Phase number, white on the status colour, centred in the pill. */
+.ppp-gantt .ppp-visit .b-gantt-task-content {
+  justify-content: center;
+}
+.ppp-visit-n {
+  display: block;
+  width: 100%;
+  color: var(--ppp-primary-ink);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
 }
 .ppp-gantt .ppp-draggable.b-gantt-task,
 .ppp-gantt .ppp-draggable .b-gantt-task {
   cursor: grab;
+  transition: box-shadow 0.15s, filter 0.15s;
+}
+/* Grab affordance: a ring and a grip (two dotted columns) appear on hover. */
+.ppp-gantt .ppp-draggable.b-gantt-task:hover,
+.ppp-gantt .ppp-draggable .b-gantt-task:hover {
+  filter: brightness(1.06);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--ppp-bar) 28%, transparent),
+    0 2px 6px color-mix(in srgb, var(--ppp-ink) 25%, transparent);
+}
+.ppp-gantt .ppp-draggable.b-gantt-task:active,
+.ppp-gantt .ppp-draggable .b-gantt-task:active,
+.ppp-gantt .b-dragging .ppp-draggable.b-gantt-task {
+  cursor: grabbing;
 }
 .ppp-gantt .ppp-locked.b-gantt-task,
 .ppp-gantt .ppp-locked .b-gantt-task {
@@ -535,6 +564,16 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* The reason owns the strip while shown: wrap to two lines instead of truncating. */
+.ppp-legend-flash {
+  display: -webkit-box;
+  flex: 1 1 auto;
+  white-space: normal;
+  line-height: 16px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
 .ppp-legend-hint {
   color: var(--ppp-primary-strong);
 }
@@ -555,4 +594,27 @@
   75% {
     translate: 3px 0;
   }
+}
+
+/* ── Drag-time constraint zones (temporary timeRangeStore records, ids ppp-zone-*) ─────────────── */
+.ppp-gantt .b-sch-range.ppp-zone {
+  pointer-events: none;
+}
+.ppp-gantt .b-sch-range.ppp-zone-heal {
+  background:
+    repeating-linear-gradient(135deg, color-mix(in srgb, var(--ppp-deadline) 38%, transparent) 0 2px, transparent 2px 8px),
+    color-mix(in srgb, var(--ppp-deadline) 9%, transparent);
+  border-inline: 1px solid color-mix(in srgb, var(--ppp-deadline) 55%, transparent);
+  color: var(--ppp-deadline);
+}
+.ppp-gantt .b-sch-range.ppp-zone-safe {
+  background: color-mix(in srgb, var(--ppp-status-paid) 14%, transparent);
+  border-inline-end: 1px dashed color-mix(in srgb, var(--ppp-status-paid) 60%, transparent);
+  color: color-mix(in srgb, var(--ppp-status-paid) 80%, var(--ppp-ink));
+}
+.ppp-gantt .b-sch-range.ppp-zone label {
+  color: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
 }
