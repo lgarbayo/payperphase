@@ -1,9 +1,9 @@
 "use client";
 /** OWNED BY WP-05. Legend strip under the Gantt (also shows the snap-back reason briefly). */
 import type { Locale } from "@/contracts";
-import { tg } from "./toBryntum";
+import { LEGEND_HEIGHT, tg } from "./toBryntum";
 
-export const LEGEND_HEIGHT = 40;
+export { LEGEND_HEIGHT };
 
 export function GanttLegend({
   locale,
@@ -20,6 +20,8 @@ export function GanttLegend({
 }) {
   return (
     <div className="ppp-legend" style={{ height: LEGEND_HEIGHT }} data-testid="plan-gantt-legend">
+      {/* While a snap-back reason is shown it takes the whole strip, so it never truncates. */}
+      {!flash && (
       <ul className="ppp-legend-items">
         <li>
           <span className="ppp-legend-swatch ppp-legend-heal" aria-hidden />
@@ -50,6 +52,7 @@ export function GanttLegend({
           {tg(locale, "legendDeadline")}
         </li>
       </ul>
+      )}
       {flash ? (
         <p className="ppp-legend-flash" role="status" data-testid="plan-gantt-flash">
           <i className="fa fa-rotate-left" aria-hidden /> {flash}
