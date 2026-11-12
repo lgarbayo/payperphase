@@ -208,7 +208,12 @@ export async function whatIf(id: string, req: WhatIfRequest): Promise<{ status: 
       const moved = reschedule(cur, move, today);
       const applied = applyPaymentStatuses({ ...moved.plan, baseline: cur.baseline }, today);
       result = moved;
-      changes = applied.changes;
+      // reschedule already re-derives the moved phases' statuses, so applyPaymentStatuses alone
+      // would report no change for them: compare against the stored plan instead.
+      changes = applied.plan.phases.flatMap((p) => {
+        const from = cur.phases.find((x) => x.id === p.id)?.payment.status;
+        return from && from !== p.payment.status ? [{ phaseId: p.id, from, to: p.payment.status }] : [];
+      });
       return dropStaleSummaries(cur, applied.plan);
     });
   } catch (err) {
