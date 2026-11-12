@@ -263,12 +263,15 @@ function LivePayPalButtons({
   useEffect(() => {
     let disposed = false;
     let instance: PayPalButtonsInstance | undefined;
+    let rendering: Promise<void> | undefined;
     let lastCode: string | null = null;
+    const container = containerRef.current;
     setSdk("loading");
 
     loadPayPalSdk(url)
       .then(async (paypal) => {
-        if (disposed || !containerRef.current) return;
+        // A fast beat switch can unmount us while the SDK loads: never hand PayPal a detached node.
+        if (disposed || !container || !container.isConnected) return;
         instance = paypal.Buttons({
           style: { layout: "vertical", color: "gold", shape: "rect", label: "pay", height: 44 },
           createOrder: async () => {
@@ -305,8 +308,10 @@ function LivePayPalButtons({
           onCancel: () => handlers.current.onNotice("cancelled"),
           onError: () => handlers.current.onFail(lastCode ?? "PAYPAL"),
         });
-        containerRef.current.replaceChildren();
-        await instance.render(containerRef.current);
+        const buttons = instance;
+        container.replaceChildren();
+        rendering = Promise.resolve().then(() => buttons.render(container));
+        await rendering;
         if (!disposed) setSdk("ready");
       })
       .catch(() => {
@@ -315,7 +320,14 @@ function LivePayPalButtons({
 
     return () => {
       disposed = true;
-      void instance?.close?.().catch(() => {});
+      const buttons = instance;
+      if (!buttons?.close) return;
+      // Close only after render settled, and only while the container is still in the document:
+      // PayPal's close() on a node React already removed throws "reading 'nodeType'".
+      void (rendering ?? Promise.resolve())
+        .catch(() => {})
+        .then(() => (container?.isConnected ? buttons.close?.() : undefined))
+        .catch(() => {});
     };
   }, [url, planId, phaseId, reload]);
 
