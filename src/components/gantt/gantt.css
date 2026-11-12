@@ -1,5 +1,5 @@
 /*
- * OWNED BY WP-05. Clinical Gantt skin on top of Bryntum's svalbard-light theme.
+ * OWNED BY WP-05. Clinical Gantt skin on top of Bryntum's svalbard-dark theme.
  * Colours come from the shared --ppp-* variables (app/globals.css); never raw hex here.
  */
 
@@ -228,7 +228,7 @@
 .ppp-gantt .b-gantt-task.ppp-visit,
 .ppp-gantt .ppp-visit .b-gantt-task {
   /* A touch darker than the status colour so the white phase number reads on the grey "scheduled" pills. */
-  --ppp-pill: color-mix(in srgb, var(--ppp-bar) 80%, var(--ppp-ink));
+  --ppp-pill: color-mix(in srgb, var(--ppp-bar) 78%, black);
   --b-sch-event-background: var(--ppp-pill);
   --b-sch-event-border-color: var(--ppp-pill);
   background: var(--ppp-pill);

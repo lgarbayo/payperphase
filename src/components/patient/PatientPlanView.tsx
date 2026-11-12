@@ -223,7 +223,7 @@ export function PatientPlanView({ initial, planRef }: PatientPlanViewProps) {
               </span>
               <span className="text-muted">{plan.clinic.city}</span>
             </p>
-            <h1 className="mt-1.5 text-2xl font-semibold tracking-tight text-ink @5xl:text-[28px]">{t("title")}</h1>
+            <h1 className="mt-1.5 text-3xl font-semibold tracking-[-0.03em] text-ink @5xl:text-[40px] @5xl:leading-[1.1]">{t("title")}</h1>
             <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
               <span data-testid="patient-alias" className="font-medium text-ink">
                 {formatPatientAlias(plan.patient.alias, locale)}
@@ -395,7 +395,7 @@ export function PatientPlanView({ initial, planRef }: PatientPlanViewProps) {
 
       {/* Chat: docked side panel on xl, drawer below. Kept mounted so the conversation survives closing. */}
       {chatOpen && (
-        <div aria-hidden className="fixed inset-0 z-30 bg-ink/30 xl:hidden" onClick={() => setChatOpen(false)} />
+        <div aria-hidden className="fixed inset-0 z-30 bg-black/50 xl:hidden" onClick={() => setChatOpen(false)} />
       )}
       <aside
         id="chat"

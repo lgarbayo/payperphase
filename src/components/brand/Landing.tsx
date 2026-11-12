@@ -19,12 +19,17 @@ export function Landing() {
   return (
     <main data-testid="landing" className="overflow-x-hidden">
       {/* Hero */}
-      <section className="relative border-b border-border bg-[radial-gradient(1200px_500px_at_85%_-10%,rgba(15,118,110,0.10),transparent),linear-gradient(180deg,#ffffff,var(--ppp-bg))]">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-14 md:py-20 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="flex flex-col gap-6">
-            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">{t("heroEyebrow")}</p>
-            <h1 className="text-balance text-4xl font-semibold leading-[1.08] tracking-tight text-ink md:text-5xl">
-              {t("heroTitleA")} <span className="text-primary">{t("heroTitleB")}</span>
+      <section className="relative isolate overflow-hidden border-b border-border">
+        {/* One soft light source behind the product, nothing else decorative. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-[38%] -z-10 h-[520px] w-[min(1100px,140vw)] -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]"
+        />
+        <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 pb-16 pt-16 md:pb-24 md:pt-24 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="ppp-enter flex flex-col gap-7">
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted">{t("heroEyebrow")}</p>
+            <h1 className="text-balance text-[2.6rem] font-semibold leading-[1.02] tracking-[-0.04em] text-ink sm:text-6xl lg:text-[4.25rem]">
+              {t("heroTitleA")} <span className="text-muted">{t("heroTitleB")}</span>
             </h1>
             <p className="max-w-xl text-lg leading-relaxed text-muted">{t("heroLead")}</p>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-4">
@@ -44,33 +49,33 @@ export function Landing() {
             </div>
             <TrustStrip locale={locale} className="self-start" />
           </div>
-          <PlanPreview />
+          <PlanPreview className="ppp-enter [animation-delay:120ms]" />
         </div>
       </section>
 
       {/* The problem */}
-      <section className="bg-[#0b1b2c] text-white">
+      <section className="border-b border-border bg-surface text-ink">
         <div className="mx-auto grid max-w-6xl gap-8 px-6 py-14 md:py-16 lg:grid-cols-[1.3fr_1fr]">
           <div className="flex flex-col gap-5">
-            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-teal-300">{t("hookEyebrow")}</p>
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-primary">{t("hookEyebrow")}</p>
             <p data-testid="hook" className="text-balance text-2xl font-medium leading-snug tracking-tight md:text-3xl">
               {t("hookText")}
             </p>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-muted">
               <a
                 data-testid="moncloa-source"
                 href={MONCLOA_DENTIX_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline decoration-slate-500 underline-offset-4 hover:text-slate-200"
+                className="underline decoration-border underline-offset-4 hover:text-ink"
               >
                 {t("hookSources")}
               </a>
             </p>
           </div>
-          <div className="flex flex-col gap-4 border-t border-white/15 pt-6 text-base leading-relaxed text-slate-300 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+          <div className="flex flex-col gap-4 border-t border-border pt-6 text-base leading-relaxed text-muted lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
             <p data-testid="hook-2026">{t("hookMore")}</p>
-            <p data-testid="hook-claim" className="font-medium text-white">
+            <p data-testid="hook-claim" className="font-medium text-ink">
               {t("hookClaim")}
             </p>
             <p className="text-sm">
@@ -80,7 +85,7 @@ export function Landing() {
                 href={DSCA_SOURCE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-teal-300 underline decoration-teal-300/50 underline-offset-4 hover:decoration-teal-300"
+                className="text-primary-strong underline decoration-primary/50 underline-offset-4 hover:decoration-primary"
               >
                 {t("hookSourceLink")}
               </a>
@@ -91,8 +96,8 @@ export function Landing() {
 
       {/* How it works */}
       <section className="mx-auto max-w-6xl px-6 py-14 md:py-20">
-        <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">{t("howEyebrow")}</p>
-        <h2 className="mt-2 text-3xl font-semibold tracking-tight text-ink">{t("howTitle")}</h2>
+        <p className="text-xs font-medium uppercase tracking-[0.18em] text-primary">{t("howEyebrow")}</p>
+        <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-ink md:text-4xl">{t("howTitle")}</h2>
         <ol className="mt-8 grid gap-5 md:grid-cols-3">
           {(
             [
@@ -104,11 +109,9 @@ export function Landing() {
             <li
               key={n}
               data-testid="how-step"
-              className="relative flex flex-col gap-3 rounded-[var(--ppp-radius)] border border-border bg-surface p-6 shadow-[var(--ppp-shadow)]"
+              className="relative flex flex-col gap-3 rounded-[var(--ppp-radius)] border border-border bg-surface p-6 transition-colors hover:border-[color-mix(in_srgb,var(--ppp-ink)_18%,transparent)]"
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-ink">
-                {n}
-              </span>
+              <span className="font-mono text-xs font-medium text-muted">{`0${n}`}</span>
               <h3 className="text-lg font-semibold tracking-tight text-ink">{t(title)}</h3>
               <p className="text-sm leading-relaxed text-muted">{t(body)}</p>
             </li>
@@ -119,8 +122,8 @@ export function Landing() {
       {/* Positioning */}
       <section className="border-y border-border bg-surface">
         <div className="mx-auto max-w-6xl px-6 py-14 md:py-20">
-          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">{t("positioningEyebrow")}</p>
-          <h2 className="mt-2 max-w-2xl text-balance text-3xl font-semibold tracking-tight text-ink">{t("positioningTitle")}</h2>
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-primary">{t("positioningEyebrow")}</p>
+          <h2 className="mt-3 max-w-2xl text-balance text-3xl font-semibold tracking-[-0.03em] text-ink md:text-4xl">{t("positioningTitle")}</h2>
           <PositioningLine locale={locale} className="mt-5 max-w-3xl text-lg" />
 
           <div className="mt-8 overflow-x-auto rounded-[var(--ppp-radius)] border border-border">
@@ -174,7 +177,7 @@ export function Landing() {
 
       {/* Trust */}
       <section className="mx-auto max-w-6xl px-6 py-14 md:py-16">
-        <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">{t("trustEyebrow")}</p>
+        <p className="text-xs font-medium uppercase tracking-[0.18em] text-primary">{t("trustEyebrow")}</p>
         <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">{t("trustTitle")}</h2>
         <ul className="mt-6 grid gap-4 md:grid-cols-3">
           {(
@@ -206,9 +209,9 @@ function CtaLink({ href, variant, children }: { href: string; variant: "primary"
     <Link
       href={href}
       className={cx(
-        "inline-flex h-12 items-center justify-center rounded-[var(--ppp-radius-sm)] px-6 text-base font-medium transition-colors",
+        "inline-flex h-11 items-center justify-center rounded-[var(--ppp-radius-sm)] px-5 text-[15px] font-medium transition-colors",
         variant === "primary"
-          ? "bg-primary text-primary-ink shadow-sm hover:bg-primary-strong"
+          ? "bg-primary text-primary-ink hover:bg-primary-strong"
           : "border border-border bg-surface text-ink hover:bg-surface-2",
       )}
     >

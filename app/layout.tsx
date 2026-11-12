@@ -17,12 +17,21 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font -- one variable font for the whole app */}
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap"
+        />
+      </head>
       <body className="min-h-screen bg-bg text-ink">
         <LocaleProvider>
           <ToastProvider>
             <div className="flex min-h-screen flex-col">
-              <header className="flex items-center justify-between border-b border-border bg-surface px-6 py-3">
-                <a href="/" className="inline-flex items-center gap-2 font-semibold tracking-tight text-primary-strong">
+              <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-bg/80 px-6 py-3 backdrop-blur-md">
+                <a href="/" className="inline-flex items-center gap-2 font-semibold tracking-tight text-ink">
                   <WordmarkMark size={22} />
                   PayPerPhase
                 </a>
@@ -33,7 +42,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <Suspense fallback={null}>
                 <DirectorMode />
               </Suspense>
-              <footer className="border-t border-border bg-surface px-6 py-2">
+              <footer className="border-t border-border bg-bg px-6 py-2">
                 <ShellCompliance />
               </footer>
             </div>
