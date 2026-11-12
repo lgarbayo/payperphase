@@ -1,10 +1,14 @@
 /**
  * OWNED BY WP-09. The persisted DB shape and the Director Mode beat states it can be seeded into.
  *
- * Beats (src/contracts/server.ts DemoBeat), all from the seed cases (data/seed), clock = SIM_START_DATE:
+ * Beats (src/contracts/server.ts DemoBeat), all from the seed cases (data/seed), clock = SIM_START_DATE
+ * unless noted:
  *   B1  no hero plan (clinic console empty); every seed extraction stays available for the upload.
- *   B2  hero plan approved and sent; phase 1 due today.                  (boot + resetDemo state)
- *   B3–B6  as B2, plus phase 1 paid + delivered with mock capture ids; original dates kept.
+ *   B2  hero plan approved and sent; phase 1 due today (the only phase invoiced). (boot + resetDemo state)
+ *   B3, B4, B6  as B2, plus phase 1 paid + delivered with mock capture ids; original dates kept.
+ *   B5  as B3, but the clock is on phase 2's visit day: phase 2 is due, so the PLAN_APPROVED run issues
+ *       and sends its invoice (+QR). On the implant day the dentist finds thin bone and adds a graft:
+ *       the edit cancels and reissues that invoice.
  */
 import { z } from "zod";
 import {
@@ -98,12 +102,21 @@ export interface SeedOptions {
   now: string;
 }
 
+/** B5: the simulated day is the hero's phase 2 visit day (phase 2 due, invoiced on the visit day). */
+function beatToday(beat: DemoBeat, simStart: IsoDate): IsoDate {
+  if (beat !== "B5_AGENT_READY") return simStart;
+  const hero = seedCases().find((c) => c.hero)?.plan;
+  const second = hero ? [...hero.phases].sort((a, b) => a.n - b.n)[1] : undefined;
+  return second && second.payment.dueDate > simStart ? second.payment.dueDate : simStart;
+}
+
 export function seedDb({ beat, simStart, heroPlanId, now }: SeedOptions): Db {
+  const today = beatToday(beat, simStart);
   const db: Db = {
     schemaVersion: DB_SCHEMA_VERSION,
     plans: {},
     extractions: {},
-    clock: { today: simStart, startedAt: simStart, label: "simulated" },
+    clock: { today, startedAt: simStart, label: "simulated" },
     heroPlanId: null,
     webhookEvents: {},
     agentSteps: [],
@@ -118,7 +131,7 @@ export function seedDb({ beat, simStart, heroPlanId, now }: SeedOptions): Db {
       if (PAID_BEATS.has(beat)) plan = payAndDeliverFirstPhase(plan, simStart, now);
       db.heroPlanId = plan.id;
     }
-    plan = applyPaymentStatuses(plan, simStart).plan;
+    plan = applyPaymentStatuses(plan, today).plan;
     db.plans[plan.id] = { ...plan, updatedAt: now };
   }
   return db;

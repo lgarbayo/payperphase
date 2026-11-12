@@ -6,7 +6,7 @@ import { executeRun } from "@/agent";
 import { AGENT_SYSTEM_PROMPT, FALLBACK_BETA, MAX_LOOP_ITERATIONS, type LlmClient } from "@/agent/loop";
 import { buildCreateInvoiceInput } from "@/agent/policy";
 import { store } from "@/server/store";
-import { applyEditedGolden, invoiceOf, PLAN_ID, resetWorld, steps, trace, useLlmDeps } from "./helpers";
+import { applyEditedGolden, atPhase2VisitDay, invoiceOf, PH2_VISIT_DAY, PLAN_ID, resetWorld, steps, trace, useLlmDeps } from "./helpers";
 
 type Params = Parameters<LlmClient["create"]>[0];
 type Message = Awaited<ReturnType<LlmClient["create"]>>;
@@ -43,11 +43,12 @@ beforeEach(async () => {
 
 describe("the model proposes €1,500, the guard says no, the model corrects itself", () => {
   it("guard_rejected + is_error tool_result, then €1,950 passes", async () => {
+    await atPhase2VisitDay(); // ph2 due today
     await applyEditedGolden(); // engine: ph2 = 195 000 (no invoice yet → plain create)
     const plan = (await store.getPlan(PLAN_ID))!;
     const ph2 = plan.phases[1]!;
-    const wrong = buildCreateInvoiceInput(plan, ph2, 1, "2026-11-16", { amountCents: 150_000 });
-    const right = buildCreateInvoiceInput(plan, ph2, 1, "2026-11-16");
+    const wrong = buildCreateInvoiceInput(plan, ph2, 1, PH2_VISIT_DAY, { amountCents: 150_000 });
+    const right = buildCreateInvoiceInput(plan, ph2, 1, PH2_VISIT_DAY);
 
     const { client, requests } = scripted([
       reply("tool_use", [toolUse("create_invoice", wrong)]),
@@ -129,12 +130,13 @@ describe("refusal → playbook fallback", () => {
     expect(requests).toHaveLength(1); // no retry loop on a refusal
     const all = await steps();
     expect(all.some((s) => s.kind === "explanation" && /refusal/i.test(s.text?.en ?? ""))).toBe(true);
-    // The refused turn's tool_use never ran; the playbook's did.
+    // The refused turn's tool_use never ran; the playbook's did (the due phase only).
     const calls = all.filter((s) => s.kind === "tool_call" && s.tool === "create_invoice");
-    expect(calls).toHaveLength(4);
+    expect(calls.map((s) => s.phaseId)).toEqual(["ph1"]);
     expect(calls.every((s) => s.mode === "playbook")).toBe(true);
     const plan = (await store.getPlan(PLAN_ID))!;
-    expect(plan.phases.every((p) => p.payment.invoice?.status === "SENT")).toBe(true);
+    expect(plan.phases[0]!.payment.invoice).toMatchObject({ status: "SENT", hasQr: true });
+    expect(plan.phases.slice(1).every((p) => !p.payment.invoice)).toBe(true);
   });
 
   it("an API error also falls back to the playbook", async () => {
@@ -142,7 +144,8 @@ describe("refusal → playbook fallback", () => {
     useLlmDeps(client);
     await executeRun(PLAN_ID, "PLAN_APPROVED", { type: "PLAN_APPROVED" });
     const plan = (await store.getPlan(PLAN_ID))!;
-    expect(plan.phases.every((p) => p.payment.invoice?.status === "SENT")).toBe(true);
+    expect(plan.phases[0]!.payment.invoice?.status).toBe("SENT");
+    expect(plan.phases.slice(1).every((p) => !p.payment.invoice)).toBe(true);
     expect((await steps()).some((s) => s.kind === "explanation" && /overloaded/.test(s.text?.en ?? ""))).toBe(true);
   });
 });
@@ -161,8 +164,49 @@ describe("loop cap", () => {
     expect(calls).toBe(MAX_LOOP_ITERATIONS);
     const all = await steps();
     expect(all.some((s) => s.kind === "error" && !s.ok && /12|iteration/i.test(s.text?.en ?? ""))).toBe(true);
-    // Still not broken: playbook completed the invoices.
-    expect((await store.getPlan(PLAN_ID))!.phases.every((p) => p.payment.invoice?.status === "SENT")).toBe(true);
+    // Still not broken: the playbook issued the due phase's invoice.
+    expect((await store.getPlan(PLAN_ID))!.phases[0]!.payment.invoice?.status).toBe("SENT");
+  });
+});
+
+describe("invoice on the visit day (LLM path)", () => {
+  it("the prompt and the PLAN_APPROVED task forbid invoicing a phase that is not due", async () => {
+    expect(AGENT_SYSTEM_PROMPT).toMatch(/only on or after its visit day/);
+    expect(AGENT_SYSTEM_PROMPT).toMatch(/PHASE_NOT_DUE/);
+    const { taskFor } = await import("@/agent/loop");
+    expect(taskFor(PLAN_ID, { type: "PLAN_APPROVED" })).toMatch(/invoiceableNow = false/);
+    expect(taskFor(PLAN_ID, { type: "PLAN_EDITED" })).toMatch(/invoiced on its visit day at the new amount/);
+    expect(taskFor(PLAN_ID, { type: "PHASE_STATUS_CHANGED", phaseId: "ph2", to: "due" })).toMatch(/create_invoice, send_invoice, then generate_invoice_qr_code/);
+    expect(taskFor(PLAN_ID, { type: "PHASE_STATUS_CHANGED", phaseId: "ph2", to: "overdue" })).toMatch(/send_invoice_reminder/);
+  });
+
+  it("a model that invoices a future phase gets PHASE_NOT_DUE as an is_error tool_result; nothing reaches PayPal", async () => {
+    const plan = (await store.getPlan(PLAN_ID))!;
+    const early = buildCreateInvoiceInput(plan, plan.phases[2]!, 1, "2026-11-16");
+    const { client } = scripted([
+      reply("tool_use", [toolUse("get_plan", {})]),
+      (p) => {
+        const view = JSON.parse(lastUserResults(p)[0]!.content);
+        expect(view.phases.map((ph: { invoiceableNow: boolean }) => ph.invoiceableNow)).toEqual([true, false, false, false]);
+        return reply("tool_use", [toolUse("create_invoice", early)]);
+      },
+      (p) => {
+        const [res] = lastUserResults(p);
+        expect(res).toMatchObject({ is_error: true });
+        expect(JSON.parse(res!.content)).toMatchObject({ error: "GUARD_REJECTED", code: "PHASE_NOT_DUE" });
+        return reply("end_turn", [text("Phase 3 is invoiced on its visit day.")]);
+      },
+    ]);
+    useLlmDeps(client);
+    await executeRun(PLAN_ID, "PLAN_APPROVED", { type: "PLAN_APPROVED" });
+    const all = await steps();
+    expect(all.find((s) => s.kind === "guard_rejected")).toMatchObject({ tool: "create_invoice", phaseId: "ph3", mode: "llm" });
+    // The playbook completes the due phase; future phases only get their visit-day note.
+    const created = all.filter((s) => s.kind === "tool_call" && s.tool === "create_invoice");
+    expect(created.map((s) => s.phaseId)).toEqual(["ph1"]);
+    const notes = all.filter((s) => s.kind === "explanation" && s.phaseId).map((s) => s.phaseId);
+    expect(notes).toEqual(["ph2", "ph3", "ph4"]);
+    expect((await store.getPlan(PLAN_ID))!.phases.slice(1).every((p) => !p.payment.invoice)).toBe(true);
   });
 });
 
@@ -171,11 +215,12 @@ describe("model-driven edit flow", () => {
     // Issue v1 invoices through the playbook first.
     const { usePlaybookDeps } = await import("./helpers");
     usePlaybookDeps();
+    await atPhase2VisitDay();
     await executeRun(PLAN_ID, "PLAN_APPROVED", { type: "PLAN_APPROVED" });
     await applyEditedGolden();
     const plan = (await store.getPlan(PLAN_ID))!;
     const oldId = invoiceOf(plan, "ph2").invoiceId;
-    const v2 = buildCreateInvoiceInput(plan, plan.phases[1]!, 2, "2026-11-16");
+    const v2 = buildCreateInvoiceInput(plan, plan.phases[1]!, 2, PH2_VISIT_DAY);
     let newId = "";
 
     const { client } = scripted([

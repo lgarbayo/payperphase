@@ -20,6 +20,7 @@ flowchart LR
 
   APP -->|plan approved| AG["Billing agent<br/>Claude Sonnet 5.5 tool loop"]:::claude
   EDIT["Dentist edits plan, one Approve click"]:::human --> AG
-  AG --> GUARD["Guard<br/>amount, EUR, number, recipient, allowlist"]:::code
+  CLK["Simulated clock<br/>a visit day arrives"]:::code -->|phase due| AG
+  AG --> GUARD["Guard<br/>amount, EUR, number, recipient, allowlist,<br/>phase due"]:::code
   GUARD --> TK["PayPal Agent Toolkit<br/>Invoicing v2"]:::ext
   TK --> INV["Sandbox invoice and QR code"]:::ext

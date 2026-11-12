@@ -14,6 +14,9 @@ This file is the human-readable history of PayPerPhase: what changed, and **why*
 ### Added
 - Open-source project files: this changelog, a contributing guide, a security policy, a code of conduct and an architecture decision record. The repository goes public for judging, and these files tell visitors how to run, change and report problems in the project, and why it is built the way it is.
 
+### Changed
+- **Each phase invoice is now created and sent on that phase's visit day, not when the plan is approved.** Before, the billing agent sent every phase's invoice at approval, and PayPal's invoice page would have let a patient pay a future phase early. Now a phase has no invoice until it is due, the guard refuses `create_invoice` and `send_invoice` for a phase that is not due (`PHASE_NOT_DUE`), reminders go only to overdue invoices, and the clinic console's invoice preview and the PayPal trail show a future phase as "Invoiced on its visit day" with its date. This makes "never pay in advance" hold on the invoice rail as it already did at checkout. Director key **5** now puts the simulated clock on phase 2's visit day, so the bone-graft edit cancels and reissues that day's invoice. See ADR-8 in [docs/ARCHITECTURE_DECISIONS.md](docs/ARCHITECTURE_DECISIONS.md).
+
 ## [0.1.0] - 2026-11-11
 
 The version built for the [Build What's Next with PayPal and AI](https://paypalaihackathon.devpost.com/) hackathon, from 10 to 11 November 2026, and verified live on the hosted demo.

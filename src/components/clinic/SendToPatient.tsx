@@ -1,7 +1,9 @@
 "use client";
 /**
  * OWNED BY WP-07. "Aprobar y enviar al paciente": lists the per-phase invoices the agent will issue
- * (this click is the human approval for that initial issue, see WP-10), then shows the patient
+ * (this click is the human approval for that initial issue, see WP-10). Each invoice is issued on its
+ * phase's visit day, so a future phase without one reads "Invoiced on its visit day · <date>", a normal
+ * state, not a missing value. Then it shows the patient
  * link /p/{id} with a copy button and its QR code (`qrcode` data URL).
  */
 import QRCode from "qrcode";
@@ -100,6 +102,7 @@ function InvoicesPreview({ plan, locale, t, approved }: { plan: Plan; locale: Lo
             {plan.phases.map((phase) => {
               const inv = phase.payment.invoice;
               const paid = phase.payment.status === "paid";
+              const due = phase.payment.status === "due" || phase.payment.status === "overdue";
               return (
                 <tr key={phase.id} data-testid={`invoice-row-${phase.id}`}>
                   <td className="px-4 py-2.5">
@@ -121,8 +124,12 @@ function InvoicesPreview({ plan, locale, t, approved }: { plan: Plan; locale: Lo
                       <Badge tone={inv.status === "CANCELLED" ? "neutral" : "primary"}>
                         {t(INVOICE_STATUS_LABEL[inv.status])}
                       </Badge>
-                    ) : (
+                    ) : approved && due ? (
                       <Badge tone="neutral">{t("invToIssue")}</Badge>
+                    ) : (
+                      <span data-testid={`invoice-visit-day-${phase.id}`} className="text-xs text-muted">
+                        {t("invOnVisitDay", { date: formatIsoDate(phase.payment.dueDate, locale) })}
+                      </span>
                     )}
                   </td>
                 </tr>

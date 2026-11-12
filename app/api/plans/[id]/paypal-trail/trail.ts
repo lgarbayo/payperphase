@@ -36,6 +36,8 @@ export function buildTrail(plan: Plan, webhooks: WebhookEventRecord[], steps: Ag
       return {
         phaseId: ph.id,
         n: ph.n,
+        /** The visit day: the phase's invoice is issued on (or after) it. */
+        dueDate: pay.dueDate,
         payment: {
           instrument: pay.instrument ?? null,
           orderId: pay.orderId ?? null,

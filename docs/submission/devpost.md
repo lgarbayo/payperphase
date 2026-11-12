@@ -47,7 +47,7 @@ Linked loans finance treatment you have not received yet. PayPerPhase lets PayPa
 - **The dentist approves** the plan and every patient note, then sends a link and a QR code.
 - **The patient sees a Bryntum Gantt** with the phases, hatched healing windows and payment milestones coloured by PayPal status. Dragging a phase later moves the following phases and their payment dates. A move that breaks a healing minimum snaps back, quoting the dentist.
 - **Each phase is paid with a one-time PayPal order** on the day of its visit, with the official Pay Later message. A phase cannot be paid before its visit day: the server refuses the order. The milestone turns green live.
-- **A billing agent (Claude with the PayPal Agent Toolkit)** issues, sends and reminds one invoice per phase, behind a deterministic amount guard. When the dentist edits the plan, the agent reissues the invoice after one human approval. When a checkout captures, it closes that phase's invoice.
+- **A billing agent (Claude with the PayPal Agent Toolkit)** issues and sends one invoice per phase, with a QR code, on that phase's visit day, and reminds it if it goes overdue. A deterministic guard checks every amount and refuses an invoice for a phase that is not due yet. When the dentist edits the plan on a visit day, the agent cancels and reissues that day's invoice after one human approval. When a checkout captures, it closes that phase's invoice.
 - **A grounded patient chat (Claude Haiku)** answers "what if I wait three months?" with engine-computed dates and citations of the dentist's notes, and refers medical questions to the clinic.
 - **"What if the clinic closes today?"** compares a linked loan (€3,710 left to claim back for undelivered phases) with PayPerPhase (€0).
 
@@ -58,30 +58,29 @@ Next.js 15 and React 19 in TypeScript, hosted on Render. The core rule is that *
 
 - **Deterministic engine.** Money is integer cents and dates are date-only values, both produced only by the phase engine, which has property tests. Bryntum draws the dates and never computes them.
 - **Claude Sonnet 5.5** extracts the quote (structured output), drafts ES/EN wording as slot templates (a validator rejects any number or date outside a slot), and runs the billing agent as a tool loop. **Claude Haiku 5.5** runs the patient chat, with an engine tool and a numeric grounding check.
-- **PayPal.** Orders v2 per phase: the server reads the amount from its store and refuses an order for a phase that is not yet due. The JS SDK with Pay Later messaging pinned to the Pay in 3 offer. Webhooks verified through `verify-webhook-signature` and de-duplicated. Invoicing v2 through the Agent Toolkit. A "PayPal trail" panel shows order, capture, webhooks and invoice calls for each phase.
+- **PayPal.** Orders v2 per phase: the server reads the amount from its store and refuses an order for a phase that is not yet due. The JS SDK with Pay Later messaging pinned to the Pay in 3 offer. Webhooks verified through `verify-webhook-signature` and de-duplicated. Invoicing v2 through the Agent Toolkit, with each phase invoiced on its visit day. A "PayPal trail" panel shows order, capture, webhooks and invoice calls for each phase.
 - **Bryntum Gantt.** `TaskDrag.validatorFn` is wired to the engine, with healing and safe-window zones while dragging. Also baselines for the approved plan and the chat's preview, deadline indicators, time ranges, a summary row, a filtered task menu, and animated transitions. A parity test loads a real Bryntum ProjectModel in CI and checks it agrees with the engine day for day.
 - **Render.** A Blueprint with a persistent disk for the JSON store and a health check that reports live or mock per integration.
 - **Testing.** Every integration has a labelled mock mode, so the whole demo runs without keys. There are more than 900 Vitest tests, plus Playwright suites for the demo path and the Gantt drag.
 
 ## Challenges we ran into
 - **Pay in 3 range.** Pay in 3 only covers €20–€2,000, so each phase had to be sized for it without bending the clinical order of treatment. The engine reports the fit honestly and never claims eligibility; PayPal decides.
-- **Invoice dates.** The Agent Toolkit's invoice tool has no due date, and a future-dated invoice cannot be cancelled or reminded. We issue the invoice at approval, date the line item to the visit and write "pay at your visit" in the note. The checkout rail is where the no-prepayment rule is enforced.
+- **Invoice dates.** The Agent Toolkit's invoice tool has no due date, and a future-dated invoice becomes `SCHEDULED`, which the sandbox will not cancel or remind (422). So the agent waits: it creates and sends each phase's invoice on the visit day itself, dated that day, with the visit date on the line item. The guard refuses an invoice for a phase that is not due, so the no-prepayment rule holds on the invoice rail as well as at checkout.
 - **Captures and invoices are separate.** PayPal does not link a checkout capture to an invoice, so recording it as a PayPal payment fails. The agent recovers by recording it as an external payment, which closes the invoice. The trail shows both attempts.
 - **Pay Later merchant country.** Pay Later needed a real Spanish merchant account to render its message. The public test client id returned a US merchant, so we verified it with our own ES sandbox app.
 - **Keeping an LLM out of the money.** The guard re-checks every amount, currency, invoice number and recipient on every agent call, and returns a visible error to the model when one is wrong.
 
 ## Accomplishments that we're proud of
 - **An in-app Pay in 3 checkout on the hosted URL**, verified end to end: order `9S058375J3368024G`, capture `1VT88810KH3701720`, both webhooks signature-verified, and the phase invoice closed by the agent.
-- **A live Claude agent run through the real Agent Toolkit:** four invoices in about 20 seconds, then a cancel, a reissue and a hash-locked human approval after a plan edit.
+- **A live Claude agent run through the real Agent Toolkit** (11 Nov, before invoices moved to the visit day): four invoices in about 20 seconds, then a cancel, a reissue and a hash-locked human approval after a plan edit.
 - **Live extraction of the hero quote:** 12 of 12 lines exact, with the sum equal to the printed total.
-- **An exposure meter, "paid for treatment not yet received", that stays at €0 on the checkout rail**, because the server refuses to take an early payment. On the invoice rail it would show an early payment rather than hide it.
+- **An exposure meter, "paid for treatment not yet received", that stays at €0 on both PayPal rails**, because no payment link exists before the visit: the server refuses an early order, and a phase has no invoice until its visit day.
 - **A demo you can reset with one button** and record beat by beat with Director Mode.
 
 ## What we learned
 Put the LLM where it reads and the code where it counts. Once Claude never touches a number, the product's trust story becomes simple to state and to test. We also learned how much of a PayPal integration is edge cases: redirects instead of popups, duplicate invoice numbers, declined instruments, and captures that do not know about invoices.
 
 ## What's next
-- Send each phase invoice on its visit day instead of at approval, so the invoice rail enforces "never in advance" as strictly as checkout does.
 - An aligner case with batch milestones, and onboarding for each clinic.
 - PayPal pre-approval for medical services, and a GDPR data-processing set-up, before any real patient.
 - A pilot with one clinic.

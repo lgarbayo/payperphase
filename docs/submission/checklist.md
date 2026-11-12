@@ -22,10 +22,12 @@ Stage 1 is pass/fail: fits the theme and reasonably uses PayPal. Stage 2 scores 
 - [x] The PayPal webhook is registered at `https://payperphase.onrender.com/api/paypal/webhook` and `GET /api/health` reports `paypal`, `paypalWebhooks` and `anthropic` live and `agent: llm`.
 - [x] In-app Pay in 3 payment on the hosted URL, with both webhooks signature-verified and the invoice closed by the agent (IDs in the README, "Proof on the PayPal sandbox").
 - [x] Seed data loads on boot and "Reset demo" returns to the seeded state (`/demo`).
+- [ ] **HUMAN** After the visit-day invoice change is deployed, run the demo check on the hosted URL again and rehearse Director key **5** live: phase 2's invoice is issued on its visit day, then the bone-graft preset cancels and reissues it.
 - [ ] **HUMAN** Just before recording and again before submitting, press **Reset demo** on the hosted URL so judges start from the seeded state.
 
 ## Video ([`video-script.md`](video-script.md))
 - [x] Script rewritten after the judging-panel review: cold open on the closure modal, English screens, live PayPal and Claude only, 2:50, under the 180-second limit.
+- [x] Beat 8 rewritten for invoices issued on the visit day: key **5** puts the clock on phase 2's visit day, and the bone graft reissues that day's invoice.
 - [ ] **HUMAN** Record, edit and upload. Public on YouTube, 3:00 or less.
 - [ ] **HUMAN** Shows the real product end to end on a laptop; no copyrighted music or third-party trademarks; no secrets on screen.
 - [ ] **HUMAN** English audio (or English subtitles).

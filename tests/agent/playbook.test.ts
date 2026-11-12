@@ -7,7 +7,17 @@ import { payloadSha256 } from "@/agent/approvals";
 import { getMockInvoice } from "@/agent/mockTools";
 import { subscribe } from "@/server/events";
 import { store } from "@/server/store";
-import { applyEditedGolden, invoiceOf, PLAN_ID, resetWorld, steps, trace, usePlaybookDeps } from "./helpers";
+import {
+  applyEditedGolden,
+  atPhase2VisitDay,
+  invoiceOf,
+  PH2_VISIT_DAY,
+  PLAN_ID,
+  resetWorld,
+  steps,
+  trace,
+  usePlaybookDeps,
+} from "./helpers";
 
 const issue = () => executeRun(PLAN_ID, "PLAN_APPROVED", { type: "PLAN_APPROVED" });
 const edit = () => executeRun(PLAN_ID, "PLAN_EDITED", { type: "PLAN_EDITED", diff: GOLDEN_BONE_GRAFT_DIFF });
@@ -17,28 +27,43 @@ beforeEach(async () => {
   usePlaybookDeps();
 });
 
+const toolCalls = async (tool?: string) =>
+  (await steps()).filter((s) => s.kind === "tool_call" && (!tool || s.tool === tool));
+
 describe("PLAN_APPROVED", () => {
-  it("issues one invoice per unpaid phase (number, EUR, engine cents, recipient), sends it, QR only for the due phase", async () => {
+  it("issues only the due phase (number, EUR, engine cents, recipient, sent, QR); later phases get a visit-day note", async () => {
     await issue();
     const plan = (await store.getPlan(PLAN_ID))!;
-    const cents = [36_000, 150_000, 52_000, 169_000];
-    plan.phases.forEach((ph, i) => {
-      const inv = invoiceOf(plan, ph.id);
-      expect(inv.invoiceNumber).toBe(`PPP-RIBE-F${i + 1}-v1`);
-      expect(inv.amountCents).toBe(cents[i]);
-      expect(inv.status).toBe("SENT");
-      expect(inv.recipientEmail).toBe(plan.patient.email);
-      expect(inv.invoiceId).toMatch(/^INV2-MOCK-/);
-    });
-    expect(invoiceOf(plan, "ph1").hasQr).toBe(true); // due on the start date
-    expect(invoiceOf(plan, "ph2").hasQr).toBe(false);
+    const inv = invoiceOf(plan, "ph1"); // due on the start date
+    expect(inv).toMatchObject({ invoiceNumber: "PPP-RIBE-F1-v1", amountCents: 36_000, status: "SENT", hasQr: true });
+    expect(inv.recipientEmail).toBe(plan.patient.email);
+    expect(inv.invoiceId).toMatch(/^INV2-MOCK-/);
+    // Phases 2–4 are not due: no invoice exists before the visit, so nothing can be paid in advance.
+    for (const id of ["ph2", "ph3", "ph4"]) expect(plan.phases.find((p) => p.id === id)!.payment.invoice).toBeUndefined();
 
-    const created = (await steps()).filter((s) => s.kind === "tool_call" && s.tool === "create_invoice");
-    expect(created).toHaveLength(4);
-    expect((created[1]!.input as { items: Array<{ unit_amount: { currency_code: string; value: string } }> }).items).toEqual([
-      expect.objectContaining({ quantity: "1", unit_amount: { currency_code: "EUR", value: "1500.00" } }),
+    const created = await toolCalls("create_invoice");
+    expect(created.map((s) => s.phaseId)).toEqual(["ph1"]);
+    expect((created[0]!.input as { items: Array<{ unit_amount: { currency_code: string; value: string } }> }).items).toEqual([
+      expect.objectContaining({ quantity: "1", unit_amount: { currency_code: "EUR", value: "360.00" }, item_date: "2026-11-16" }),
     ]);
+    expect(created[0]!.input).not.toHaveProperty("invoice_date"); // note_only: issued today = the visit day
+    expect((await toolCalls()).every((s) => s.phaseId === "ph1")).toBe(true);
+    const notes = (await steps()).filter((s) => s.kind === "explanation" && s.phaseId);
+    expect(notes.map((s) => s.phaseId)).toEqual(["ph2", "ph3", "ph4"]);
+    expect(notes[0]!.text).toEqual({
+      es: "La fase 2 se facturará el día de su visita, 12 ene 2027",
+      en: "Phase 2 will be invoiced on its visit day, 12 Jan 2027",
+    });
     expect((await steps()).every((s) => s.mode === "playbook" && s.mock)).toBe(true);
+  });
+
+  it("on a later day issues every phase whose visit day has come (due or overdue), and only those", async () => {
+    await store.setClock("2027-04-07"); // ph3's visit day: ph1 + ph2 overdue, ph3 due, ph4 not yet
+    await issue();
+    const plan = (await store.getPlan(PLAN_ID))!;
+    expect((await toolCalls("create_invoice")).map((s) => s.phaseId)).toEqual(["ph1", "ph2", "ph3"]);
+    for (const id of ["ph1", "ph2", "ph3"]) expect(invoiceOf(plan, id)).toMatchObject({ status: "SENT", hasQr: true });
+    expect(plan.phases[3]!.payment.invoice).toBeUndefined();
   });
 
   it("is idempotent: a second run (and a manual run) never duplicates an invoice", async () => {
@@ -48,21 +73,36 @@ describe("PLAN_APPROVED", () => {
     expect(again.skipped).toBe(true);
     expect((await steps()).length).toBe(before);
     await executeRun(PLAN_ID, "MANUAL", { type: "MANUAL" });
-    const created = (await steps()).filter((s) => s.kind === "tool_call" && s.tool === "create_invoice");
-    expect(created).toHaveLength(4);
+    expect(await toolCalls("create_invoice")).toHaveLength(1);
   });
 
-  it("skips phases that are already paid at approval", async () => {
+  it("with no phase due yet, the first run makes no tool call and shows the visit-day notes", async () => {
     await store.updatePlan(PLAN_ID, (p) => {
       p.phases[0]!.payment.status = "paid";
       return p;
     });
+    const res = await issue();
+    expect(res.skipped).toBeUndefined();
+    expect(await toolCalls()).toEqual([]);
+    const texts = (await steps()).filter((s) => s.kind === "explanation").map((s) => s.text?.en);
+    expect(texts).toEqual([
+      "Phase 1 already paid: not invoiced",
+      "Phase 2 will be invoiced on its visit day, 12 Jan 2027",
+      "Phase 3 will be invoiced on its visit day, 7 Apr 2027",
+      "Phase 4 will be invoiced on its visit day, 22 Apr 2027",
+    ]);
+    // A repeat of the same trigger is quiet.
+    expect((await issue()).skipped).toBe(true);
+  });
+
+  it("skips phases that are already paid and issues the due one (beat B5 state)", async () => {
+    await atPhase2VisitDay();
     await issue();
     const plan = (await store.getPlan(PLAN_ID))!;
     expect(plan.phases[0]!.payment.invoice).toBeUndefined();
-    expect(invoiceOf(plan, "ph2").invoiceNumber).toBe("PPP-RIBE-F2-v1");
-    const created = (await steps()).filter((s) => s.kind === "tool_call" && s.tool === "create_invoice");
-    expect(created.map((s) => s.phaseId)).toEqual(["ph2", "ph3", "ph4"]);
+    expect(invoiceOf(plan, "ph2")).toMatchObject({ invoiceNumber: "PPP-RIBE-F2-v1", status: "SENT", hasQr: true, amountCents: 150_000 });
+    expect(await trace()).toEqual(["call:create_invoice", "call:send_invoice", "call:generate_invoice_qr_code"]);
+    expect((await toolCalls()).every((s) => s.phaseId === "ph2")).toBe(true);
   });
 
   it("bumps v{k} when PayPal already holds the number (duplicate)", async () => {
@@ -77,6 +117,7 @@ describe("PLAN_APPROVED", () => {
 
 describe("PLAN_EDITED with GOLDEN_BONE_GRAFT_DIFF", () => {
   it("emits explanation → cancel → create (195 000) → approval_required, in exactly that order", async () => {
+    await atPhase2VisitDay();
     await issue();
     const mark = (await steps()).length;
     await applyEditedGolden();
@@ -99,8 +140,8 @@ describe("PLAN_EDITED with GOLDEN_BONE_GRAFT_DIFF", () => {
     const old = [...(await steps())].find((s) => s.kind === "tool_result" && s.tool === "cancel_sent_invoice");
     expect(old?.ok).toBe(true);
     expect(getMockInvoice(invoiceOf(plan, "ph2").invoiceId)?.status).toBe("DRAFT");
-    // Untouched phases keep their v1 invoice.
-    expect(invoiceOf(plan, "ph3").invoiceNumber).toBe("PPP-RIBE-F3-v1");
+    // Phases that are not due still have no invoice (they are invoiced on their visit day).
+    expect(plan.phases.find((p) => p.id === "ph3")!.payment.invoice).toBeUndefined();
 
     const [approval] = await store.listPendingApprovals(PLAN_ID);
     expect(approval).toMatchObject({ status: "pending", tool: "send_invoice", phaseId: "ph2" });
@@ -109,6 +150,7 @@ describe("PLAN_EDITED with GOLDEN_BONE_GRAFT_DIFF", () => {
   });
 
   it("Approve → send_invoice with exactly the stored payload → generate_invoice_qr_code", async () => {
+    await atPhase2VisitDay();
     await issue();
     await applyEditedGolden();
     await edit();
@@ -136,6 +178,7 @@ describe("PLAN_EDITED with GOLDEN_BONE_GRAFT_DIFF", () => {
   });
 
   it("refuses a payload whose hash changed after the request (nothing is sent)", async () => {
+    await atPhase2VisitDay();
     await issue();
     await applyEditedGolden();
     await edit();
@@ -154,6 +197,7 @@ describe("PLAN_EDITED with GOLDEN_BONE_GRAFT_DIFF", () => {
   });
 
   it("Reject keeps the draft unsent and a later reconcile does not send it", async () => {
+    await atPhase2VisitDay();
     await issue();
     await applyEditedGolden();
     await edit();
@@ -190,17 +234,98 @@ describe("PAYMENT_CAPTURED and PHASE_STATUS_CHANGED", () => {
     expect(res.skipped).toBe(true);
   });
 
-  it("sends a reminder when a phase becomes upcoming, once", async () => {
+  it("issues a phase's invoice (+QR) when it becomes due on its visit day", async () => {
     await issue();
-    await executeRun(PLAN_ID, "PHASE_STATUS_CHANGED", { type: "PHASE_STATUS_CHANGED", phaseId: "ph2", to: "upcoming" });
-    const calls = (await steps()).filter((s) => s.kind === "tool_call" && s.tool === "send_invoice_reminder");
+    await atPhase2VisitDay();
+    const res = await executeRun(PLAN_ID, "PHASE_STATUS_CHANGED", { type: "PHASE_STATUS_CHANGED", phaseId: "ph2", to: "due" });
+    expect(res.skipped).toBeUndefined();
+    const plan = (await store.getPlan(PLAN_ID))!;
+    expect(invoiceOf(plan, "ph2")).toMatchObject({ invoiceNumber: "PPP-RIBE-F2-v1", status: "SENT", hasQr: true, amountCents: 150_000 });
+    const calls = (await toolCalls()).filter((s) => s.phaseId === "ph2").map((s) => s.tool);
+    expect(calls).toEqual(["create_invoice", "send_invoice", "generate_invoice_qr_code"]);
+    expect(plan.phases[2]!.payment.invoice).toBeUndefined(); // only that phase
+  });
+
+  it("an overdue phase with an open sent invoice gets one reminder", async () => {
+    await atPhase2VisitDay();
+    await issue();
+    await store.setClock("2027-01-20"); // 8 days after the visit: overdue
+    await executeRun(PLAN_ID, "PHASE_STATUS_CHANGED", { type: "PHASE_STATUS_CHANGED", phaseId: "ph2", to: "overdue" });
+    const calls = await toolCalls("send_invoice_reminder");
     expect(calls).toHaveLength(1);
     expect(calls[0]!.phaseId).toBe("ph2");
-    expect(calls[0]!.input).toMatchObject({ invoice_id: invoiceOf((await store.getPlan(PLAN_ID))!, "ph2").invoiceId });
-    expect(getMockInvoice(invoiceOf((await store.getPlan(PLAN_ID))!, "ph2").invoiceId)?.reminders).toBe(1);
-    // Other transitions are ignored entirely.
-    const idle = await executeRun(PLAN_ID, "PHASE_STATUS_CHANGED", { type: "PHASE_STATUS_CHANGED", phaseId: "ph3", to: "due" });
-    expect(idle.skipped).toBe(true);
+    const inv = invoiceOf((await store.getPlan(PLAN_ID))!, "ph2");
+    expect(calls[0]!.input).toMatchObject({ invoice_id: inv.invoiceId });
+    expect(getMockInvoice(inv.invoiceId)?.reminders).toBe(1);
+    expect(await toolCalls("create_invoice")).toHaveLength(1); // no second invoice
+  });
+
+  it("a phase that jumps straight to overdue without an invoice is issued (no reminder)", async () => {
+    await atPhase2VisitDay();
+    await store.setClock("2027-02-01");
+    await executeRun(PLAN_ID, "PHASE_STATUS_CHANGED", { type: "PHASE_STATUS_CHANGED", phaseId: "ph2", to: "overdue" });
+    expect((await toolCalls()).map((s) => s.tool)).toEqual(["create_invoice", "send_invoice", "generate_invoice_qr_code"]);
+    expect(invoiceOf((await store.getPlan(PLAN_ID))!, "ph2").status).toBe("SENT");
+  });
+
+  it("upcoming / scheduled transitions do nothing: there is no invoice before the visit", async () => {
+    await issue();
+    for (const to of ["upcoming", "scheduled"]) {
+      const idle = await executeRun(PLAN_ID, "PHASE_STATUS_CHANGED", { type: "PHASE_STATUS_CHANGED", phaseId: "ph2", to });
+      expect(idle.skipped).toBe(true);
+    }
+    // A stale "due" event for a phase whose visit day has not come (clock moved back) does nothing either.
+    const stale = await executeRun(PLAN_ID, "PHASE_STATUS_CHANGED", { type: "PHASE_STATUS_CHANGED", phaseId: "ph3", to: "due" });
+    expect(stale.skipped).toBe(true);
+    expect((await toolCalls()).some((s) => s.phaseId !== "ph1")).toBe(false);
+  });
+});
+
+describe("no create_invoice for a phase that is not due, on any trigger", () => {
+  const notDueCreates = async () => (await toolCalls()).filter((s) => ["create_invoice", "send_invoice"].includes(s.tool ?? "") && s.phaseId !== "ph1");
+
+  it("PLAN_APPROVED, MANUAL, PLAN_EDITED, PHASE_STATUS_CHANGED and PAYMENT_CAPTURED at the start date", async () => {
+    await issue();
+    await executeRun(PLAN_ID, "MANUAL", { type: "MANUAL" });
+    await applyEditedGolden(); // ph2 → €1,950, still months away
+    const mark = (await steps()).length;
+    await edit();
+    const edited = (await steps()).slice(mark);
+    expect(edited.filter((s) => s.kind === "tool_call")).toEqual([]);
+    expect(edited.find((s) => s.kind === "explanation" && s.phaseId === "ph2")?.text?.en).toBe(
+      "Phase 2 will be invoiced on its visit day, 12 Jan 2027, at the new amount €1,950.00",
+    );
+    for (const to of ["upcoming", "due", "overdue"]) {
+      await executeRun(PLAN_ID, "PHASE_STATUS_CHANGED", { type: "PHASE_STATUS_CHANGED", phaseId: "ph2", to });
+    }
+    const captured = await executeRun(PLAN_ID, "PAYMENT_CAPTURED", { type: "PAYMENT_CAPTURED", phaseId: "ph2", amountCents: 195_000 });
+    expect(captured.skipped).toBe(true); // no invoice: nothing to record
+    expect(await notDueCreates()).toEqual([]);
+    expect((await steps()).some((s) => s.kind === "guard_rejected")).toBe(false);
+    expect((await store.getPlan(PLAN_ID))!.phases.slice(1).every((p) => !p.payment.invoice)).toBe(true);
+  });
+
+  it("an edit on a due phase without an invoice issues it (held for approval, as after any edit)", async () => {
+    await atPhase2VisitDay();
+    await applyEditedGolden();
+    await edit();
+    expect(await trace()).toEqual(["call:create_invoice", "approval_required:send_invoice"]);
+    const plan = (await store.getPlan(PLAN_ID))!;
+    expect(invoiceOf(plan, "ph2")).toMatchObject({ invoiceNumber: "PPP-RIBE-F2-v1", amountCents: 195_000, status: "DRAFT" });
+    expect(plan.phases[2]!.payment.invoice).toBeUndefined();
+  });
+
+  it("a live invoice left on a phase that is not due (issued before this rule) is cancelled on an edit, not reissued", async () => {
+    await store.setClock(PH2_VISIT_DAY);
+    await issue(); // ph1 (overdue) + ph2 (due) invoiced
+    await store.setClock("2026-11-16"); // the clock is moved back: ph2 not due any more
+    await applyEditedGolden();
+    const mark = (await steps()).length;
+    await edit();
+    const run = (await steps()).slice(mark);
+    expect(run.filter((s) => s.kind === "tool_call").map((s) => s.tool)).toEqual(["cancel_sent_invoice"]);
+    expect(run.some((s) => s.kind === "guard_rejected")).toBe(false);
+    expect((await store.getPlan(PLAN_ID))!.phases[1]!.payment.invoice?.status).toBe("CANCELLED");
   });
 });
 
@@ -219,7 +344,7 @@ describe("streaming and persistence", () => {
     const streamed = seen.filter((e): e is Extract<DomainEvent, { type: "AGENT_STEP" }> => e.type === "AGENT_STEP");
     expect(streamed.map((e) => e.step.id)).toEqual(stored.map((s) => s.id));
     expect(stored.map((s) => s.seq)).toEqual(stored.map((_, i) => i));
-    expect(seen.filter((e) => e.type === "INVOICE_UPDATED").length).toBeGreaterThanOrEqual(8); // create + send per phase
+    expect(seen.filter((e) => e.type === "INVOICE_UPDATED").length).toBeGreaterThanOrEqual(3); // create + send + QR of the due phase
   });
 
   it("redacts secrets from persisted step input/output", async () => {

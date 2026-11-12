@@ -29,6 +29,7 @@ const TRAIL: PayPalTrailResponse = {
     {
       phaseId: "ph2",
       n: 2,
+      dueDate: "2027-01-12",
       payment: { instrument: null, orderId: null, orderAttempt: 0, captureId: null, paidAt: null, status: "scheduled" },
       invoice: null,
       webhooks: [],
@@ -71,6 +72,16 @@ describe("PayPalTrail", () => {
     expect(screen.getByTestId("paypal-trail-mode").textContent).toMatch(/directo/);
   });
 
+  it("a future phase without an invoice reads as invoiced on its visit day (es + en)", async () => {
+    renderTrail("en", TRAIL);
+    const ph2 = await screen.findByTestId("paypal-trail-phase-ph2");
+    expect(norm(within(ph2).getByTestId("trail-visit-day-ph2").textContent)).toBe("Invoiced on its visit day · 12 Jan 2027");
+    cleanup();
+    renderTrail("es", TRAIL);
+    const es = await screen.findByTestId("paypal-trail-phase-ph2");
+    expect(norm(within(es).getByTestId("trail-visit-day-ph2").textContent)).toBe("Se factura el día de su visita · 12 ene 2027");
+  });
+
   it("renders in English, with the dedupe label", async () => {
     renderTrail("en", TRAIL);
     const ph1 = await screen.findByTestId("paypal-trail-phase-ph1");
@@ -84,7 +95,8 @@ describe("PayPalTrail", () => {
       modes: { paypal: "mock", paypalWebhooks: "mock" },
       phases: [
         { ...TRAIL.phases[0]!, payment: { ...TRAIL.phases[0]!.payment, orderId: "MOCK-ABCD-ph1-O1-AAAA1111", captureId: "MOCK-CAP-BBBB2222" }, webhooks: [] },
-        TRAIL.phases[1]!,
+        // Due today, nothing happened yet (a future phase reads "invoiced on its visit day" instead).
+        { ...TRAIL.phases[1]!, payment: { ...TRAIL.phases[1]!.payment, status: "due" } },
       ],
     });
     const ph1 = await screen.findByTestId("paypal-trail-phase-ph1");

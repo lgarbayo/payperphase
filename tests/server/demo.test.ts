@@ -92,7 +92,8 @@ describe("POST /api/demo/beat", () => {
   });
 
   for (const b of ["B3_PHASE1_PAID", "B4_WHATIF_READY", "B5_AGENT_READY", "B6_CLOSURE_READY"] as const) {
-    it(`${b}: as B2 plus phase 1 paid + delivered with mock capture ids; original dates; clock at start`, async () => {
+    const today = b === "B5_AGENT_READY" ? seedHero().phases[1]!.payment.dueDate : SIM_DEFAULT_START;
+    it(`${b}: as B2 plus phase 1 paid + delivered with mock capture ids; original dates; clock ${b === "B5_AGENT_READY" ? "on phase 2's visit day" : "at start"}`, async () => {
       await dirty();
       const { heroPlanId, events } = await beat(b);
       const hero = (await store.getPlan(HERO_PLAN_ALIAS))!;
@@ -112,13 +113,18 @@ describe("POST /api/demo/beat", () => {
       // original approved dates, baseline = approved plan
       expect(hero.phases.map((p) => p.startDate)).toEqual(seedHero().phases.map((p) => p.startDate));
       expect(hero.baseline?.phases.map((p) => p.startDate)).toEqual(seedHero().phases.map((p) => p.startDate));
-      expect((await store.getClock()).today).toBe(SIM_DEFAULT_START);
+      expect((await store.getClock()).today).toBe(today);
+      expect((await store.getClock()).startedAt).toBe(SIM_DEFAULT_START);
+      // B5: phase 2 is due (implant day), so the agent invoices it; phases 3–4 are not due yet.
+      expect(rest.map((p) => p.payment.status)).toEqual(
+        b === "B5_AGENT_READY" ? ["due", "scheduled", "scheduled"] : ["scheduled", "scheduled", "scheduled"],
+      );
       // ledger €360 / €360 and €0 exposure
-      const exposure = computeExposure(hero, SIM_DEFAULT_START);
+      const exposure = computeExposure(hero, today);
       expect(exposure.paidCents).toBe(36_000);
       expect(exposure.prepaidUndeliveredCents).toBe(0);
       expect(events.map((e) => e.type)).toEqual(["DEMO_RESET", "PLAN_APPROVED"]);
-      expect(events[1]).toMatchObject({ planId: heroPlanId });
+      expect(events[1]).toMatchObject({ planId: heroPlanId, simToday: today });
     });
   }
 

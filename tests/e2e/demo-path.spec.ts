@@ -12,8 +12,8 @@
  * Steps (one `test.step` each, screenshots in test-results/demo-path/):
  *   1 reset + health is mock · 2 clinic: real PDF → 12 lines → plan → notes → approve → link + QR
  *   3 patient pays phase 1 (SSE) · 4 what-if delay (API) → Gantt · 5 "clinic closes today" button
- *   6 beat B5 → bone-graft preset → diff → agent feed → approve → send_invoice
- *   7 clock +49 days → phase 2 upcoming → send_invoice_reminder
+ *   6 beat B5 (clock on phase 2's visit day) → bone-graft preset → diff → agent feed → approve → send_invoice
+ *   7 clock +49 days → phase 2 overdue → send_invoice_reminder
  *
  * Screenshots are for humans (the PR, the video check); only the assertions can fail the run.
  */
@@ -275,15 +275,16 @@ test("demo path: PDF quote → plan → pay → what-if → closure → agent �
   });
 
   // ---------------------------------------------------------------- 7 · clock
-  await test.step("7 · clock +49 days: phase 2 upcoming, reminder in the feed", async () => {
+  await test.step("7 · clock +49 days: phase 2 overdue, reminder in the feed", async () => {
+    // B5 put the clock on phase 2's visit day: phase 2 is due and its reissued invoice was sent.
     const before = await planView(request);
-    expect(before.plan.phases[1]?.payment.status).toBe("scheduled");
+    expect(before.plan.phases[1]?.payment.status).toBe("due");
 
     const clock = await post(request, "/api/clock", { advanceDays: 49 });
     expect(clock.res.status()).toBe(200);
 
     const after = await planView(request);
-    expect(after.plan.phases[1]?.payment.status).toBe("upcoming");
+    expect(after.plan.phases[1]?.payment.status).toBe("overdue");
 
     // Live on the clinic page (SSE): the clock badge moves, the agent logs the reminder.
     const feed = page.getByTestId("agent-feed");
@@ -296,8 +297,8 @@ test("demo path: PDF quote → plan → pay → what-if → closure → agent �
 
     await page.goto("/p/demo");
     await ganttReady(page);
-    await expect(page.getByTestId("phase-card-ph2")).toHaveAttribute("data-status", "upcoming");
-    await shot(page, "13-patient-upcoming");
+    await expect(page.getByTestId("phase-card-ph2")).toHaveAttribute("data-status", "overdue");
+    await shot(page, "13-patient-overdue");
   });
 
   expect(external, "no request to a live PayPal or Anthropic host").toEqual([]);

@@ -20,13 +20,17 @@ export type SimClock = z.infer<typeof SimClockSchema>;
 export const DemoBeatSchema = z.enum([
   /** 1 · Clinic console empty: hero quote not yet uploaded. Clock = SIM_START_DATE. */
   "B1_CLINIC_EMPTY",
-  /** 2 · Hero plan approved and sent; phase 1 due today. */
+  /** 2 · Hero plan approved and sent; phase 1 due today (only phase 1 is invoiced: it is the only one due). */
   "B2_PLAN_SENT",
   /** 3 · Phase 1 paid + delivered (ledger €360 / €360, exposure €0). */
   "B3_PHASE1_PAID",
   /** 4 · As B3 — ready for the delay what-if drag (baseline = approved plan). */
   "B4_WHATIF_READY",
-  /** 5 · As B3 — ready for the dentist's bone-graft edit and the agent beat. */
+  /**
+   * 5 · As B3, but the clock is on phase 2's visit day (implant day): phase 2 is due and its invoice is
+   * issued and sent on that day. Ready for the dentist's bone-graft edit (thin bone found at the visit),
+   * which cancels and reissues that invoice, and the agent beat.
+   */
   "B5_AGENT_READY",
   /** 6 · As B3 — ready for "What if the clinic closes today?". */
   "B6_CLOSURE_READY",
