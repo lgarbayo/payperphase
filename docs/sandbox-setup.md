@@ -6,7 +6,7 @@ Sandbox only. Without these values the app runs in mock mode; with them, live sa
 
 - **Business (merchant)**: country **Spain (ES)**, currency **EUR**. In the account's profile open *Receiving preferences* and set it to automatically accept EUR payments (otherwise captures stay pending).
 - **Personal (buyer)**: country **Spain (ES)**, the synthetic patient. Note its email and password.
-- Keep the logins valid until **15 Dec** (judging window): open the sandbox account pages now and then, do not delete or reset the accounts, and change no passwords without updating the notes.
+- Keep the logins valid **until the winners are announced (expected around 21 Dec 2026)** (judging runs 1–15 Dec): open the sandbox account pages now and then, do not delete or reset the accounts, and change no passwords without updating the notes.
 
 ## 2. REST app
 

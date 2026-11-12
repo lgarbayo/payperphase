@@ -18,7 +18,7 @@ Stage 1 is pass/fail: fits the theme and reasonably uses PayPal. Stage 2 scores 
 ## Demo
 - [x] Hosted URL works: `npx tsx scripts/demo-check.ts https://payperphase.onrender.com --browser` passed 8/8 on commit 809f234 (11 Nov 2026).
 - [ ] **HUMAN** Open it once more from an incognito window on the day of submission.
-- [ ] **HUMAN** Sandbox accounts in the README work and stay live until **15 Dec 2026** (judging window 1–15 Dec). Do not delete or reset them; the hosted service must stay always-on.
+- [ ] **HUMAN** Sandbox accounts in the README work and stay live **until the winners are announced (expected around 21 Dec 2026)** (judging window 1–15 Dec). Do not delete or reset them; the hosted service must stay always-on.
 - [x] The PayPal webhook is registered at `https://payperphase.onrender.com/api/paypal/webhook` and `GET /api/health` reports `paypal`, `paypalWebhooks` and `anthropic` live and `agent: llm`.
 - [x] In-app Pay in 3 payment on the hosted URL, with both webhooks signature-verified and the invoice closed by the agent (IDs in the README, "Proof on the PayPal sandbox").
 - [x] Seed data loads on boot and "Reset demo" returns to the seeded state (`/demo`).
@@ -41,7 +41,7 @@ Stage 1 is pass/fail: fits the theme and reasonably uses PayPal. Stage 2 scores 
 - [ ] **HUMAN** Paste into the Devpost form, add the video link, repo URL, hosted URL and test credentials.
 - [ ] **HUMAN** All teammates added and eligible (Spain is eligible; one representative submits).
 - [x] The odontogram and the patient chat are documented as shipped in the README, [`ai-tools.md`](ai-tools.md), [`devpost.md`](devpost.md) and the video script.
-- [ ] **HUMAN** Set a monthly spend limit on the Anthropic key, and keep Render, the key and the sandbox accounts alive until 15 Dec 2026.
+- [ ] **HUMAN** Set a monthly spend limit on the Anthropic key, and keep Render, the key and the sandbox accounts alive until the winners are announced (expected around 21 Dec 2026).
 - [ ] **HUMAN** After submitting, consider turning off auto-deploy on Render so the judged build stays put.
 
 ## Final hour

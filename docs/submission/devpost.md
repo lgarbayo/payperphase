@@ -25,7 +25,7 @@ The rules allow at most one Grand Prize or category prize, plus at most one spon
 - Hosted demo: https://payperphase.onrender.com/?lang=en
 - Video: https://youtu.be/M7eus5cVwbo (2:35, English captions)
 - Repository: https://github.com/lgarbayo/payperphase (public, MIT licence)
-- Sandbox test access: paste the sandbox buyer email and password into Devpost's test credentials field (valid until 15 Dec 2026). They are not in the public repo; the README section "Sandbox buyer login" points judges there.
+- Sandbox test access: paste the sandbox buyer email and password into Devpost's test credentials field (valid until the winners are announced (expected around 21 Dec 2026)). They are not in the public repo; the README section "Sandbox buyer login" points judges there.
 
 ## Image gallery (in this order)
 Export at 3:2 from `docs/submission/screens/`. The first image becomes the project thumbnail. The app screens are 1440×900 captures of the dark theme, taken in labelled mock mode (`FORCE_MOCKS=1`), so they show "Mock"/"Cached" badges; `paypal-pay-in-3.png` is the real PayPal sandbox window.

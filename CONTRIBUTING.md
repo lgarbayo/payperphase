@@ -7,7 +7,7 @@ This guide covers how to set up the project, the rules the code follows, how to 
 ## How long a review takes
 - **First response to an issue or pull request: within 24–48 hours.** Usually a comment, a question or a review.
 - **Merging** takes longer if a change needs discussion or more tests. We say so in the pull request rather than going quiet.
-- **During the hackathon judging window (until 15 Dec 2026)** the `main` branch deploys the demo the judges are using. We will review contributions in that window, but we will hold merges that change how the hosted demo behaves until judging ends.
+- **Until the hackathon winners are announced (expected around 21 Dec 2026)** the `main` branch deploys the demo the judges are using. We will review contributions in that window, but we will hold merges that change how the hosted demo behaves until the winners are announced.
 
 The maintainer is Luis Garbayo Fernández ([lugarbayo@gmail.com](mailto:lugarbayo@gmail.com)).
 

@@ -16,7 +16,7 @@ PayPerPhase turns a Spanish dental *presupuesto* (quote) into a **pre-treatment,
 
 | | |
 |---|---|
-| **Hosted demo** | [payperphase.onrender.com](https://payperphase.onrender.com/?lang=en) (PayPal sandbox and Claude live; always on until 15 Dec 2026) |
+| **Hosted demo** | [payperphase.onrender.com](https://payperphase.onrender.com/?lang=en) (PayPal sandbox and Claude live; always on until the winners are announced (expected around 21 Dec 2026)) |
 | **Demo video (2:35)** | https://youtu.be/M7eus5cVwbo |
 | **Built for** | [Build What's Next with PayPal and AI](https://paypalaihackathon.devpost.com/) (PayPal AI Hackathon 2026) |
 | **Licence** | [MIT](LICENSE) |
@@ -90,7 +90,7 @@ Open the [hosted demo](https://payperphase.onrender.com/?lang=en), or run it loc
 ![Clinic console: the phased plan the engine built from the quote, drawn by the Bryntum Gantt, as a draft waiting for the dentist's note approval](docs/submission/screens/clinic-plan.png)
 
 ### Sandbox buyer login
-Valid until **15 Dec 2026**. Use only on [sandbox.paypal.com](https://www.sandbox.paypal.com).
+Valid **until the winners are announced (expected around 21 Dec 2026)**. Use only on [sandbox.paypal.com](https://www.sandbox.paypal.com).
 
 The sandbox buyer's email and password are in the **test credentials field of the Devpost submission**, visible to the judges. They are kept out of this public repository.
 
