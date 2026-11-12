@@ -1,6 +1,6 @@
 /**
  * OWNED BY WP-10. Deterministic policy gate wrapped around EVERY agent tool call (LLM or playbook).
- * Pure: no I/O, no clock. A violation becomes an `is_error` tool_result for the model and a red
+ * Pure: no I/O; the simulated clock's day comes in the context. A violation becomes an `is_error` tool_result for the model and a red
  * `guard_rejected` step in the feed. The model never chooses money: amounts must equal the engine's cents.
  */
 import {
@@ -16,8 +16,9 @@ import {
 } from "@/contracts";
 import { payPalValueToCents } from "@/lib/money";
 import { payloadSha256 } from "./approvals";
-import { isOpenInvoice, isPhaseSettled, PAID_INVOICE_STATUSES } from "./policy";
-import { lt, money } from "./text";
+import { paymentStatusAt } from "@/engine/payments";
+import { isOpenInvoice, isPhaseDueAt, isPhaseSettled, PAID_INVOICE_STATUSES } from "./policy";
+import { day, lt, money } from "./text";
 
 export type GuardCode =
   | "TOOL_NOT_ALLOWED"
@@ -36,12 +37,15 @@ export type GuardCode =
   | "FOREIGN_INVOICE_ID"
   | "APPROVAL_REQUIRED"
   | "APPROVAL_HASH_MISMATCH"
-  | "PAYMENT_METHOD_NOT_PAYPAL";
+  | "PAYMENT_METHOD_NOT_PAYPAL"
+  | "PHASE_NOT_DUE";
 
 export interface GuardContext {
   plan: Plan;
   /** recipientFor(plan): the only address the agent may invoice. */
   recipientEmail: string;
+  /** The simulated clock's today: create_invoice / send_invoice need the phase due at this day. */
+  today: string;
   /** send_invoice must carry a human-approved payload (after a plan edit, or the invoice has an approval). */
   requiresApproval?: boolean;
   /** The approval being executed, when send_invoice runs from decideApproval. */
@@ -107,6 +111,15 @@ function amountMismatch(actual: number, expected: number, phaseId: string): Viol
     lt("guardAmount", (l) => ({ actual: money(actual, l), expected: money(expected, l) })),
     { phaseId, details: { actualCents: actual, expectedCents: expected } },
   );
+}
+
+/** Invoice on the visit day: the engine status at ctx.today must be due or overdue (stored status ignored). */
+function checkPhaseDue(phase: Phase, ctx: GuardContext): Violation | null {
+  if (isPhaseDueAt(phase, ctx.today)) return null;
+  return reject("PHASE_NOT_DUE", lt("guardNotDue", (l) => ({ n: phase.n, date: day(phase.payment.dueDate, l) })), {
+    phaseId: phase.id,
+    details: { visitDate: phase.payment.dueDate, today: ctx.today, status: paymentStatusAt(phase, ctx.today) },
+  });
 }
 
 function checkExtraRecipients(input: Record<string, unknown>, ctx: GuardContext): Violation | null {
@@ -188,6 +201,8 @@ function checkCreateInvoice(input: Record<string, unknown>, ctx: GuardContext): 
       details: { version: num.version, next: existing.version + 1 },
     });
   }
+  const notDue = checkPhaseDue(phase, ctx);
+  if (notDue) return notDue;
   return { ok: true, phaseId: phase.id };
 }
 
@@ -201,6 +216,11 @@ function checkInvoiceIdTool(name: string, input: Record<string, unknown>, ctx: G
 
   const extra = checkExtraRecipients(input, ctx);
   if (extra) return { ...extra, phaseId: phase.id };
+
+  if (name === "send_invoice") {
+    const notDue = checkPhaseDue(phase, ctx);
+    if (notDue) return notDue;
+  }
 
   if (name === "send_invoice" && ctx.requiresApproval) {
     if (!ctx.approval || ctx.approval.status !== "approved") {

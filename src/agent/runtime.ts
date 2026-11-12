@@ -1,7 +1,7 @@
 /**
  * OWNED BY WP-10. One agent run: every step is redacted, persisted (store.appendAgentStep) and streamed
  * (AGENT_STEP). `callTool` is the single choke point for LLM and playbook alike:
- *   guard → (human-approval gate) → toolkit call → phase.payment.invoice update + INVOICE_UPDATED.
+ *   guard (incl. "invoice on the visit day" at the simulated today) → (human-approval gate) → toolkit call → phase.payment.invoice update + INVOICE_UPDATED.
  */
 import { randomUUID } from "node:crypto";
 import {
@@ -188,13 +188,14 @@ export class AgentRun {
     const plan = await this.getPlan();
     const input = isRecord(rawInput) ? rawInput : {};
     const recipientEmail = recipientFor(plan);
+    const today = await this.simToday();
     const tool = asToolName(name);
     const isSend = tool !== undefined && (HUMAN_APPROVAL_TOOLS as readonly string[]).includes(tool);
     const requiresApproval = isSend ? await this.sendNeedsApproval(plan, input.invoice_id, opts.requireApproval) : false;
 
     // Human gate: hold the exact payload for one Approve click instead of executing it.
     if (isSend && requiresApproval && !opts.approval) {
-      const pre = checkToolCall(name, rawInput, { plan, recipientEmail, requiresApproval: false });
+      const pre = checkToolCall(name, rawInput, { plan, recipientEmail, today, requiresApproval: false });
       if (!pre.ok) return this.rejected(name, rawInput, pre);
       const existing = (await store.listPendingApprovals(plan.id)).find(
         (a) => a.status === "pending" && approvalInvoiceId(a) === input.invoice_id,
@@ -203,13 +204,13 @@ export class AgentRun {
       return { kind: "pending_approval", approval: await this.requestApproval(plan, input) };
     }
 
-    const verdict = checkToolCall(name, rawInput, { plan, recipientEmail, requiresApproval, approval: opts.approval });
+    const verdict = checkToolCall(name, rawInput, { plan, recipientEmail, today, requiresApproval, approval: opts.approval });
     if (!verdict.ok) return this.rejected(name, rawInput, verdict);
     const phaseId = verdict.phaseId;
 
     if (tool === "get_plan" || tool === "get_plan_diff") {
       await this.emit({ kind: "tool_call", tool, input, text: lt(tool === "get_plan" ? "callGetPlan" : "callGetDiff") });
-      const output = tool === "get_plan" ? billingView(plan, await this.simToday()) : this.diffView(plan);
+      const output = tool === "get_plan" ? billingView(plan, today) : this.diffView(plan);
       await this.emit({ kind: "tool_result", tool, ok: true, text: lt(tool === "get_plan" ? "resultPlan" : "resultDiff") });
       return { kind: "ok", output, modelResult: output };
     }

@@ -108,6 +108,7 @@ export default {
     guardItems: "Las líneas deben tener cantidad entera e importe válido",
     guardMethod: "Método de pago {{method}} no permitido: solo PAYPAL",
     guardInvalid: "Entrada no válida: {{detail}}",
+    guardNotDue: "La fase {{n}} aún no toca: se factura el día de su visita ({{date}}), nunca por adelantado",
 
     explainNoChanges: "Ninguna factura necesita cambios",
     explainAwaiting: "La factura {{number}} espera tu aprobación",
@@ -121,6 +122,8 @@ export default {
     explainSuperseded: "La solicitud de aprobación de {{number}} queda sustituida",
     explainDiffFallback: "Fase {{n}}: {{before}} → {{after}}",
     explainNothingToRemind: "La fase {{n}} no tiene factura enviada a la que recordar",
+    explainInvoiceOnVisitDay: "La fase {{n}} se facturará el día de su visita, {{date}}",
+    explainInvoiceOnVisitDayAmount: "La fase {{n}} se facturará el día de su visita, {{date}}, por el nuevo importe {{amount}}",
 
     approvalSummary: "Enviar {{number}} · {{amount}} a {{email}}",
     approvalGranted: "Aprobado por {{by}} · se envía exactamente el contenido aprobado",
@@ -132,8 +135,8 @@ export default {
     errorGeneric: "Error: {{message}}",
 
     invoiceNote: "Pagar el día de la visita ({{date}}) · Fase {{n}}: {{title}}. Solo sandbox · paciente ficticio.",
-    reminderSubject: "Recordatorio: tu visita del {{date}}",
-    reminderNote: "Tu próxima fase es el {{date}}. Se paga el día de la visita, no antes.",
+    reminderSubject: "Recordatorio: pago pendiente de tu visita del {{date}}",
+    reminderNote: "La fase de tu visita del {{date}} sigue pendiente de pago. Puedes pagarla con esta factura.",
     cancelNote: "Sustituida por {{next}} tras un cambio en el plan de tratamiento.",
     recordNote: "Pagado con PayPal en la visita (captura {{captureId}}).",
   },
@@ -243,6 +246,7 @@ export default {
     guardItems: "Items need a whole-number quantity and a valid amount",
     guardMethod: "Payment method {{method}} not allowed: PAYPAL only",
     guardInvalid: "Invalid input: {{detail}}",
+    guardNotDue: "Phase {{n}} is not due yet: it is invoiced on its visit day ({{date}}), never in advance",
 
     explainNoChanges: "No invoice needs changes",
     explainAwaiting: "Invoice {{number}} is waiting for your approval",
@@ -256,6 +260,8 @@ export default {
     explainSuperseded: "The approval request for {{number}} is superseded",
     explainDiffFallback: "Phase {{n}}: {{before}} → {{after}}",
     explainNothingToRemind: "Phase {{n}} has no sent invoice to remind about",
+    explainInvoiceOnVisitDay: "Phase {{n}} will be invoiced on its visit day, {{date}}",
+    explainInvoiceOnVisitDayAmount: "Phase {{n}} will be invoiced on its visit day, {{date}}, at the new amount {{amount}}",
 
     approvalSummary: "Send {{number}} · {{amount}} to {{email}}",
     approvalGranted: "Approved by {{by}} · sending exactly the approved payload",
@@ -267,8 +273,8 @@ export default {
     errorGeneric: "Error: {{message}}",
 
     invoiceNote: "Pay on the day of your visit ({{date}}) · Phase {{n}}: {{title}}. Sandbox only · synthetic patient.",
-    reminderSubject: "Reminder: your visit on {{date}}",
-    reminderNote: "Your next phase is on {{date}}. It is paid on the day of the visit, not before.",
+    reminderSubject: "Reminder: payment pending for your visit on {{date}}",
+    reminderNote: "The phase of your visit on {{date}} is still unpaid. You can pay it with this invoice.",
     cancelNote: "Replaced by {{next}} after a treatment plan change.",
     recordNote: "Paid with PayPal at the visit (capture {{captureId}}).",
   },

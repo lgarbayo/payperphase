@@ -12,6 +12,7 @@ import {
   type PhaseInvoice,
   type Plan,
 } from "@/contracts";
+import { paymentStatusAt } from "@/engine/payments";
 import { serverEnv } from "@/env";
 import { formatIsoDate } from "@/lib/dates";
 import { centsToPayPalValue } from "@/lib/money";
@@ -34,6 +35,9 @@ export function recipientFor(plan: Plan): string {
  *   in the note "Pagar el día de la visita (…)". The toolkit 1.11.0 create_invoice exposes no
  *   due_date / payment_term, so this is the toolkit-compatible form of the due-date fallback.
  * Default: "note_only" until the live spike confirms SCHEDULED invoices support the whole flow.
+ * "visit_date" stays off: future-dated invoices become SCHEDULED and the sandbox answers 422 to
+ * cancel_sent_invoice and send_invoice_reminder on them. A phase is invoiced only once it is due
+ * (isPhaseDueAt), so "issued today" already means "issued on (or after) the visit day".
  */
 export type InvoiceDatingPolicy = "visit_date" | "note_only";
 export const INVOICE_DATING_POLICY: InvoiceDatingPolicy = "note_only";
@@ -68,6 +72,16 @@ export function isOpenInvoice(inv: PhaseInvoice | undefined): boolean {
 export function liveInvoice(phase: Phase): PhaseInvoice | undefined {
   const inv = phase.payment.invoice;
   return inv && inv.status !== "CANCELLED" ? inv : undefined;
+}
+
+/**
+ * Invoice on the visit day: a phase may be invoiced (create_invoice, send_invoice) only when its payment
+ * status, recomputed by the engine at the simulated clock's `today` (never the stored status), is "due"
+ * or "overdue". Before the visit there is no invoice at all, so nothing can be paid in advance.
+ */
+export function isPhaseDueAt(phase: Phase, today: string): boolean {
+  const status = paymentStatusAt(phase, today);
+  return status === "due" || status === "overdue";
 }
 
 export function isPhaseSettled(phase: Phase): boolean {
@@ -201,7 +215,10 @@ export function billingView(plan: Plan, simToday: string) {
         n: ph.n,
         itemName: `${plan.patient.locale === "es" ? "Fase" : "Phase"} ${ph.n}: ${ph.title[plan.patient.locale]}`,
         visitDate: ph.payment.dueDate,
-        paymentStatus: ph.payment.status,
+        /** Recomputed by the engine at simToday (the stored status is never trusted). */
+        paymentStatus: paymentStatusAt(ph, simToday),
+        /** true once the visit day is reached: only then may this phase be invoiced. */
+        invoiceableNow: isPhaseDueAt(ph, simToday),
         amountCents: ph.amountCents,
         /** Use this string verbatim as items[0].unit_amount.value. */
         amountValue: centsToPayPalValue(ph.amountCents),

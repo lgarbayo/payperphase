@@ -15,9 +15,11 @@ import { buildCreateInvoiceInput, buildQrInput, buildRecordPaymentInput, buildSe
 
 const RECIPIENT = "paciente.demo@example.com";
 const TODAY = "2026-11-16";
+/** ph4's visit day: every golden phase is due (ph4) or overdue (ph1–ph3), so the visit-day rule passes. */
+const ALL_DUE = "2027-04-22";
 
 function ctx(plan: Plan, extra: Partial<GuardContext> = {}): GuardContext {
-  return { plan, recipientEmail: RECIPIENT, ...extra };
+  return { plan, recipientEmail: RECIPIENT, today: ALL_DUE, ...extra };
 }
 function withInvoice(plan: Plan, phaseId: string, status: "DRAFT" | "SENT" | "CANCELLED" | "MARKED_AS_PAID", version = 1) {
   const ph = plan.phases.find((p) => p.id === phaseId)!;
@@ -151,6 +153,61 @@ describe("guard · create_invoice", () => {
     const plan = goldenPlan();
     expect(checkToolCall("create_invoice", create(plan), ctx(plan, { recipientEmail: "sandbox.buyer@personal.example.com" }))).toMatchObject({
       code: "WRONG_RECIPIENT",
+    });
+  });
+});
+
+describe("guard · invoice on the visit day (PHASE_NOT_DUE)", () => {
+  it("rejects create_invoice for a phase whose visit day has not come, recomputing the status from the dates", () => {
+    const plan = goldenPlan();
+    // The stored status says "due"; the engine at TODAY says scheduled: the stored one is never trusted.
+    plan.phases[1]!.payment.status = "due";
+    const v = checkToolCall("create_invoice", create(plan), ctx(plan, { today: TODAY }));
+    expect(v).toMatchObject({ ok: false, code: "PHASE_NOT_DUE", phaseId: "ph2" });
+    if (!v.ok) {
+      expect(v.details).toEqual({ visitDate: "2027-01-12", today: TODAY, status: "scheduled" });
+      expect(v.reason.es).toContain("día de su visita");
+      expect(v.reason.en).toContain("visit day");
+    }
+    // Upcoming (within the window before the visit) is still not payable, so not invoiceable.
+    expect(checkToolCall("create_invoice", create(plan), ctx(plan, { today: "2027-01-05" }))).toMatchObject({ code: "PHASE_NOT_DUE" });
+  });
+
+  it("passes create_invoice on the visit day and after it (due, overdue)", () => {
+    const plan = goldenPlan();
+    plan.phases[1]!.payment.status = "scheduled"; // stale stored status, ignored
+    expect(checkToolCall("create_invoice", create(plan), ctx(plan, { today: "2027-01-12" }))).toEqual({ ok: true, phaseId: "ph2" });
+    expect(checkToolCall("create_invoice", create(plan), ctx(plan, { today: "2027-02-01" }))).toEqual({ ok: true, phaseId: "ph2" });
+    // Phase 1 is due on TODAY.
+    expect(checkToolCall("create_invoice", create(plan, 1), ctx(plan, { today: TODAY }))).toEqual({ ok: true, phaseId: "ph1" });
+  });
+
+  it("rejects send_invoice for a phase that is not due, even with an approved payload", () => {
+    const plan = goldenPlan();
+    withInvoice(plan, "ph2", "DRAFT");
+    const payload = buildSendInvoiceInput("INV2-PH2-0001");
+    expect(checkToolCall("send_invoice", payload, ctx(plan, { today: TODAY }))).toMatchObject({ ok: false, code: "PHASE_NOT_DUE", phaseId: "ph2" });
+    const approved: Pick<PendingApproval, "status" | "payloadSha256"> = { status: "approved", payloadSha256: payloadSha256(payload) };
+    expect(
+      checkToolCall("send_invoice", payload, ctx(plan, { today: TODAY, requiresApproval: true, approval: approved })),
+    ).toMatchObject({ ok: false, code: "PHASE_NOT_DUE" });
+    expect(checkToolCall("send_invoice", payload, ctx(plan, { today: "2027-01-12" }))).toMatchObject({ ok: true, phaseId: "ph2" });
+  });
+
+  it("leaves reminders, QR, cancel and record_payment to their own rules", () => {
+    const plan = goldenPlan();
+    withInvoice(plan, "ph2", "SENT");
+    for (const tool of ["send_invoice_reminder", "generate_invoice_qr_code", "cancel_sent_invoice"]) {
+      expect(checkToolCall(tool, { invoice_id: "INV2-PH2-0001" }, ctx(plan, { today: TODAY })).ok).toBe(true);
+    }
+  });
+
+  it("keeps the wrong-amount demo (key G) an AMOUNT_MISMATCH, even before the visit day", () => {
+    const plan = goldenPlan();
+    plan.phases[1]!.amountCents = 195_000;
+    expect(checkToolCall("create_invoice", create(plan, 2, { amountCents: 150_000 }), ctx(plan, { today: TODAY }))).toMatchObject({
+      ok: false,
+      code: "AMOUNT_MISMATCH",
     });
   });
 });
