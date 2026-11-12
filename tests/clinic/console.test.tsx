@@ -336,7 +336,11 @@ describe("clinic console · plan, notes and approval", () => {
     expect(r1).toContain("PPP-RIBE-F1-v1");
     expect(r1).toContain("360,00 €");
     expect(r1).toContain("16 nov 2026");
-    expect(norm(screen.getByTestId("invoice-row-ph4").textContent)).toContain("PPP-RIBE-F4-v1");
+    const r4 = norm(screen.getByTestId("invoice-row-ph4").textContent);
+    expect(r4).toContain("PPP-RIBE-F4-v1");
+    // A future phase has no invoice yet by design: a normal state, not an error or a missing value.
+    expect(norm(screen.getByTestId("invoice-visit-day-ph4").textContent)).toBe("Se factura el día de su visita · 22 abr 2027");
+    expect(r4).not.toMatch(/Por emitir|error/i);
   });
 
   it("works from an empty store (beat B1) and keeps the Director anchors", () => {

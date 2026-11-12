@@ -12,6 +12,7 @@ import {
   type Locale,
   type PaymentStatus,
 } from "@/contracts";
+import { formatIsoDate } from "@/lib/dates";
 import { Button, cx, StatusPill } from "@/lib/ui";
 import { Icon, INVOICE_STATUS_LABEL, type ClinicT } from "./shared";
 
@@ -32,6 +33,8 @@ export interface TrailAgentStep {
 export interface TrailPhase {
   phaseId: string;
   n: number;
+  /** The visit day (the phase's invoice is issued on it). */
+  dueDate?: string;
   payment: {
     instrument: "order" | "invoice" | null;
     orderId: string | null;
@@ -90,6 +93,11 @@ const Id = ({ children }: { children: ReactNode }) => (
 function PhaseTrail({ ph, mockWebhooks, locale, t }: { ph: TrailPhase; mockWebhooks: boolean; locale: Locale; t: ClinicT }) {
   const { payment: pay, invoice } = ph;
   const empty = !pay.orderId && !pay.captureId && !invoice && ph.webhooks.length === 0 && ph.agentSteps.length === 0;
+  // A future phase has no invoice yet by design: it is issued on its visit day.
+  const visitDay =
+    !invoice && ph.dueDate && (pay.status === "scheduled" || pay.status === "upcoming")
+      ? t("invOnVisitDay", { date: formatIsoDate(ph.dueDate, locale) })
+      : null;
   return (
     <section
       data-testid={`paypal-trail-phase-${ph.phaseId}`}
@@ -101,7 +109,9 @@ function PhaseTrail({ ph, mockWebhooks, locale, t }: { ph: TrailPhase; mockWebho
         <StatusPill status={pay.status} locale={locale} />
       </header>
       {empty ? (
-        <p className="font-mono text-[12.5px] text-muted">{t("trailNothing")}</p>
+        <p className="font-mono text-[12.5px] text-muted" {...(visitDay ? { "data-testid": `trail-visit-day-${ph.phaseId}` } : {})}>
+          {visitDay ?? t("trailNothing")}
+        </p>
       ) : (
         <ol className="relative border-l border-border pl-0">
           {pay.orderId && (
@@ -131,6 +141,11 @@ function PhaseTrail({ ph, mockWebhooks, locale, t }: { ph: TrailPhase; mockWebho
           {ph.webhooks.length === 0 && (
             <Row tone="muted" testId={`trail-webhook-none-${ph.phaseId}`}>
               <span className="text-muted">{mockWebhooks ? t("trailWebhooksMock") : t("trailWebhooksNone")}</span>
+            </Row>
+          )}
+          {visitDay && (
+            <Row tone="muted" testId={`trail-visit-day-${ph.phaseId}`}>
+              <span className="text-muted">{visitDay}</span>
             </Row>
           )}
           {invoice && (
