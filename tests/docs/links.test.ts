@@ -122,12 +122,12 @@ describe("docs: submission requirements", () => {
     expect(readme).toMatch(/\[MIT\]\(LICENSE\)/);
   });
 
-  it("the hosted demo and the video are real links, and the buyer login is still a TODO(human) placeholder", () => {
+  it("the hosted demo and the video are real links, and the buyer login is kept out of the repo", () => {
     const readme = read("README.md");
     expect(readme).toMatch(/Hosted demo\*\* \| \[payperphase\.onrender\.com\]\(https:\/\/payperphase\.onrender\.com\/\?lang=en\)/);
     expect(readme).toMatch(/Demo video \([0-9]:[0-5][0-9]\)\*\* \| https:\/\/youtu\.be\/M8x4rEFkYV0/);
-    expect(readme).toMatch(/Buyer email \| `TODO\(human\)/);
-    expect(readme).toMatch(/Buyer password \| `TODO\(human\)/);
+    expect(readme).toMatch(/test credentials field of the Devpost submission/);
+    expect(readme).not.toMatch(/Buyer password \|/);
   });
 
   it("the Devpost tagline fits Devpost's 60 characters and the copy has every section", () => {

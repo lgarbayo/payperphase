@@ -11,7 +11,7 @@ Stage 1 is pass/fail: fits the theme and reasonably uses PayPal. Stage 2 scores 
 - [x] README has the pitch, the problem with its sources, proof on the PayPal sandbox, the architecture, PayPal, Bryntum and Render usage, the AI components, install, configuration, compatibility, troubleshooting, testing and compliance.
 - [x] README and Devpost screenshots recaptured in English from the hosted demo, with PayPal and Claude live (no mock badges).
 - [x] Hosted URL filled in: https://payperphase.onrender.com/?lang=en
-- [ ] **HUMAN** README placeholders filled: video link and sandbox buyer login (search for `TODO(human)` in `README.md` and `docs/submission/`).
+- [x] README placeholders filled: the video link is in; the sandbox buyer login goes only in Devpost's test credentials field, not in the public repo.
 - [x] [`.env.example`](../../.env.example) is complete and holds no values.
 - [x] No secrets in the repository or in git history. Scanned on 2026-11-11 for Anthropic keys, PayPal secrets and bearer tokens; the only hit is a fake token constant in a test fixture. `tests/docs/links.test.ts` re-checks the docs on every run.
 

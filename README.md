@@ -92,10 +92,7 @@ Open the [hosted demo](https://payperphase.onrender.com/?lang=en), or run it loc
 ### Sandbox buyer login
 Valid until **15 Dec 2026**. Use only on [sandbox.paypal.com](https://www.sandbox.paypal.com).
 
-| | |
-|---|---|
-| Buyer email | `TODO(human)`: sandbox personal (ES) account email |
-| Buyer password | `TODO(human)`: sandbox personal account password |
+The sandbox buyer's email and password are in the **test credentials field of the Devpost submission**, visible to the judges. They are kept out of this public repository.
 
 When PayPal's window opens, choose **Paga en 3 plazos**. It asks for a test DNI: the sandbox accepts `12345678Z`. Pick the sandbox card, tick the contract checkbox and complete the purchase (about 6 clicks). Paying with the PayPal balance is a single click.
 
