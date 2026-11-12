@@ -20,10 +20,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           <div
             key={t.id}
             className={cx(
-              "pointer-events-auto rounded-[var(--ppp-radius-sm)] px-4 py-2 text-sm text-white shadow-lg",
-              t.tone === "success" && "bg-status-paid",
-              t.tone === "error" && "bg-status-overdue",
-              t.tone === "info" && "bg-ink",
+              "pointer-events-auto rounded-[var(--ppp-radius-sm)] px-4 py-2 text-sm font-medium shadow-lg",
+              // Dark theme: the ink token is near-white, so each tone sets its own readable text colour.
+              t.tone === "success" && "bg-status-paid text-[#04140b]",
+              t.tone === "error" && "bg-status-overdue text-white",
+              t.tone === "info" && "border border-border bg-surface-2 text-ink",
             )}
           >
             {t.text}
