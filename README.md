@@ -325,3 +325,10 @@ tests/              Vitest and Playwright suites
 
 ## License
 [MIT](LICENSE)
+
+## Contributing, security and support
+- **Contributing:** setup, the project rules, tests and the pull request process are in [CONTRIBUTING.md](CONTRIBUTING.md). Expect a first response within 24–48 hours.
+- **Security:** please report vulnerabilities privately, as described in [SECURITY.md](SECURITY.md), never in a public issue.
+- **Conduct:** everyone taking part follows the [Code of Conduct](CODE_OF_CONDUCT.md).
+- **History and design:** [CHANGELOG.md](CHANGELOG.md) says what changed and why, and [docs/ARCHITECTURE_DECISIONS.md](docs/ARCHITECTURE_DECISIONS.md) explains the main decisions and what we tried along the way.
+- **Support:** open a GitHub issue for bugs and questions. The maintainer is Luis Garbayo Fernández.
