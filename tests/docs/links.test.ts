@@ -125,7 +125,7 @@ describe("docs: submission requirements", () => {
   it("the hosted demo and the video are real links, and the buyer login is kept out of the repo", () => {
     const readme = read("README.md");
     expect(readme).toMatch(/Hosted demo\*\* \| \[payperphase\.onrender\.com\]\(https:\/\/payperphase\.onrender\.com\/\?lang=en\)/);
-    expect(readme).toMatch(/Demo video \([0-9]:[0-5][0-9]\)\*\* \| https:\/\/youtu\.be\/M8x4rEFkYV0/);
+    expect(readme).toMatch(/Demo video \([0-9]:[0-5][0-9]\)\*\* \| https:\/\/youtu\.be\/M7eus5cVwbo/);
     expect(readme).toMatch(/test credentials field of the Devpost submission/);
     expect(readme).not.toMatch(/Buyer password \|/);
   });
