@@ -23,7 +23,7 @@ The rules allow at most one Grand Prize or category prize, plus at most one spon
 
 ## Links
 - Hosted demo: https://payperphase.onrender.com/?lang=en
-- Video: `TODO(human)` (public YouTube link, under 3:00)
+- Video: https://youtu.be/M8x4rEFkYV0 (2:49, English captions)
 - Repository: https://github.com/lgarbayo/payperphase (`TODO(human)`: make it public first; the licence is MIT)
 - Sandbox test access: in the README under "Sandbox buyer login", valid until 15 Dec 2026
 
