@@ -17,6 +17,18 @@ const DELAY_WORDS =
 const MEDICAL_WORDS =
   /\b(ibuprofen\w*|paracetamol|aspirin\w*|nolotil|enantyum|dolor|duele|dosis|medicin\w*|medicament\w*|medicat\w*|pastilla\w*|antibiotic\w*|analgesic\w*|antiinflam\w*|pain\w*|painkiller\w*|dose|dosage|pill\w*|drug\w*|infecc\w*|infect\w*|sangr\w*|bleed\w*|hincha\w*|swell\w*|fiebre|fever|alerg\w*|embaraz\w*|pregnan\w*|diagnos\w*)\b/;
 
+/**
+ * Money questions about the plan itself ("¿Cuánto cuesta la fase 2?", "When do I pay phase 3?").
+ * Only explicit money words count: a date-only question ("When can I eat after the implant?") is not a
+ * cost question and goes to the normal (model or referral) path.
+ */
+const COST_WORDS =
+  /\b(cuanto|cuanta|cuesta\w*|costar\w*|cost|costs|costing|precio\w*|price\w*|importe\w*|amount|pagar|pago|pagos|pagado|pagada|pago\w*|pay|paying|payment\w*|paid|owe|debo|deberé|total|euros?|eur)\b|how much|€/;
+
+/** A cost question must be about this plan, not any price ("¿Cuánto cuesta un viaje a Marte?"). */
+const PLAN_WORDS =
+  /\b(plan|tratamiento\w*|treatment\w*|fase\w*|phase\w*|visita\w*|visit\w*|cita\w*|appointment\w*|pag\w*|pay\w*|paid|owe|debo|total|pendiente\w*|remaining|queda\w*|falta\w*)\b/;
+
 const WORD_NUMBERS: Record<string, number> = {
   un: 1, uno: 1, una: 1, one: 1, a: 1, dos: 2, two: 2, tres: 3, three: 3, cuatro: 4, four: 4, cinco: 5, five: 5,
   seis: 6, six: 6, siete: 7, seven: 7, ocho: 8, eight: 8, nueve: 9, nine: 9, diez: 10, ten: 10,
@@ -76,12 +88,17 @@ export function nextPendingPhase(plan: Plan): Phase | undefined {
 export type Route =
   | { kind: "delay"; input: SimulateDelayInput }
   | { kind: "needs_amount" }
+  | { kind: "cost"; phaseN?: number }
   | { kind: "referral" };
 
 export function routeQuestion(question: string, plan: Plan): Route {
   const s = norm(question).replace(/\b(sala de espera|lista de espera|waiting (?:room|list))\b/g, " ");
   if (MEDICAL_WORDS.test(s)) return { kind: "referral" };
-  if (!DELAY_WORDS.test(s)) return { kind: "referral" };
+  if (!DELAY_WORDS.test(s)) {
+    const named = COST_WORDS.test(s) ? resolvePhase(question, plan) : undefined;
+    if (!COST_WORDS.test(s) || (!named && !PLAN_WORDS.test(s))) return { kind: "referral" };
+    return named ? { kind: "cost", phaseN: named.n } : { kind: "cost" };
+  }
   const amount = parseAmount(question);
   if (!amount) return { kind: "needs_amount" };
   const phase = resolvePhase(question, plan) ?? nextPendingPhase(plan);

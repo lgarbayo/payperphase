@@ -119,9 +119,55 @@ function randomSuffix(): string {
 // Create
 // ---------------------------------------------------------------------------------------------
 
+const og = globalThis as unknown as {
+  __pppOrderLocks?: Map<string, Promise<unknown>>;
+  __pppOpenOrders?: Map<string, OpenOrder>;
+};
+const orderLocks = (og.__pppOrderLocks ??= new Map<string, Promise<unknown>>());
+const openOrders = (og.__pppOpenOrders ??= new Map<string, OpenOrder>());
+
+interface OpenOrder {
+  orderId: string;
+  attempt: number;
+  amountCents: number;
+  mode: Mode;
+  createdAt: number;
+}
+
+/** How long a created, uncaptured order is handed out again instead of creating a new one. */
+export const OPEN_ORDER_REUSE_MS = 10 * 60 * 1000;
+
+/** Run `fn` after every earlier call for the same key has settled (per-process mutex). */
+async function serialized<T>(key: string, fn: () => Promise<T>): Promise<T> {
+  const prev = orderLocks.get(key) ?? Promise.resolve();
+  const run = prev.then(fn, fn);
+  const tail = run.catch(() => undefined);
+  orderLocks.set(key, tail);
+  try {
+    return await run;
+  } finally {
+    if (orderLocks.get(key) === tail) orderLocks.delete(key);
+  }
+}
+
+/** Test hook: forget the open orders handed out so far. */
+export function resetOpenOrders(): void {
+  openOrders.clear();
+}
+
+/**
+ * One open order per phase and attempt: concurrent (or repeated) calls for the same phase are
+ * serialized and get the order already created for it, as long as it is still the phase's current
+ * order, for the same server amount, and recent. The money rules are unchanged: the amount and the
+ * "due today" check come from the engine on every call.
+ */
 export async function createPhaseOrder(req: CreatePhaseOrderRequest): Promise<CreatePhaseOrderResponse> {
+  return serialized(`${req.planId}:${req.phaseId}`, () => createPhaseOrderLocked(req));
+}
+
+async function createPhaseOrderLocked(req: CreatePhaseOrderRequest): Promise<CreatePhaseOrderResponse> {
   const plan = await store.getPlan(req.planId);
-  if (!plan) throw new PaymentNotAllowedError("UNKNOWN_PLAN");
+  if (!plan) throw new PaymentNotAllowedError("PLAN_NOT_FOUND");
   const clock = await store.getClock();
   const ok = canCreateOrder(plan, req.phaseId, clock.today);
   if (!ok.ok) throw new PaymentNotAllowedError(ok.reason);
@@ -129,6 +175,19 @@ export async function createPhaseOrder(req: CreatePhaseOrderRequest): Promise<Cr
   if (!phase) throw new PaymentNotAllowedError("UNKNOWN_PHASE");
 
   const mode: Mode = modes().paypal;
+  const key = `${plan.id}:${phase.id}`;
+  const open = openOrders.get(key);
+  if (
+    open &&
+    open.mode === mode &&
+    open.orderId === phase.payment.orderId &&
+    open.attempt === phase.payment.orderAttempt &&
+    open.amountCents === ok.amountCents &&
+    Date.now() - open.createdAt < OPEN_ORDER_REUSE_MS
+  ) {
+    return { orderId: open.orderId, amountCents: ok.amountCents, mode };
+  }
+  openOrders.delete(key);
   let attempt = phase.payment.orderAttempt + 1;
   let orderId: string;
 
@@ -155,6 +214,7 @@ export async function createPhaseOrder(req: CreatePhaseOrderRequest): Promise<Cr
     event: { type: "ORDER_CREATED", orderId, attempt },
     via: "capture",
   });
+  openOrders.set(key, { orderId, attempt, amountCents: ok.amountCents, mode, createdAt: Date.now() });
   return { orderId, amountCents: ok.amountCents, mode };
 }
 

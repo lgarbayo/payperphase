@@ -465,5 +465,13 @@ describe("POST /api/plans (create) and GET /api/plans[/:id]", () => {
     const missing = await getPlanRoute(get(`${BASE}/plans/pln_missing1`), ctx({ id: "pln_missing1" }));
     expect(missing.status).toBe(404);
     expect(await errorCode(missing)).toBe("NOT_FOUND");
+
+    // Live refetches ask for a quiet 204 instead, so a removed plan logs no browser 404.
+    const quiet = await getPlanRoute(
+      new Request(`${BASE}/plans/pln_missing1?view=patient`, { headers: { "x-if-missing": "204" } }),
+      ctx({ id: "pln_missing1" }),
+    );
+    expect(quiet.status).toBe(204);
+    expect(await quiet.text()).toBe("");
   });
 });

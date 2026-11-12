@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { POST as createRoute } from "../../app/api/paypal/orders/route";
 import { createPhaseOrder, PaymentNotAllowedError } from "@/lib/paypal";
+import { OPEN_ORDER_REUSE_MS, resetOpenOrders } from "@/lib/paypal/orders";
 import {
   fakeStore,
   mockPayPal,
@@ -38,6 +39,7 @@ describe("createPhaseOrder (Orders v2, live sandbox)", () => {
   beforeEach(() => {
     useLiveEnv();
     resetStore();
+    resetOpenOrders();
     vi.spyOn(console, "warn").mockImplementation(() => {});
   });
   afterEach(() => {
@@ -106,11 +108,17 @@ describe("createPhaseOrder (Orders v2, live sandbox)", () => {
     });
   });
 
-  it("stores the order on the milestone and bumps the attempt on the next create", async () => {
+  it("stores the order on the milestone, reuses it while open, and bumps the attempt once it is stale", async () => {
     const { apiCalls } = mockPayPal([{ method: "POST", path: "/v2/checkout/orders", reply: okOrder }]);
     await createPhaseOrder({ planId: PLAN, phaseId: "ph1" });
     expect(storedPlan().phases[0]!.payment).toMatchObject({ orderId: "ORDER-PPP-RIBE-F1-O1", orderAttempt: 1, status: "due" });
 
+    // Still open: the same order comes back, no second PayPal call.
+    expect((await createPhaseOrder({ planId: PLAN, phaseId: "ph1" })).orderId).toBe("ORDER-PPP-RIBE-F1-O1");
+    expect(apiCalls()).toHaveLength(1);
+
+    const now = Date.now();
+    vi.spyOn(Date, "now").mockReturnValue(now + OPEN_ORDER_REUSE_MS + 1);
     await createPhaseOrder({ planId: PLAN, phaseId: "ph1" });
     expect(storedPlan().phases[0]!.payment).toMatchObject({ orderId: "ORDER-PPP-RIBE-F1-O2", orderAttempt: 2 });
     expect(apiCalls()[1]!.headers["paypal-request-id"]).toBe("pln_ribera01-ph1-create-2");
@@ -147,11 +155,11 @@ describe("createPhaseOrder (Orders v2, live sandbox)", () => {
     expect(apiCalls()).toHaveLength(2);
   });
 
-  it("validates the body (bad ids → 422) and resolves only real plans (unknown → 409)", async () => {
+  it("validates the body (bad ids → 422) and resolves only real plans (unknown → 404 PLAN_NOT_FOUND)", async () => {
     mockPayPal([]);
     expect((await post({ planId: "demo", phaseId: "ph1" })).status).toBe(422);
     const res = await post({ planId: "pln_zzzzzzzz", phaseId: "ph1" });
-    expect(res.status).toBe(409);
-    expect(await res.json()).toMatchObject({ error: { code: "UNKNOWN_PLAN" } });
+    expect(res.status).toBe(404);
+    expect(await res.json()).toMatchObject({ error: { code: "PLAN_NOT_FOUND" } });
   });
 });

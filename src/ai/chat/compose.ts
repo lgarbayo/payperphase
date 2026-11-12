@@ -3,7 +3,10 @@
  * fallback that replaces a model answer when the grounding check fails. Text is templated from
  * `simulate_delay` facts only, so every number and date in it is grounded by construction.
  */
-import type { ChatCitation, ChatResponse, Locale, NoteId, Plan } from "@/contracts";
+import type { ChatCitation, ChatResponse, IsoDate, Locale, NoteId, Plan } from "@/contracts";
+import { computeExposure } from "@/engine";
+import { formatIsoDate } from "@/lib/dates";
+import { formatCents } from "@/lib/money";
 import { NOTE_LIBRARY } from "@data/seed/notes";
 import { isApprovedNote, t, type DelayResult } from "./delay";
 
@@ -108,6 +111,52 @@ export function delayResponse(
     ...(result.ok ? { whatIf: result.whatIf } : {}),
     refused: false,
     groundingFallback,
+    source,
+  };
+}
+
+/**
+ * Amount and date answers, built from the engine's plan data only (phase amount, visit = pay date,
+ * computeExposure totals). The model never writes these numbers. Cites the plan's approved
+ * pay-per-phase note, like delay answers cite theirs.
+ */
+export function costResponse(
+  plan: Plan,
+  today: IsoDate,
+  phaseN: number | undefined,
+  locale: Locale,
+  source: ChatResponse["source"],
+): ChatResponse {
+  const exposure = computeExposure(plan, today);
+  const money = (c: number) => formatCents(c, locale);
+  const sorted = [...plan.phases].sort((a, b) => a.n - b.n);
+  const phase =
+    phaseN !== undefined
+      ? sorted.find((p) => p.n === phaseN)
+      : sorted.find((p) => p.payment.status !== "paid" && p.delivery.status !== "delivered");
+  const parts: string[] = [];
+  if (phaseN !== undefined && !phase) parts.push(t(locale, "costNoPhase"));
+  if (phase) {
+    const vars = { n: phase.n, title: phase.title[locale], amount: money(phase.amountCents) };
+    if (phase.payment.status === "paid") parts.push(t(locale, "costPhasePaid", vars));
+    else {
+      parts.push(t(locale, "costPhase", vars));
+      parts.push(t(locale, "costPhaseDate", { date: formatIsoDate(phase.payment.dueDate, locale) }));
+    }
+  }
+  parts.push(
+    t(locale, "costTotals", {
+      total: money(exposure.totalCents),
+      paid: money(exposure.paidCents),
+      remaining: money(exposure.remainingCents),
+    }),
+  );
+  const noteIds: NoteId[] = ["PAY_PER_PHASE_PROMISE", ...(phase?.noteIds.filter((id) => id === "PAY_IN_3_RANGE") ?? [])];
+  return {
+    text: parts.join(" "),
+    citations: citationsFor(plan, noteIds, locale),
+    refused: false,
+    groundingFallback: false,
     source,
   };
 }

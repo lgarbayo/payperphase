@@ -28,7 +28,7 @@ The patient pays **exactly one clinical phase** with a one-time PayPal Orders v2
 - `src/lib/paypal/index.ts`: keep the stub's exports `createPhaseOrder`, `capturePhaseOrder`, `reconcileReturn`, `PaymentNotAllowedError`. Add `getAccessToken()`, `verifyWebhookSignature()`, `handleWebhookEvent()`, and a pure `transition(milestone, event)` in `transition.ts`.
 - Routes: `POST /api/paypal/orders`, `POST /api/paypal/orders/[orderId]/capture`, `POST /api/paypal/webhook`.
 - `<PayPhaseButton planId phaseId amountCents status locale onPaid onError/>` and `<PayLaterMessage amountCents locale/>`. Keep the prop names; WP-06 relies on them.
-- `/spike-paylater` page and `docs/spikes/paylater-es.md`, which records whether Pay Later ES renders under CAPTURE and AUTHORIZE and sets the `PHASE_PAYMENT_INTENT` recommendation.
+- `/spike-paylater` page (removed on 2026-11-12, it was a dev spike) and `docs/spikes/paylater-es.md`, which records whether Pay Later ES renders under CAPTURE and AUTHORIZE and sets the `PHASE_PAYMENT_INTENT` recommendation.
 
 ## Acceptance criteria
 - [ ] **Spike first (≤45 min):** `/spike-paylater` loads `https://www.paypal.com/sdk/js?client-id=…&currency=EUR&components=buttons,messages&enable-funding=paylater&buyer-country=ES&locale=es_ES&intent=capture` (and `intent=authorize`), renders the messages for €360, €1,500 and €1,950, and renders a button. The result is in `docs/spikes/paylater-es.md` with screenshots described in words. If Pay Later does not render, keep the official messages component plus standard checkout, and **our** copy only ever says "within Pay in 3 range (€20–€2,000)".

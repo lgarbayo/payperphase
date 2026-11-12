@@ -231,6 +231,59 @@ describe("live mode: the JS SDK is loaded once and drives our server", () => {
     expect(screen.getByTestId("pay-phase-paid")).toBeTruthy();
   });
 
+  it("unmounting while the buttons render never calls PayPal's close() on a detached container", async () => {
+    stubApi(LIVE_CONFIG);
+    let finishRender: () => void = () => {};
+    const close = vi.fn(async function (this: void) {
+      throw new TypeError("Cannot read properties of null (reading 'nodeType')");
+    });
+    const render$ = vi.fn(
+      (el: HTMLElement) =>
+        new Promise<void>((resolve) => {
+          finishRender = () => {
+            el.innerHTML = '<div data-fake="paypal-buttons"></div>';
+            resolve();
+          };
+        }),
+    );
+    const sdk = { Buttons: vi.fn(() => ({ render: render$, close })) };
+    const errors: unknown[] = [];
+    const onError = (e: ErrorEvent) => errors.push(e.error);
+    const onRejection = (e: PromiseRejectionEvent) => errors.push(e.reason);
+    window.addEventListener("error", onError);
+    window.addEventListener("unhandledrejection", onRejection);
+    try {
+      const { unmount } = render(
+        <PayPhaseButton planId="pln_ribera01" phaseId="ph1" amountCents={36_000} status="due" locale="es" />,
+      );
+      await waitFor(() => expect(document.head.querySelectorAll("script[data-namespace]")).toHaveLength(1));
+      await loadInjectedSdk(sdk);
+      await waitFor(() => expect(render$).toHaveBeenCalledTimes(1));
+      unmount(); // beat switch mid-render
+      await act(async () => {
+        finishRender();
+        await new Promise((r) => setTimeout(r, 0));
+      });
+      expect(close).not.toHaveBeenCalled();
+      expect(errors).toEqual([]);
+    } finally {
+      window.removeEventListener("error", onError);
+      window.removeEventListener("unhandledrejection", onRejection);
+    }
+  });
+
+  it("does not render into a container that was unmounted while the SDK loaded", async () => {
+    stubApi(LIVE_CONFIG);
+    const { sdk, buttons } = fakeSdk();
+    const { unmount } = render(
+      <PayPhaseButton planId="pln_ribera01" phaseId="ph1" amountCents={36_000} status="due" locale="es" />,
+    );
+    await waitFor(() => expect(document.head.querySelectorAll("script[data-namespace]")).toHaveLength(1));
+    unmount();
+    await loadInjectedSdk(sdk);
+    expect(buttons).toHaveLength(0);
+  });
+
   it("a failed SDK load shows an error with a retry", async () => {
     stubApi(LIVE_CONFIG);
     render(<PayPhaseButton planId="pln_ribera01" phaseId="ph1" amountCents={36_000} status="due" locale="es" />);

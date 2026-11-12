@@ -6,7 +6,7 @@
  */
 import type { ChatRequest, ChatResponse, IsoDate, Plan } from "@/contracts";
 import { defaultClaudeClient, type ClaudeClient } from "../extract/claude";
-import { delayResponse, referralResponse } from "./compose";
+import { costResponse, delayResponse, referralResponse } from "./compose";
 import { simulateDelay, t } from "./delay";
 import { answerLive } from "./live";
 import { routeQuestion } from "./router";
@@ -50,11 +50,12 @@ async function publishPreview(response: ChatResponse, planId: string): Promise<v
   publish({ type: "CHAT_PREVIEW", planId, shifts: response.whatIf.shifts });
 }
 
-/** Mock mode: what-if questions go to simulate_delay, everything else to the fixed referral. */
+/** Mock mode: what-if questions go to simulate_delay, amount/date questions to the engine, the rest to the referral. */
 export function answerMock(req: ChatRequest, plan: Plan, today: IsoDate): ChatResponse {
   const question = [...req.messages].reverse().find((m) => m.role === "user")?.text ?? "";
   const route = routeQuestion(question, plan);
   if (route.kind === "referral") return referralResponse(req.locale, "cached");
+  if (route.kind === "cost") return costResponse(plan, today, route.phaseN, req.locale, "cached");
   if (route.kind === "needs_amount") {
     return { text: t(req.locale, "delayAskAmount"), citations: [], refused: false, groundingFallback: false, source: "cached" };
   }
@@ -64,6 +65,10 @@ export function answerMock(req: ChatRequest, plan: Plan, today: IsoDate): ChatRe
 export async function answerPatientQuestion(req: ChatRequest, deps: ChatDeps = {}): Promise<ChatResponse> {
   const { plan, today } = await loadContext(req, deps);
   const client = deps.client === undefined ? defaultClaudeClient() : deps.client;
+  // Amount and date questions never reach the model: the engine's plan data answers them.
+  const question = [...req.messages].reverse().find((m) => m.role === "user")?.text ?? "";
+  const route = routeQuestion(question, plan);
+  if (route.kind === "cost") return costResponse(plan, today, route.phaseN, req.locale, "cached");
   // Live when a key is set; any API trouble degrades to the deterministic router (labelled cached).
   const response = (client && (await answerLive(client, req, plan, today))) || answerMock(req, plan, today);
   if (deps.publishPreview !== false) await publishPreview(response, plan.id);
