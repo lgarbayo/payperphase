@@ -1,6 +1,6 @@
 "use client";
 /**
- * P4. PayPal trail of one plan: per phase, order → capture → webhook → invoice → agent steps, as a mono
+ * PayPal trail of one plan: per phase, order → capture → webhook → invoice → agent steps, as a mono
  * timeline with the real sandbox ids. Mounted only while the toggle in PaymentsOverview is open, so it
  * polls every 3 s only while visible. Ids and statuses only (the API never sends emails or payloads).
  */

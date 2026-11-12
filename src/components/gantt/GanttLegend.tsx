@@ -1,8 +1,13 @@
 "use client";
-/** OWNED BY WP-05. Legend strip under the Gantt (also shows the snap-back reason briefly). */
+/**
+ * Legend strip under the Gantt: explains the healing hatch, extra wait, payment diamond,
+ * baseline / preview ghosts (when present) and the deadline indicator flag, plus a drag (or
+ * read-only) hint. After a rejected drag, the snap-back reason briefly replaces the strip.
+ */
 import type { Locale } from "@/contracts";
 import { LEGEND_HEIGHT, tg } from "./toBryntum";
 
+// Re-exported so the chart can size itself next to the component that owns the strip.
 export { LEGEND_HEIGHT };
 
 export function GanttLegend({

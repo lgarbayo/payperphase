@@ -152,7 +152,7 @@ describe("perio case (cut #3)", () => {
   });
 });
 
-describe("cached extraction helpers (WP-03)", () => {
+describe("cached extraction helpers", () => {
   it("returns the golden extraction for each sample id and sha256, a clone each time", () => {
     for (const s of SAMPLE_PDFS) {
       const byId = cachedExtractionBySampleId(s.id)!;

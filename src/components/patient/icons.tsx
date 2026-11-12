@@ -1,4 +1,4 @@
-/** OWNED BY WP-06. Tiny inline stroke icons (no icon dependency). Decorative: aria-hidden. */
+/** Tiny inline stroke icons (no icon dependency). Decorative: aria-hidden. */
 import type { SVGProps } from "react";
 
 function Svg({ children, ...props }: SVGProps<SVGSVGElement>) {

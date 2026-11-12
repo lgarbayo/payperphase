@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-03. POST /api/extract
+ * POST /api/extract
  *   multipart/form-data { file: PDF ≤ 10 MB }  or  JSON { sampleId }
  * → stores the ExtractionResult and returns ExtractResponse. Errors: { error: { code, message } }.
  */

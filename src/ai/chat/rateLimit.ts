@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-11. Naive in-memory rate limit for POST /api/chat: at most 10 requests per minute per plan.
+ * Naive in-memory rate limit for POST /api/chat: at most 10 requests per minute per plan.
  * State lives on globalThis so it survives Next dev HMR. Good enough for a single-instance demo.
  */
 export const CHAT_RATE_LIMIT = { max: 10, windowMs: 60_000 } as const;

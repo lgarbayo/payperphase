@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-14. Story landing: hook with its official source (text link, no logos), how it works,
+ * Story landing: hook with its official source (text link, no logos), how it works,
  * positioning against the alternatives, trust strip and GDPR line. ES default, EN via the header toggle.
  */
 import Link from "next/link";

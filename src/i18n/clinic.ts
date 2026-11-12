@@ -1,7 +1,7 @@
 import type { Dictionary } from "./types";
 
 /**
- * Owned by WP-07. Clinic console copy (dentists are the audience: professional and calm).
+ * Clinic console copy (dentists are the audience: professional and calm).
  * Add keys to BOTH es and en (tests/i18n checks parity). Money, dates and teeth are always slots.
  */
 export default {

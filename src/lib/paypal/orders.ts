@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-04. Per-phase Orders v2 checkout: create, capture, and the redirect-return reconcile.
+ * Per-phase Orders v2 checkout: create, capture, and the redirect-return reconcile.
  *
  * Invariants:
  * - The amount ALWAYS comes from the stored plan (engine.canCreateOrder), never from the client.

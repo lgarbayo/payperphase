@@ -1,4 +1,4 @@
-/** OWNED BY WP-03. POST /api/wording {planId} — ES/EN slot-template drafts for clinic review. */
+/** POST /api/wording {planId} — ES/EN slot-template drafts for clinic review. */
 import { WordingRequestSchema, type WordingResponse } from "@/contracts";
 import { draftPhaseWording } from "@/ai/wording";
 import { apiError, json, parseJson } from "@/lib/http";

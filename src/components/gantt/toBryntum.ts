@@ -1,17 +1,24 @@
 /**
- * OWNED BY WP-05. Pure Plan → Bryntum data mapping (no @bryntum import, runs in node tests).
+ * Pure Plan → Bryntum Gantt data mapping. No `@bryntum` import, so it runs (and is tested) in node.
  *
- * Bryntum never computes a date here: every start/end comes from the plan (engine output) and is
- * handed over through `toLocalDate`, the only Date bridge. Every task is `manuallyScheduled`.
+ * The scheduling engine (`@/engine`) is the single source of truth: Bryntum never computes a date
+ * here. Every start/end comes from the plan and crosses over through `toLocalDate`, the only Date
+ * bridge, and every task is `manuallyScheduled` so Bryntum's own scheduler never moves anything.
+ *
+ * Output feeds the Gantt `project` (tasks / dependencies / timeRanges) plus a `meta` side table:
+ * - TaskModel `baselines`: the approved plan, and a `ppp-ghost-shift` baseline for chat previews.
+ * - TaskModel `deadlineDate` (visits only): engine `deadlineFor`; GanttInner's custom
+ *   indicators.deadlineDate flag shows it until it is breached, then the red time range takes over.
+ * - DependencyModel: visit → visit, end-to-start, with the engine's `minLagDays` as lag.
+ * - TimeRanges: the simulated "today" line, plus a red line for every breached deadline.
  *
  * Row layout (flat, chronological staircase):
  *   visit ph1 · payment ph1 · healing ph1→ph2 · visit ph2 · payment ph2 · healing ph2→ph3 · …
  * - visit:   the 1-day appointment, coloured by `payment.status`, draggable in patient mode when
- *            future + unpaid + undelivered. Carries Bryntum's `deadlineDate` (engine `deadlineFor`).
+ *            future + unpaid + undelivered.
  * - payment: a milestone (diamond) at `payment.dueDate`, coloured by `payment.status`.
  * - healing: `pred.endDate → phase.startDate`; the `minLagDays` part is hatched, the part past
  *            `maxLagDays` turns red (CSS vars --ppp-min-pct / --ppp-max-pct). No baseline ghost.
- * Dependencies are visit → visit, end-to-start, with the engine's `minLagDays` as lag.
  */
 import type {
   ClinicalNote,
@@ -168,12 +175,13 @@ export interface PlanToBryntum {
   rangeIso: { startDate: IsoDate; endDate: IsoDate };
 }
 
-type T = KeyOf<"gantt">;
-export function tg(locale: Locale, key: T, vars?: Vars): string {
+type GanttTextKey = KeyOf<"gantt">;
+/** Translate a key from the "gantt" i18n namespace. */
+export function tg(locale: Locale, key: GanttTextKey, vars?: Vars): string {
   return translate("gantt", locale, key, vars);
 }
 
-export const BAND_KEY: Record<FitBand, T> = {
+export const BAND_KEY: Record<FitBand, GanttTextKey> = {
   PAY_IN_3: "bandPayIn3",
   INSTALLMENTS: "bandInstallments",
   PAYPAL_ONLY: "bandPayPalOnly",
@@ -191,6 +199,7 @@ export function isPhaseDraggable(phase: Phase, today: IsoDate, mode: GanttMode):
   return mode === "patient" && phaseLock(phase, today) === null;
 }
 
+/** `part / whole` as a CSS percentage clamped to [0, 100], one decimal. */
 function pct(part: number, whole: number): string {
   if (whole <= 0) return "100%";
   const v = Math.max(0, Math.min(100, (part / whole) * 100));
@@ -203,7 +212,6 @@ export function minLagLabel(days: number, locale: Locale): string {
     ? tg(locale, "healingRowMinWeeks", { weeks: days / 7 })
     : tg(locale, "healingRowMinDays", { days });
 }
-
 
 export function planToBryntum(plan: Plan, opts: PlanToBryntumOptions): PlanToBryntum {
   const { today, locale, mode } = opts;
@@ -225,7 +233,6 @@ export function planToBryntum(plan: Plan, opts: PlanToBryntumOptions): PlanToBry
   const meta: Record<string, GanttTaskMeta> = {};
   const datesForRange: IsoDate[] = [today];
 
-
   for (const phase of phases) {
     const title = phase.title[locale];
     const lock: LockReason | null = mode !== "patient" ? "mode" : phaseLock(phase, today);
@@ -234,7 +241,8 @@ export function planToBryntum(plan: Plan, opts: PlanToBryntumOptions): PlanToBry
     const base = baseline.get(phase.id);
     const ghost = ghosts.get(phase.id);
 
-    // Deadline: engine's deadlineFor (pred.endDate + maxLagDays). Exceeded when the visit starts after it.
+    // Deadline: engine's deadlineFor (pred.endDate + maxLagDays); exceeded when the visit starts after it.
+    // A warning from the last reschedule preview wins over the locally derived overrun.
     const deadline = deadlineFor(plan, phase.id) ?? undefined;
     const warning = engineWarnings.get(phase.id);
     const derivedExceed = deadline ? daysBetween(deadline, phase.startDate) : 0;

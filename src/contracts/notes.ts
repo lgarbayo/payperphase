@@ -2,7 +2,7 @@ import { z } from "zod";
 import { IsoDateTimeSchema, LocalizedTextSchema } from "./primitives";
 
 /**
- * Clinician-approved note library ids. Texts live in data/seed/notes.ts (WP-02).
+ * Clinician-approved note library ids. Texts live in data/seed/notes.ts.
  * Patients only ever see notes the clinic approved for their plan (Plan.approvedNotes).
  * The engine references notes by id (dependency min/max violations); chat cites them.
  */

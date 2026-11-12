@@ -1,4 +1,4 @@
-/** OWNED BY WP-10. POST /api/agent/approve {approvalId, decidedBy, decision} — human Approve for send_invoice. */
+/** POST /api/agent/approve {approvalId, decidedBy, decision} — human Approve for send_invoice. */
 import { AgentApproveRequestSchema } from "@/contracts";
 import { decideApproval } from "@/agent";
 import { apiError, json, parseJson } from "@/lib/http";

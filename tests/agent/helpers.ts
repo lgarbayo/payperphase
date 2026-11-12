@@ -1,4 +1,4 @@
-/** WP-10 test helpers: a clean store + mock PayPal, golden plan builders, step queries. */
+/** test helpers: a clean store + mock PayPal, golden plan builders, step queries. */
 import { expect } from "vitest";
 import type { AgentStep, Plan } from "@/contracts";
 import { GOLDEN_PLAN_ID, goldenPlan } from "@/contracts/fixtures/implantCase";

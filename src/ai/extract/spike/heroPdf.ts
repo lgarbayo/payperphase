@@ -1,6 +1,6 @@
 /**
- * OWNED BY WP-03. Synthetic stand-in for the hero presupuesto, rendered from GOLDEN_RAW_EXTRACTION, so the
- * Claude PDF spike can run before WP-02's real sample PDF exists. Not used at runtime.
+ * Synthetic stand-in for the hero presupuesto, rendered from GOLDEN_RAW_EXTRACTION, so the
+ * Claude PDF spike can run before the real sample PDF exists. Not used at runtime.
  */
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { GOLDEN_RAW_EXTRACTION } from "@/contracts/fixtures/implantCase";
@@ -9,7 +9,7 @@ export async function renderSyntheticHeroPdf(): Promise<Uint8Array> {
   const raw = GOLDEN_RAW_EXTRACTION;
   const doc = await PDFDocument.create();
   doc.setTitle(`Presupuesto ${raw.quoteRef} (ficticio)`);
-  doc.setCreator("PayPerPhase WP-03 spike");
+  doc.setCreator("PayPerPhase extraction spike");
   doc.setProducer("pdf-lib");
   // Fixed dates so the bytes (and the sha256) are reproducible.
   doc.setCreationDate(new Date(Date.UTC(2026, 10, 12)));

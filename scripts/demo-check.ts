@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-13. Checks the demo path of a running PayPerPhase over HTTP (Render or local).
+ * Checks the demo path of a running PayPerPhase over HTTP (Render or local).
  *
  *   npx tsx scripts/demo-check.ts <baseUrl> [--skip-reset] [--timeout <ms>]
  *                                 [--browser [--chromium-path <path>] [--screenshot <file.png>]]

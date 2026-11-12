@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 /**
- * WP-07 staggered extraction reveal: ~120 ms between lines, each revealed line pulses its teeth
+ * staggered extraction reveal: ~120 ms between lines, each revealed line pulses its teeth
  * on the odontogram (`highlight`) and adds marks; the check bar lands once every line is shown.
  */
 import { act, cleanup, render, screen } from "@testing-library/react";

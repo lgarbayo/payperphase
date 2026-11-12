@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-11. One conversation turn: the patient's bubble, or the assistant's answer with its
+ * One conversation turn: the patient's bubble, or the assistant's answer with its
  * what-if summary, approved-note citation chips, the cached badge and the referral to the clinic.
  */
 import { useState } from "react";

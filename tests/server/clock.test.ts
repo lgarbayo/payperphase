@@ -1,6 +1,6 @@
 /**
- * WP-09 · Simulated clock: POST /api/clock re-derives every plan's payment statuses through
- * engine.applyPaymentStatuses (mocked, so this does not depend on WP-01), persists, publishes one
+ * Simulated clock: POST /api/clock re-derives every plan's payment statuses through
+ * engine.applyPaymentStatuses (mocked, so this does not depend on the engine), persists, publishes one
  * PHASE_STATUS_CHANGED per change then CLOCK_ADVANCED, and moves the events' simToday.
  */
 import { describe, expect, it, vi } from "vitest";

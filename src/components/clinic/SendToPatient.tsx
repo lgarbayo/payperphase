@@ -1,7 +1,7 @@
 "use client";
 /**
- * OWNED BY WP-07. "Aprobar y enviar al paciente": lists the per-phase invoices the agent will issue
- * (this click is the human approval for that initial issue, see WP-10). Each invoice is issued on its
+ * "Aprobar y enviar al paciente": lists the per-phase invoices the agent will issue
+ * (this click is the human approval for that initial issue, see src/agent). Each invoice is issued on its
  * phase's visit day, so a future phase without one reads "Invoiced on its visit day · <date>", a normal
  * state, not a missing value. Then it shows the patient
  * link /p/{id} with a copy button and its QR code (`qrcode` data URL).

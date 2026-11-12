@@ -1,4 +1,4 @@
-/** OWNED BY WP-05. Public props of <PlanGantt/> — consumers (WP-06, WP-07, WP-14) rely on these. */
+/** Public props of <PlanGantt/> — the patient page, the clinic console and the dev /gantt-lab page rely on these. */
 import type { ClinicalNote, DeadlineWarning, Locale, MoveRequest, NoteId, PhaseShift, Plan } from "@/contracts";
 
 export interface PlanGanttProps {
@@ -20,7 +20,7 @@ export interface PlanGanttProps {
   onPayPhase?: (phaseId: string) => void;
   /** taskMenu "What if I delay?". */
   onAskDelay?: (phaseId: string) => void;
-  /** Height in px (Bryntum needs a sized parent). Default 420. Includes the legend strip. */
+  /** Non-empty plans ignore it (the chart sizes itself to every row); it only caps the empty-state placeholder at min(height, 200). Default 420. */
   height?: number;
   /**
    * Optional engine warnings (e.g. `WhatIfResult.warnings` from the last persisted what-if). The chart

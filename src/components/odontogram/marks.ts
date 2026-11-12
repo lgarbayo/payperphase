@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-08. Pure logic behind the odontogram: quote lines → per-tooth marks, and the
+ * Pure logic behind the odontogram: quote lines → per-tooth marks, and the
  * per-tooth summary (what the glyph draws and what the accessible name says). No React here.
  */
 import type { FdiTooth, Phase, ProcedureCategory, ProcedureCode, QuoteLine } from "@/contracts";
@@ -134,7 +134,7 @@ export const KIND_CATEGORY: Record<MarkKind, ProcedureCategory> = {
 const EXTRACTION_CODES: ReadonlySet<ProcedureCode> = new Set(["EXTRACTION", "SURGICAL_EXTRACTION"]);
 
 /**
- * Quote lines (+ optional plan phases) → per-tooth marks. WP-07 calls it as lines reveal.
+ * Quote lines (+ optional plan phases) → per-tooth marks. The clinic console calls it as lines reveal.
  * One mark per tooth, procedure and phase. Lines without teeth produce nothing. With `phases`,
  * a delivered phase turns its marks to `done` (a delivered extraction leaves the tooth `missing`).
  */

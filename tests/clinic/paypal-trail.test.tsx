@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 /**
- * P4 PayPal trail (jsdom, mocked fetch): timeline rendering, dedupe label, mock-mode label,
+ * PayPal trail (jsdom, mocked fetch): timeline rendering, dedupe label, mock-mode label,
  * collapsed-by-default toggle in PaymentsOverview (no fetch until opened), polling only while open.
  */
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";

@@ -15,7 +15,7 @@
  *   ph4 PROSTHETIC       2027-04-22  €1,690
  * Clinic-closure stress test after ph1: linked loan owes €3,710 for undelivered care; PayPerPhase €0.
  *
- * If WP-01's engine output differs from GOLDEN_PLAN, file a Contract change request rather than
+ * If the engine output differs from GOLDEN_PLAN, file a Contract change request rather than
  * editing this file; tests/contracts asserts its internal consistency.
  */
 import type { ExtractionResult, Plan, PlanDiff, PlanEdit, RawExtraction } from "@/contracts";
@@ -274,8 +274,8 @@ export const GOLDEN_BONE_GRAFT_EDIT: PlanEdit = {
 };
 
 /**
- * diffPlans(GOLDEN_PLAN, applyEdit(GOLDEN_PLAN, GOLDEN_BONE_GRAFT_EDIT, now)). WP-01 must produce exactly
- * this. WP-03 (explainDiff), WP-07 (diff panel) and WP-10 (reissue at €1,950) use it so they never wait
+ * diffPlans(GOLDEN_PLAN, applyEdit(GOLDEN_PLAN, GOLDEN_BONE_GRAFT_EDIT, now)). The engine must produce exactly
+ * this. explainDiff, the clinic diff panel and the agent (reissue at €1,950) use it so they never wait
  * for the engine. ph2→ph3 min lag becomes 112 days (BONE_GRAFT_HEALING_16W): ph3 and ph4 move +28 days.
  */
 export const GOLDEN_BONE_GRAFT_DIFF: PlanDiff = {

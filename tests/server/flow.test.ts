@@ -1,7 +1,7 @@
 /**
- * WP-09 · The demo path through the real API and the REAL engine (WP-01): B1 → create from the
+ * The demo path through the real API and the REAL engine: B1 → create from the
  * seeded quote → approve (becomes the hero) → delay what-if → illegal move → B5 (implant day) →
- * bone-graft edit → clock +7 weeks. Skipped while src/engine is still the scaffold stub (it runs after WP-01 merges).
+ * bone-graft edit → clock +7 weeks. Skipped while src/engine is still the scaffold stub.
  */
 import { describe, expect, it } from "vitest";
 import * as engine from "@/engine";
@@ -30,7 +30,7 @@ import { POST as editRoute } from "../../app/api/plans/[id]/edit/route";
 import { POST as clockRoute } from "../../app/api/clock/route";
 import { BASE, captureEvents, ctx, post, useTmpDataDir } from "./helpers";
 
-/** WP-01's engine exports paymentStatusAt; the scaffold stub does not. */
+/** The real engine exports paymentStatusAt; the scaffold stub does not. */
 const realEngine = typeof (engine as Record<string, unknown>).paymentStatusAt === "function";
 
 useTmpDataDir();

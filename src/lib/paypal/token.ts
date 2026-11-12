@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-04. OAuth2 client-credentials token for the PayPal REST API (sandbox only).
+ * OAuth2 client-credentials token for the PayPal REST API (sandbox only).
  *
  * - Cached per server process (survives Next dev HMR via globalThis).
  * - Refreshed once 80% of `expires_in` has elapsed (sandbox tokens live 3–8 h), never on every call.

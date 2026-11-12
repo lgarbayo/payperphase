@@ -1,4 +1,4 @@
-/** OWNED BY WP-14. Beat 1–2 cards: hook (2020 + dsca.gob.es text) then the title card. ?step=0|1|2. */
+/** Beat 1–2 cards: hook (2020 + dsca.gob.es text) then the title card. ?step=0|1|2. */
 import { HookTitleCards } from "@/components/director/Cards";
 
 export const metadata = { title: "PayPerPhase · Title" };

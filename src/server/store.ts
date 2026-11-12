@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-09. Plan store: one JSON file at DATA_DIR/db.json.
+ * Plan store: one JSON file at DATA_DIR/db.json.
  *
  * - Loaded (or seeded into beat state B2) on first use; `boot()` triggers it at server start.
  *   Every record is validated with its contract schema. A corrupt or invalid file is moved aside

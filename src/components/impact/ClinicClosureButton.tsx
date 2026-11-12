@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-12. "What if the clinic closes today?" — linked loan vs PayPerPhase counters,
+ * "What if the clinic closes today?" — linked loan vs PayPerPhase counters,
  * labelled illustrative, citing dsca.gob.es. Numbers come from engine.closureStressTest() (props);
  * nothing here computes money.
  *

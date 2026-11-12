@@ -1,4 +1,4 @@
-/** OWNED BY WP-12. Inline, decorative icons (always aria-hidden; the text next to them carries meaning). */
+/** Inline, decorative icons (always aria-hidden; the text next to them carries meaning). */
 import type { SVGProps } from "react";
 
 function Svg(props: SVGProps<SVGSVGElement>) {

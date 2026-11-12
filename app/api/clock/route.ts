@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-09. GET/POST the labelled simulated clock. POST {advanceDays} | {setTo} re-derives
+ * GET/POST the labelled simulated clock. POST {advanceDays} | {setTo} re-derives
  * every plan's payment statuses, persists, then publishes PHASE_STATUS_CHANGED per change and
  * CLOCK_ADVANCED (the agent sends reminders for phases that turn "upcoming").
  */

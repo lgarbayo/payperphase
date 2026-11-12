@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-04. The ONE place a PayPal fact changes a payment milestone.
+ * The ONE place a PayPal fact changes a payment milestone.
  *
  * `transition(milestone, event)` is pure (never mutates its input, no I/O, no clock) and monotonic
  * in settlement progress:
@@ -29,7 +29,7 @@ export type PaymentEvent =
   | { type: "CAPTURE_COMPLETED"; orderId: string; captureId: string; amountCents: number; paidAt: string }
   /** PayPal denied a previously pending capture. */
   | { type: "CAPTURE_DENIED"; orderId: string; captureId: string }
-  /** The phase invoice (WP-10) was paid directly on PayPal. */
+  /** The phase invoice (issued by the agent) was paid directly on PayPal. */
   | { type: "INVOICE_PAID"; invoiceId: string; amountCents: number; paidAt: string; paymentId?: string };
 
 export type PaymentEventType = PaymentEvent["type"];

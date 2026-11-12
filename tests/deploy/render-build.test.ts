@@ -1,5 +1,5 @@
 /**
- * WP-13: scripts/render-build.sh, run for real against a fake `npm` on PATH in a temp repo copy.
+ * scripts/render-build.sh, run for real against a fake `npm` on PATH in a temp repo copy.
  * Proves the default path needs no secret, the Bryntum registry fallback only kicks in when the
  * public install fails AND BRYNTUM_NPM_TOKEN is set, and the token never lands on disk.
  */

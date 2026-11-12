@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-10. Clinic billing agent: event-driven Claude tool loop over the PayPal Agent Toolkit
+ * Clinic billing agent: event-driven Claude tool loop over the PayPal Agent Toolkit
  * invoice tools (wrapped by a deterministic amount/currency/number/recipient/allowlist guard), with a
  * deterministic playbook fallback calling the same tools. Every step → store + AGENT_STEP event.
  *

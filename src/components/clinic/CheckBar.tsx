@@ -1,7 +1,7 @@
 "use client";
 /**
- * OWNED BY WP-07. "Σ líneas = total impreso ✓ · 0 piezas inválidas · 1 a revisar".
- * Every figure comes from `extraction.checks` (WP-03's deterministic validation), never from the UI.
+ * "Σ líneas = total impreso ✓ · 0 piezas inválidas · 1 a revisar".
+ * Every figure comes from `extraction.checks` (the extractor's deterministic validation), never from the UI.
  */
 import type { ExtractionChecks, Locale } from "@/contracts";
 import { formatCents } from "@/lib/money";

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-/** WP-14 landing: hook, DSCA link, positioning line, CTAs, trust strip and GDPR line in ES and EN. */
+/** landing: hook, DSCA link, positioning line, CTAs, trust strip and GDPR line in ES and EN. */
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { Landing } from "@/components/brand/Landing";

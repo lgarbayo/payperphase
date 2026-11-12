@@ -1,7 +1,7 @@
 import type { Dictionary } from "./types";
 
 /**
- * Owned by WP-12. Impact visuals: the exposure meter and the "What if the clinic closes today?"
+ * Impact visuals: the exposure meter and the "What if the clinic closes today?"
  * stress test. Every amount is a {{slot}} filled from engine props — never a literal number here.
  * Add keys to BOTH es and en (tests/i18n checks parity).
  */

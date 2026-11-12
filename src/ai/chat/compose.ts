@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-11. Code-built answers: the cached (mock) what-if answer, the referral and the safe
+ * Code-built answers: the cached (mock) what-if answer, the referral and the safe
  * fallback that replaces a model answer when the grounding check fails. Text is templated from
  * `simulate_delay` facts only, so every number and date in it is grounded by construction.
  */

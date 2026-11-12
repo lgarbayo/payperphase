@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-10. POST /api/agent/guard-test {planId} — Director key G: pushes one create_invoice with the
+ * POST /api/agent/guard-test {planId} — Director key G: pushes one create_invoice with the
  * stale pre-edit amount through the guard, labelled "guard test", so the rejection shows in the feed.
  * The call is only ever checked, never sent to PayPal.
  */

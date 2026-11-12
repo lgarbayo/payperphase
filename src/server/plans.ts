@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-09. Plan use cases behind /api/plans/*. Route handlers parse and validate the body,
+ * Plan use cases behind /api/plans/*. Route handlers parse and validate the body,
  * then call these. Rules:
  * - money and dates come only from the engine; the store is the only writer;
  * - each read-modify-write runs inside store.updatePlan (atomic, serialized);

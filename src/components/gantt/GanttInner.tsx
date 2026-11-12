@@ -1,14 +1,27 @@
 "use client";
 /**
- * OWNED BY WP-05. Client-only Bryntum Gantt (loaded via next/dynamic ssr:false from PlanGantt).
+ * Client-only Bryntum Gantt (loaded via next/dynamic ssr:false from PlanGantt).
  * The ONLY module that imports @bryntum/*.
  *
- * Bryntum draws, the engine decides:
- * - every task is manuallyScheduled and comes from planToBryntum() (engine dates via toLocalDate);
+ * Bryntum draws, our clinical engine decides:
+ * - every task is manuallyScheduled and comes from planToBryntum() (engine dates via toLocalDate),
+ *   so Bryntum's own scheduler never moves a date the engine did not compute;
  * - TaskDrag.validatorFn → engine.validateMove (sync, memoised per day by the drag controller);
  * - a valid drop previews engine.reschedule (successors glide) and calls onMoveCommitted;
  * - an invalid drop snaps back (Bryntum) and calls onMoveRejected with the clinician note;
- * - a new `plan` prop updates the records in place (animated), the baseline ghost stays.
+ * - a new `plan` prop updates the records in place (animated via `transition`), the baseline ghost stays.
+ *
+ * Bryntum features used, and why:
+ * - baselines: the approved plan as a ghost bar under each visit, plus a ghost for chat what-if previews;
+ * - timeRanges: the simulated "today" line, a red line per breached deadline, and temporary
+ *   healing/safe zones while dragging;
+ * - indicators.deadlineDate: per-visit deadline flag, pinned to the exact day;
+ * - labels / column renderers: visit dates, payment amounts and statuses from the engine meta;
+ * - taskRenderer: the phase number inside visit pills and the minimum-healing text ("min. 8 wk") on long healing bars;
+ * - summary: a "paid this month" footer row summed from the payment milestones;
+ * - taskMenu: patient actions (pay a phase, ask for a delay), everything else filtered out;
+ * - dependencies tooltip: explains the healing lag between two phases;
+ * - svalbard-dark theme + LocaleManager (Es / EnGb), restyled through ./gantt.css.
  */
 import "@bryntum/gantt/gantt.css";
 import "@bryntum/gantt/svalbard-dark.css";
@@ -322,8 +335,8 @@ export default function GanttInner(props: PlanGanttProps) {
                 name: tg(L(), "tipDeadline", { date: shortDate(m.deadlineDate, L()) }),
               };
             },
-            // The € indicator on visit pills is gone on purpose: the pill now carries the phase number and
-            // the payment diamond row right below already shows the money (docs pass: mention the diamond row).
+            // No € indicator on visit pills: the pill carries the phase number and the payment
+            // diamond row right below already shows the money.
             dueDate: false,
           },
         },
@@ -528,11 +541,12 @@ export default function GanttInner(props: PlanGanttProps) {
     gantt.project.timeRangeStore.add(records as never);
   }
 
+  /** Nudge the bar Bryntum just snapped back, so the rejection is felt as well as read. */
   function nudge(rec: TaskModel) {
     const el = ganttRef.current?.getElementFromTaskRecord(rec);
     if (!el) return;
     el.classList.remove("ppp-rejected");
-    void el.offsetWidth;
+    void el.offsetWidth; // force a reflow so the nudge animation restarts on repeated rejections
     el.classList.add("ppp-rejected");
     setTimeout(() => el.classList.remove("ppp-rejected"), 900);
   }
@@ -592,6 +606,7 @@ function monthHeader(start: Date, end: Date, index: number, locale: Locale, comp
   return firstReadable || start.getMonth() === 0 ? `${month} ${start.getFullYear()}` : month;
 }
 
+/** Short in-bar label for a healing window ("min. 8 wk"), in weeks when it divides evenly. */
 function shortHealing(m: GanttTaskMeta, locale: Locale): string {
   const days = m.minLagDays ?? 0;
   return days % 7 === 0 ? tg(locale, "healingRowMinWeeks", { weeks: days / 7 }) : tg(locale, "healingRowMinDays", { days });

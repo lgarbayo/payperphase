@@ -1,7 +1,7 @@
 /**
- * OWNED BY WP-02. Clinician note library (ES/EN). Patients see a note only after the clinic
+ * Clinician note library (ES/EN). Patients see a note only after the clinic
  * approves it for their plan. Texts must contain NO dosages, NO diagnoses, NO prices, NO dates.
- * Reviewed by WP-02: plain language, ES + EN for every NoteId, <= 240 chars each, no dosages, prices or dates
+ * Style rules: plain language, ES + EN for every NoteId, <= 240 chars each, no dosages, prices or dates
  * (tests/seed/notes.test.ts enforces it). Phase notes never prescribe; anything clinical is referred to the clinic.
  */
 import type { ClinicalNote, NoteId } from "@/contracts";

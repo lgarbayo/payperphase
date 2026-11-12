@@ -1,8 +1,8 @@
 "use client";
 /**
- * OWNED BY WP-11. Patient chat panel: POST /api/chat, suggested questions, citation chips
+ * Patient chat panel: POST /api/chat, suggested questions, citation chips
  * "Aprobado por Dra. … · Fase n", the "Enviar mensaje a mi clínica" referral and the "Ver en el calendario"
- * ghost toggle (calls onGhostPreview(shifts) / onGhostPreview(null); WP-06 draws the Gantt ghost).
+ * ghost toggle (calls onGhostPreview(shifts) / onGhostPreview(null); the patient page draws the Gantt ghost).
  * Renders inside the patient page's chat aside (which owns the header and the close button).
  */
 import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
@@ -16,7 +16,7 @@ import { SendIcon } from "./icons";
 export interface PlanChatProps {
   planId: string;
   locale: Locale;
-  /** "Ver en el calendario" toggle: the parent (WP-06) draws these shifts as Gantt ghostShifts; null clears. */
+  /** "Ver en el calendario" toggle: the patient page draws these shifts as Gantt ghostShifts; null clears. */
   onGhostPreview?: (shifts: PhaseShift[] | null) => void;
 }
 

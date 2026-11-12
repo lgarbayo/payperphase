@@ -1,7 +1,7 @@
 /**
- * OWNED BY WP-02. Renders the synthetic Spanish clinic quotes (presupuestos) with pdf-lib.
+ * Renders the synthetic Spanish clinic quotes (presupuestos) with pdf-lib.
  * Pure and deterministic: no clock, no randomness, no I/O. Same input → byte-identical output, so the
- * sha256 of each PDF is stable and can key WP-03's cached extraction fallback.
+ * sha256 of each PDF is stable and can key the cached extraction fallback.
  */
 import { PDFDocument, PDFFont, PDFPage, StandardFonts, rgb } from "pdf-lib";
 import type { RawExtraction } from "@/contracts";

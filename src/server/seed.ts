@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-09. The persisted DB shape and the Director Mode beat states it can be seeded into.
+ * The persisted DB shape and the Director Mode beat states it can be seeded into.
  *
  * Beats (src/contracts/server.ts DemoBeat), all from the seed cases (data/seed), clock = SIM_START_DATE
  * unless noted:

@@ -1,7 +1,7 @@
 /**
- * OWNED BY WP-03. Claude drafts ES/EN SLOT TEMPLATES per phase; the validator checks every draft against
+ * Claude drafts ES/EN SLOT TEMPLATES per phase; the validator checks every draft against
  * the slots that phase has engine values for; drafts that fail are replaced by the deterministic template.
- * Drafts stay `status: "draft"` until the clinic approves them (WP-07 → WP-09 approve route).
+ * Drafts stay `status: "draft"` until the clinic approves them (clinic console → approve route).
  */
 import { z } from "zod";
 import {

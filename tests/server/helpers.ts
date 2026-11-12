@@ -1,4 +1,4 @@
-/** Shared helpers for tests/server (WP-09). */
+/** Shared helpers for tests/server. */
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";

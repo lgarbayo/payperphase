@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-04. The OFFICIAL PayPal Pay Later message (JS SDK `messages` component), unedited,
+ * The OFFICIAL PayPal Pay Later message (JS SDK `messages` component), unedited,
  * with data-pp-amount = the phase amount. Mounted only for amounts inside the Pay Later range; PayPal
  * alone decides what it says. Our own copy never claims eligibility.
  *

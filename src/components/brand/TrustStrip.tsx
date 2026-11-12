@@ -1,6 +1,6 @@
 /**
- * OWNED BY WP-14. "Claude reads · Code decides money & dates · Your dentist approves every word".
- * Props are consumed by WP-07 (under the clinic Gantt): keep `{ locale }`. The full sentence stays one text node.
+ * "Claude reads · Code decides money & dates · Your dentist approves every word".
+ * Also rendered under the clinic Gantt: keep `{ locale }`. The full sentence stays one text node.
  */
 import { TRUST_STRIP_COPY } from "@/contracts/constants";
 import type { Locale } from "@/contracts";

@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-09. POST /api/plans/:id/whatif: the server engine is the source of truth.
+ * POST /api/plans/:id/whatif: the server engine is the source of truth.
  * 409 {ok:false, validation} on an illegal move (the Gantt snaps back and shows the note);
  * persist:false returns a preview without saving.
  */

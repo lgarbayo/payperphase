@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-03. Deterministic ES/EN phase templates: the fallback whenever Claude is off, slow, refuses,
+ * Deterministic ES/EN phase templates: the fallback whenever Claude is off, slow, refuses,
  * or drafts something the validator rejects. They use slots only, so they always validate.
  */
 import type { LocalizedText, PhaseKind, Plan, WordingSlot } from "@/contracts";

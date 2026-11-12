@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-10. Deterministic playbook: the same toolkit tools, in a fixed order, through the same
+ * Deterministic playbook: the same toolkit tools, in a fixed order, through the same
  * guard. Used when the LLM is unavailable (no key, refusal, error, runaway loop) and, after an LLM run,
  * to complete anything the model left out. `planActions` is pure (state + simulated today → actions);
  * execution re-reads the plan before every call, so it is idempotent: invoices that already exist are

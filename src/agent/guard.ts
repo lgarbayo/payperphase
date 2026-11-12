@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-10. Deterministic policy gate wrapped around EVERY agent tool call (LLM or playbook).
+ * Deterministic policy gate wrapped around EVERY agent tool call (LLM or playbook).
  * Pure: no I/O; the simulated clock's day comes in the context. A violation becomes an `is_error` tool_result for the model and a red
  * `guard_rejected` step in the feed. The model never chooses money: amounts must equal the engine's cents.
  */

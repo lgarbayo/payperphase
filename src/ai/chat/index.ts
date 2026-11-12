@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-11. Grounded patient chat. Live path: claude-haiku-5-5 over the plan's approved notes as cited
+ * Grounded patient chat. Live path: claude-haiku-5-5 over the plan's approved notes as cited
  * document blocks, with the `simulate_delay` engine tool. Mock path (no key): a deterministic router.
  * Either way every date comes from the engine, a numeric grounding check runs on model text, and anything
  * out of scope gets the fixed referral. Never throws for model or network trouble: it degrades to cached.

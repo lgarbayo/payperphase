@@ -1,7 +1,7 @@
 import type { Dictionary } from "./types";
 
 /**
- * Owned by WP-11. Add keys to BOTH es and en (tests/i18n checks parity).
+ * Add keys to BOTH es and en (tests/i18n checks parity).
  * Two groups: panel UI strings, and the code-built answers (mock router, grounding fallback). Answers
  * only ever interpolate engine values (dates, phase numbers, spans) that `simulate_delay` returned.
  */

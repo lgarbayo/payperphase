@@ -38,7 +38,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 <LocaleToggle />
               </header>
               <div className="flex-1">{children}</div>
-              {/* WP-14 owns DirectorMode (renders only with ?director=1). */}
+              {/* DirectorMode renders only with ?director=1. */}
               <Suspense fallback={null}>
                 <DirectorMode />
               </Suspense>

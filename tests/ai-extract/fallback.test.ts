@@ -6,7 +6,7 @@ import { ExtractError, extractQuote } from "@/ai/extract";
 import type { ClaudeClient } from "@/ai/extract/claude";
 import { resetEnvCache } from "@/env";
 
-// A tiny stand-in for the hero PDF. WP-02 owns the real sha table; here we mock its lookup.
+// A tiny stand-in for the hero PDF. The seed owns the real sha table; here we mock its lookup.
 const { KNOWN_PDF, KNOWN_SHA } = vi.hoisted(() => {
   const bytes = new TextEncoder().encode("%PDF-1.7\n% hero presupuesto stand-in\n%%EOF\n");
   const { createHash: h } = require("node:crypto") as typeof import("node:crypto");

@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-11. Live path: Claude Haiku 5.5 over the plan's approved notes.
+ * Live path: Claude Haiku 5.5 over the plan's approved notes.
  *
  * - Approved notes go in as plain-text `document` blocks with `citations: {enabled: true}`, titled with the
  *   note title, phase and approver. Citations are incompatible with structured outputs, so the answer is

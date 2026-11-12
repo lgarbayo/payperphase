@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-12. "Paid for treatment not yet received" meter (stays at €0 under PayPerPhase).
+ * "Paid for treatment not yet received" meter (stays at €0 under PayPerPhase).
  *
  * Every number comes from the engine's ExposureReport (props). This component only formats and
  * lays out: a hero figure (green at 0, red above 0, with an icon + label so state is never

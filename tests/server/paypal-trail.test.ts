@@ -1,5 +1,5 @@
 /**
- * P4 · GET /api/plans/:id/paypal-trail against the real (temp-dir) store: 4 phases, mock order and
+ * GET /api/plans/:id/paypal-trail against the real (temp-dir) store: 4 phases, mock order and
  * capture ids after a mock pay, webhook dedupe shows once, and no email / payload ever leaks.
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";

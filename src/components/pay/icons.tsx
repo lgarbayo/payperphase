@@ -1,4 +1,4 @@
-/** OWNED BY WP-04. Tiny inline icons for the pay block (no icon font, no third-party logos). */
+/** Tiny inline icons for the pay block (no icon font, no third-party logos). */
 import type { SVGProps } from "react";
 
 const base = {

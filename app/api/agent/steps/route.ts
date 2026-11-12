@@ -1,4 +1,4 @@
-/** OWNED BY WP-10. GET /api/agent/steps?planId= — audit trail + pending approvals. */
+/** GET /api/agent/steps?planId= — audit trail + pending approvals. */
 import type { AgentStepsResponse } from "@/contracts";
 import { apiError, json } from "@/lib/http";
 import { store } from "@/server/store";

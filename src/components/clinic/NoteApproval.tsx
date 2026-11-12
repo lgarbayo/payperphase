@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-07. Clinician note approval. The patient only ever sees notes ticked here, so
+ * Clinician note approval. The patient only ever sees notes ticked here, so
  * "Aprobar y enviar al paciente" stays disabled until every note on the plan is approved.
  */
 import type { ClinicalNote, Locale, NoteId, Phase, Plan } from "@/contracts";

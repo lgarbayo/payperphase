@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 /**
- * WP-06 patient page view. The Gantt, pay, chat and impact modules are mocked (their owners test
+ * patient page view. The Gantt, pay, chat and impact modules are mocked (their owners test
  * them); the SSE hook is mocked so tests can push DomainEvents; fetch is stubbed per test.
  */
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";

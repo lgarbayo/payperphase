@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-13. GET /api/health: Render's health check (render.yaml healthCheckPath) and the
+ * GET /api/health: Render's health check (render.yaml healthCheckPath) and the
  * first row of scripts/demo-check.ts.
  *
  * 200 `{ ok: true, version, modes, simToday }` when the env parses and the store answers. Mock

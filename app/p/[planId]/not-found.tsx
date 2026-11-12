@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-06. Unknown plan id (or an old id after a demo reset).
+ * Unknown plan id (or an old id after a demo reset).
  * Every judge shares one demo, so /p/demo itself can be missing (e.g. after someone opens beat 1).
  * The button opens the demo plan, and resets the demo first when there is no demo plan to open,
  * so a judge never lands in a not-found loop.

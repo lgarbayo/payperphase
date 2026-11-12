@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-14. Director Mode overlay (?director=1). Renders nothing and listens to nothing unless
+ * Director Mode overlay (?director=1). Renders nothing and listens to nothing unless
  * enabled (persisted per tab in sessionStorage; ?director=0 switches it off).
  *
  *   R reset · 1–6 beat states + pages · C clock +7 weeks · G agent guard test · H hide the HUD

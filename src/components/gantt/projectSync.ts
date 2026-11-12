@@ -1,9 +1,12 @@
 /**
- * OWNED BY WP-05. Pushes a fresh `planToBryntum` mapping into a live Bryntum ProjectModel.
- * Duck-typed (no @bryntum import) so the parity test can drive a real ProjectModel under jsdom.
+ * Pushes a fresh `planToBryntum` mapping into a live Bryntum ProjectModel.
+ * Duck-typed against the ProjectModel API it needs (taskStore / dependencyStore / timeRangeStore,
+ * `loadInlineData`, `commitAsync`) with no @bryntum import, so the parity test can drive a real
+ * ProjectModel under jsdom.
  *
- * Same rows/arrows/baselines → records are updated in place, which lets Bryntum animate the bars
- * (successors glide to their new dates after a what-if). Anything structural → reload the data.
+ * Same rows, arrows, time-range ids and baselines → records are updated in place with `record.set`, which lets
+ * Bryntum animate the bars (successors glide to their new dates after a what-if).
+ * Anything structural → `loadInlineData` reloads the whole package.
  */
 import { structureKey, type GanttTaskData, type PlanToBryntum } from "./toBryntum";
 
@@ -21,11 +24,13 @@ export interface ProjectLike {
   commitAsync(): Promise<void>;
 }
 
-const iso = (d: Date) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+/** Local calendar day as a cheap comparison key (not zero-padded ISO: it is never displayed or parsed). */
+const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 
+/** Baseline records are not updated in place, so any baseline change forces a reload. */
 function baselineKey(tasks: GanttTaskData[]): string {
   return tasks
-    .map((t) => `${t.id}:${t.baselines.map((b) => `${iso(b.startDate)}>${iso(b.endDate)}${b.cls ?? ""}`).join("+")}`)
+    .map((t) => `${t.id}:${t.baselines.map((b) => `${dayKey(b.startDate)}>${dayKey(b.endDate)}${b.cls ?? ""}`).join("+")}`)
     .join(",");
 }
 
@@ -38,6 +43,7 @@ export function projectData(m: PlanToBryntum) {
   return { tasks: m.tasksData, dependencies: m.dependenciesData, timeRanges: m.timeRangesData };
 }
 
+/** True when the next mapping cannot be applied record-by-record (rows, arrows, time ranges or baselines changed). */
 export function needsReload(prev: PlanToBryntum | null, next: PlanToBryntum): boolean {
   if (!prev) return true;
   return (

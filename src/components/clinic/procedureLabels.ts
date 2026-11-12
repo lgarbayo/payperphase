@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-07. Human labels for the closed procedure vocabulary, used by the plan editor's
+ * Human labels for the closed procedure vocabulary, used by the plan editor's
  * "Añadir línea" form. Same ES/EN shape as the note library.
  */
 import type { LocalizedText, ProcedureCode } from "@/contracts";

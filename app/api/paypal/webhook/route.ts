@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-04. POST /api/paypal/webhook (PayPal → us).
+ * POST /api/paypal/webhook (PayPal → us).
  * 1. Verify the signature via /v1/notifications/verify-webhook-signature with PAYPAL_WEBHOOK_ID (401 if not).
  * 2. Dedupe on the PayPal event id, route, apply through transition(), or GET-reconcile.
  * Always 200 once verified and handled, so PayPal stops retrying.

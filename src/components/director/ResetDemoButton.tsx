@@ -1,5 +1,5 @@
 "use client";
-/** OWNED BY WP-14. Public "Reset demo" button (judges): POST /api/demo/reset, confirms with a toast. */
+/** Public "Reset demo" button (judges): POST /api/demo/reset, confirms with a toast. */
 import { useState } from "react";
 import { apiFetch } from "@/contracts";
 import { useT } from "@/i18n";

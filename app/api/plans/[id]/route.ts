@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-09. GET /api/plans/:id?view=patient|clinic (id may be the alias "demo").
+ * GET /api/plans/:id?view=patient|clinic (id may be the alias "demo").
  * Live views refetching after an SSE event send `x-if-missing: 204`: a plan removed meanwhile (a
  * Director beat that empties the demo) then answers 204 instead of a 404 the browser would log.
  */

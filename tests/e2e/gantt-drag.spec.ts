@@ -1,5 +1,5 @@
 /**
- * OWNED BY P1 (polish). Real-browser drag test of the Bryntum hero chart on /p/demo.
+ * Real-browser drag test of the Bryntum hero chart on /p/demo.
  *
  *   npm run e2e                      (builds, starts the mock server, runs every spec)
  *   npx playwright test tests/e2e/gantt-drag.spec.ts

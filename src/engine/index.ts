@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-01. Deterministic phase engine — pure, isomorphic TypeScript (runs in browser + server).
+ * Deterministic phase engine — pure, isomorphic TypeScript (runs in browser + server).
  * The ONLY producer of money (integer EUR cents) and dates (IsoDate). No I/O, no clock, no randomness.
  *
  * Modules:

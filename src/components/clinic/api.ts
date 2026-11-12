@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-07. Typed calls from the clinic console to the plan/extraction API (WP-03, WP-09).
+ * Typed calls from the clinic console to the plan/extraction API.
  * The console never computes money or dates: every amount and date comes back from these calls.
  */
 import {

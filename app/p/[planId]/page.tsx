@@ -1,6 +1,6 @@
 /**
- * OWNED BY WP-06. Patient plan page /p/[planId] (planId may be the alias "demo").
- * Server-renders the initial view (WP-09's buildPlanView); the client view keeps it live over SSE.
+ * Patient plan page /p/[planId] (planId may be the alias "demo").
+ * Server-renders the initial view (buildPlanView); the client view keeps it live over SSE.
  */
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";

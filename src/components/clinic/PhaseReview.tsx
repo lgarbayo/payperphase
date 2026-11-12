@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-07. Phase review cards: amount, Pay-in-3 fit badge, visit date, lines, the
+ * Phase review cards: amount, Pay-in-3 fit badge, visit date, lines, the
  * approved-note checklist and (optional, cut-able) wording drafts. Everything is engine output.
  */
 import type { ClinicalNote, Locale, NoteId, Phase, Plan, PhaseWordingDraft, QuoteLine } from "@/contracts";

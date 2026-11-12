@@ -1,7 +1,7 @@
 import type { Dictionary } from "./types";
 
 /**
- * Owned by WP-06. Patient plan page (/p/[planId]). Add keys to BOTH es and en (tests/i18n checks parity).
+ * Patient plan page (/p/[planId]). Add keys to BOTH es and en (tests/i18n checks parity).
  * Calm, clinical, plain language. Never say "eligible"/"elegible" about Pay in 3: only "within range".
  * Every number, amount and date is a {{slot}} filled by code from engine/server values.
  */

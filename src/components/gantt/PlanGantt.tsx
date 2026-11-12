@@ -1,7 +1,9 @@
 "use client";
 /**
- * OWNED BY WP-05. Public entry: <PlanGantt {...PlanGanttProps}/>. Bryntum is client-only
- * (next/dynamic, ssr:false); GanttInner is the only module that imports @bryntum/*.
+ * Public entry: <PlanGantt {...PlanGanttProps}/>.
+ * Bryntum Gantt touches `window` on import, so it is loaded client-only (next/dynamic, ssr:false)
+ * behind a skeleton; GanttInner is the only module that imports @bryntum/*. This wrapper also
+ * sizes the chart to the plan (every row visible, no internal scroll) and renders the empty state.
  */
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
@@ -43,14 +45,14 @@ export function PlanGantt(props: PlanGanttProps) {
         : ganttHeightFor(planToBryntum(plan, { today, locale, mode }), { hideLegend }),
     [plan, today, locale, mode, hideLegend, fallback],
   );
-  if (props.plan.phases.length === 0) {
+  if (plan.phases.length === 0) {
     return (
       <div
         className="flex items-center justify-center rounded-[var(--ppp-radius)] border border-dashed border-border bg-surface text-sm text-muted"
         style={{ height: Math.min(fallback, 200) }}
         data-testid="plan-gantt-empty"
       >
-        {translate("gantt", props.locale, "empty")}
+        {translate("gantt", locale, "empty")}
       </div>
     );
   }

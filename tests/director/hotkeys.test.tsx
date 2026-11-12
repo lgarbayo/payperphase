@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-/** WP-14 Director Mode: hotkeys call the right API and navigate; nothing without ?director=1; typing is ignored; hub Reset. */
+/** Director Mode: hotkeys call the right API and navigate; nothing without ?director=1; typing is ignored; hub Reset. */
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LocaleProvider } from "@/i18n";

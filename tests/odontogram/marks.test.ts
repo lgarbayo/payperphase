@@ -35,7 +35,7 @@ describe("marksFromLines on the golden case", () => {
     expect(marksFromLines(toothless, GOLDEN_PLAN.phases)).toEqual([]);
   });
 
-  it("works without phases (WP-07 reveals lines before the plan exists)", () => {
+  it("works without phases (the clinic console reveals lines before the plan exists)", () => {
     const bare = marksFromLines(GOLDEN_LINES);
     expect(bare.length).toBe(marks.length);
     expect(bare.every((m) => m.phaseN === undefined)).toBe(true);

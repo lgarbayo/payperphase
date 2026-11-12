@@ -1,6 +1,6 @@
 /**
- * WP-06 test fixtures: PlanViewResponse built from the golden hero case. Exposure and stress are
- * hand-built (no engine call) so these tests never depend on WP-01's implementation details.
+ * test fixtures: PlanViewResponse built from the golden hero case. Exposure and stress are
+ * hand-built (no engine call) so these tests never depend on the engine's implementation details.
  */
 import type { ClosureStressTest, ExposureReport, Plan, PlanViewResponse } from "@/contracts";
 import { DSCA_SOURCE_URL } from "@/contracts/constants";

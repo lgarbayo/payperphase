@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-/** WP-14 cards: closing card compliance + URL, title card positioning line, keyboard advance. */
+/** cards: closing card compliance + URL, title card positioning line, keyboard advance. */
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ClosingCard, HookTitleCards } from "@/components/director/Cards";

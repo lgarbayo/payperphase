@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-03. Extraction prompt. The model reads; code does every conversion and sum.
+ * Extraction prompt. The model reads; code does every conversion and sum.
  */
 export const EXTRACTION_SYSTEM = `You read Spanish dental treatment quotes (presupuestos) for PayPerPhase, a tool that lets a clinic split a treatment into paid phases. Your output is checked by deterministic code and then reviewed by the clinic, so faithful copying matters more than tidiness.
 

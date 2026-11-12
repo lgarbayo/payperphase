@@ -1,4 +1,4 @@
-/** WP-10 guard (pure): every violation has its own reason; valid payloads pass; duplicate numbers bump v{k}. */
+/** guard (pure): every violation has its own reason; valid payloads pass; duplicate numbers bump v{k}. */
 import { describe, expect, it } from "vitest";
 import { goldenPlan } from "@/contracts/fixtures/implantCase";
 import type { PendingApproval, Plan } from "@/contracts";

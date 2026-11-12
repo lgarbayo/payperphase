@@ -1,7 +1,7 @@
 /**
  * The drag validator wrapper (Bryntum validatorFn → engine.validateMove, drop → engine.reschedule
  * preview → onMoveCommitted, snap-back → onMoveRejected). The engine is mocked with the documented
- * results so this covers the wrapper, not WP-01's rules.
+ * results so this covers the wrapper, not the engine's rules.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { MoveRequest, Plan, WhatIfResult } from "@/contracts";

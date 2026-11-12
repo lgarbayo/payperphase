@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-02. Synthetic "Ortodoncia invisible" quote: records, 4 aligner batches, retainer (€3,600).
+ * Synthetic "Ortodoncia invisible" quote: records, 4 aligner batches, retainer (€3,600).
  * Every batch is its own milestone (the engine puts records + batch 1 in the first visit), 42–84 days apart.
  */
 import { extractionOf, rawOf, type QuoteSpec } from "./quoteSpec";

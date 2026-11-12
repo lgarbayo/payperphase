@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-16. Playwright config for `npm run e2e` (the browser smoke of the demo path).
+ * Playwright config for `npm run e2e` (the browser smoke of the demo path).
  *
  * The suite never touches live services: the web server is a production build started with
  * FORCE_MOCKS=1 (PayPal and Anthropic are mocked), a fresh temporary DATA_DIR and a free port.

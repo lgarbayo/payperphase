@@ -1,6 +1,6 @@
 /**
- * OWNED BY WP-09. POST /api/plans/:id/approve: the dentist's "Approve & send to patient" click
- * (also the human approval for the initial per-phase invoice issue, see WP-10). Draft only (409
+ * POST /api/plans/:id/approve: the dentist's "Approve & send to patient" click
+ * (also the human approval for the initial per-phase invoice issue, see src/agent). Draft only (409
  * otherwise); an implant plan becomes the hero ("demo"); publishes PLAN_APPROVED.
  */
 import { ApprovePlanRequestSchema, type PlanResponse } from "@/contracts";

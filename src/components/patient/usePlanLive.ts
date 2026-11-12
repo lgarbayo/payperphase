@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-06. Live state for the patient page: the server-rendered PlanViewResponse, kept fresh
+ * Live state for the patient page: the server-rendered PlanViewResponse, kept fresh
  * over SSE (useDomainEvents) with a coalescing refetch of GET /api/plans/:id?view=patient.
  *
  * `planRef` is what the URL used (a plan id or the alias "demo"). Refetches go through it so the

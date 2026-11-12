@@ -1,4 +1,4 @@
-/** OWNED BY WP-09. Random ids (crypto, not Math.random). */
+/** Random ids (crypto, not Math.random). */
 
 const ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
 

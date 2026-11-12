@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-07. Payments overview: every plan (GET /api/plans) with its collected total and the
+ * Payments overview: every plan (GET /api/plans) with its collected total and the
  * next due payment. Refetches whenever `refreshSignal` changes (the console bumps it on SSE events).
  */
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
