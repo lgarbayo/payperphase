@@ -72,3 +72,21 @@ describe("chat: amount and date questions are answered from the engine's plan da
     expect(routeQuestion("¿Cuánto cuesta la fase 2?", PLAN)).toEqual({ kind: "cost", phaseN: 2 });
   });
 });
+
+describe("chat: date-only or care questions are not cost questions", () => {
+  it.each([
+    "When can I eat after the implant?",
+    "When should I stop smoking before the implant?",
+    "What's left to do after the implant?",
+    "¿Cuándo puedo comer después del implante?",
+  ])("«%s» is not routed to the cost answer", (q) => {
+    expect(routeQuestion(q, PLAN).kind).not.toBe("cost");
+  });
+
+  it.each(["When do I pay phase 3?", "¿Cuándo pago la fase 3?", "How much do I still owe?", "¿Cuánto me queda por pagar?"])(
+    "«%s» is a cost question",
+    (q) => {
+      expect(routeQuestion(q, PLAN).kind).toBe("cost");
+    },
+  );
+});

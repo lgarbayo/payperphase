@@ -17,9 +17,13 @@ const DELAY_WORDS =
 const MEDICAL_WORDS =
   /\b(ibuprofen\w*|paracetamol|aspirin\w*|nolotil|enantyum|dolor|duele|dosis|medicin\w*|medicament\w*|medicat\w*|pastilla\w*|antibiotic\w*|analgesic\w*|antiinflam\w*|pain\w*|painkiller\w*|dose|dosage|pill\w*|drug\w*|infecc\w*|infect\w*|sangr\w*|bleed\w*|hincha\w*|swell\w*|fiebre|fever|alerg\w*|embaraz\w*|pregnan\w*|diagnos\w*)\b/;
 
-/** Amount and date questions about the plan itself ("¿Cuánto cuesta la fase 2?", "When do I pay phase 3?"). */
+/**
+ * Money questions about the plan itself ("¿Cuánto cuesta la fase 2?", "When do I pay phase 3?").
+ * Only explicit money words count: a date-only question ("When can I eat after the implant?") is not a
+ * cost question and goes to the normal (model or referral) path.
+ */
 const COST_WORDS =
-  /\b(cuanto|cuanta|cuesta\w*|cost\w*|precio\w*|price\w*|importe\w*|amount|pag\w*|pay\w*|paid|owe|debo|debe\w*|total|falta\w*|queda\w*|pendiente\w*|remaining|left|cuando|when|fecha\w*|date\w*|dia)\b|how much/;
+  /\b(cuanto|cuanta|cuesta\w*|costar\w*|cost|costs|costing|precio\w*|price\w*|importe\w*|amount|pagar|pago|pagos|pagado|pagada|pago\w*|pay|paying|payment\w*|paid|owe|debo|deberé|total|euros?|eur)\b|how much|€/;
 
 /** A cost question must be about this plan, not any price ("¿Cuánto cuesta un viaje a Marte?"). */
 const PLAN_WORDS =
