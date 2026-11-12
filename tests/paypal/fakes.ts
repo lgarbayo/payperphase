@@ -239,6 +239,7 @@ export function completedOrder(
       {
         reference_id: "ph1",
         custom_id: customId,
+        amount: { currency_code: "EUR", value: opts.value ?? "360.00" },
         payments: {
           captures: [
             {

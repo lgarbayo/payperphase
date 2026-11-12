@@ -11,9 +11,9 @@ import { modes, serverEnv } from "@/env";
 import { nowIso } from "@/lib/http";
 import { payPalValueToCents } from "@/lib/money";
 import { store } from "@/server/store";
-import { applyPaymentEvent } from "./apply";
+import { applyPaymentEvent, captureRefusal } from "./apply";
 import { paypalRequest } from "./client";
-import { reconcileOrder } from "./orders";
+import { eurCents, reconcileOrder } from "./orders";
 import { transition, type PaymentEvent, type TransitionResult } from "./transition";
 import type { PayPalCapture, PayPalInvoice, PayPalWebhookEvent } from "./types";
 
@@ -122,7 +122,7 @@ async function route(event: PayPalWebhookEvent): Promise<Routed> {
     if (!captureId || !target) return { reconcile, resourceId: captureId };
     let paymentEvent: PaymentEvent | null = null;
     if (type === "PAYMENT.CAPTURE.COMPLETED") {
-      const amountCents = moneyCents(capture.amount);
+      const amountCents = eurCents(capture.amount);
       if (orderId && amountCents !== undefined) {
         paymentEvent = {
           type: "CAPTURE_COMPLETED",
@@ -133,7 +133,7 @@ async function route(event: PayPalWebhookEvent): Promise<Routed> {
         };
       }
     } else if (type === "PAYMENT.CAPTURE.PENDING" && orderId) {
-      paymentEvent = { type: "CAPTURE_PENDING", orderId, captureId };
+      paymentEvent = { type: "CAPTURE_PENDING", orderId, captureId, amountCents: eurCents(capture.amount) ?? 0 };
     } else if ((type === "PAYMENT.CAPTURE.DENIED" || type === "PAYMENT.CAPTURE.DECLINED") && orderId) {
       paymentEvent = { type: "CAPTURE_DENIED", orderId, captureId };
     }
@@ -207,10 +207,14 @@ export async function handleWebhookEvent(
 
   // Preview the transition (pure) so the audit record says whether this event changes anything.
   let preview: TransitionResult | null = null;
+  let refused: string | null = null;
   if (target) {
     const plan = await store.getPlan(target.planId);
     const phase = plan?.phases.find((p) => p.id === target.phaseId);
-    if (phase) preview = transition(phase.payment, target.event);
+    if (plan && phase) {
+      preview = transition(phase.payment, target.event);
+      if (preview.changed) refused = captureRefusal(plan, phase, target.event, (await store.getClock()).today);
+    }
   }
 
   const record: WebhookEventRecord = {
@@ -221,10 +225,15 @@ export async function handleWebhookEvent(
     resourceId: routed.resourceId,
     planId: target?.planId,
     phaseId: target?.phaseId,
-    applied: preview?.changed ?? false,
+    applied: (preview?.changed ?? false) && !refused,
   };
   const base = { eventId: event.id, eventType: event.event_type, planId: target?.planId, phaseId: target?.phaseId };
   if (!(await store.recordWebhookEvent(record))) return { ...base, status: "duplicate" };
+  // Not the server's amount, or not payable yet (ADR-4): recorded, never applied, nothing to reconcile.
+  if (refused) {
+    console.warn(`[paypal] webhook ${event.event_type} ${event.id} refused for ${target?.planId}:${target?.phaseId}: ${refused}`);
+    return { ...base, status: "ignored" };
+  }
 
   if (target && preview?.changed) {
     const r = await applyPaymentEvent({ ...target, via: "webhook" });

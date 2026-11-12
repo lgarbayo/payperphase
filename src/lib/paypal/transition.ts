@@ -24,7 +24,7 @@ export type PaymentEvent =
   /** Server created an Orders v2 order for this milestone (attempt = PayPal-Request-Id counter). */
   | { type: "ORDER_CREATED"; orderId: string; attempt: number }
   /** Capture accepted but held by PayPal (e.g. receiving preferences, eCheck). */
-  | { type: "CAPTURE_PENDING"; orderId: string; captureId: string }
+  | { type: "CAPTURE_PENDING"; orderId: string; captureId: string; amountCents?: number }
   /** Money captured on the per-phase checkout order. */
   | { type: "CAPTURE_COMPLETED"; orderId: string; captureId: string; amountCents: number; paidAt: string }
   /** PayPal denied a previously pending capture. */

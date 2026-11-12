@@ -17,6 +17,10 @@ This file is the human-readable history of PayPerPhase: what changed, and **why*
 ### Changed
 - **Each phase invoice is now created and sent on that phase's visit day, not when the plan is approved.** Before, the billing agent sent every phase's invoice at approval, and PayPal's invoice page would have let a patient pay a future phase early. Now a phase has no invoice until it is due, the guard refuses `create_invoice` and `send_invoice` for a phase that is not due (`PHASE_NOT_DUE`), reminders go only to overdue invoices, and the clinic console's invoice preview and the PayPal trail show a future phase as "Invoiced on its visit day" with its date. This makes "never pay in advance" hold on the invoice rail as it already did at checkout. Director key **5** now puts the simulated clock on phase 2's visit day, so the bone-graft edit cancels and reissues that day's invoice. See ADR-8 in [docs/ARCHITECTURE_DECISIONS.md](docs/ARCHITECTURE_DECISIONS.md).
 
+### Fixed
+- The Gantt drag tooltip now shows the clinic day a weekend drop actually lands on (the following Monday) and the shift to that day. Before, it showed the raw Saturday or Sunday while the drop committed Monday, so the tooltip and the result disagreed.
+- Every PayPal confirmation path (the capture route, the webhook and the return page) now settles a phase only for the server-set amount in euros and only once its visit day has come. Before, an order made in the browser with the public client id and the phase's reference (for example for EUR 0.01, in another currency, or for a phase not yet due) could be captured and mark the phase paid and delivered; the capture route now checks the order before any money moves, and a webhook for such a capture is recorded but not applied.
+
 ## [0.1.0] - 2026-11-11
 
 The version built for the [Build What's Next with PayPal and AI](https://paypalaihackathon.devpost.com/) hackathon, from 10 to 11 November 2026, and verified live on the hosted demo.
