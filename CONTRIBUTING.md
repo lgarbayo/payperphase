@@ -113,7 +113,7 @@ We use [Conventional Commits](https://www.conventionalcommits.org/). The format 
 | `ops` | Deployment, CI/CD, infrastructure |
 | `chore` | Anything else, such as `.gitignore` |
 
-**Scopes** are optional and name the area you touched. The most used ones in the history are `agent`, `gantt`, `server`, `chat`, `clinic`, `pay`, `paypal`, `patient`, `extract`, `deploy`, `impact`, `engine` and `odontogram`. Do not use issue numbers as scopes.
+**Scopes** are optional and name the area you touched. The most used ones in the history are `agent`, `gantt`, `server`, `chat`, `clinic`, `pay`, `paypal`, `patient`, `ui`, `extract`, `deploy`, `impact`, `engine` and `odontogram`. Do not use issue numbers as scopes.
 
 **The description:**
 - Use the imperative mood: "add", not "added" or "adds".

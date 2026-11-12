@@ -32,7 +32,7 @@ Does PayPal's official Pay Later offer render for a Spanish buyer paying in EUR,
 3. **Same card after the click.** The button is replaced by a pale-green row: "✓ Pagado · 360,00 €". Re-checked after merging WP-06 (16:58 CET): its phase card shows the button under "Hoy es tu visita: paga esta fase al terminar." After the click and the SSE refetch, the card flips to a green "Pagado" pill and "Pagado ✓ · recibido · Recibido el 16 nov 2026".
 4. **Phase 2 card.** "2. Colocación de implantes", "12 ene 2027 · 1.500,00 €" and a grey "Programado" pill. A disabled (faded) button reads "📅 Pagar con PayPal · 1.500,00 €", with "Se paga el día de la visita" underneath.
 
-## Result with the real ES sandbox app (Tue 2026-11-10, 17:10 CET; fleet SPIKES.md §1)
+## Result with the real ES sandbox app (Tue 2026-11-10, 17:10 CET)
 The team's ES business sandbox app (EUR) settles the open question above: **the Pay Later message renders**, with no "Expected USD" warning and no `buyerCountry` needed on the message.
 - JS SDK **v5** stays: `enable-funding=paylater` + `buyer-country=ES` (sandbox only) + `currency=EUR` + `locale=es_ES`.
 - By default PayPal switches product by amount: Pay in 3 at €360, "hasta 24 plazos" at €520, €1,500 and €1,690.
@@ -47,7 +47,7 @@ The team's ES business sandbox app (EUR) settles the open question above: **the 
 ## Mock-mode end-to-end (done, 2026-11-10 16:50 CET)
 On the dev server (`FORCE_MOCKS=1`), `/p/demo` → click "Pagar (simulación)" on phase 1. It went through the real routes: `POST /api/paypal/orders` → `POST /api/paypal/orders/:id/capture` → `transition()` → store. The SSE stream (`/api/events?planId=pln_ribera01`) delivered `PAYMENT_CAPTURED {phaseId: ph1, amountCents: 36000, via: "capture"}`, then `PHASE_STATUS_CHANGED due→paid`, then `PHASE_DELIVERED`. `GET /api/plans/demo` showed ph1 `paid` (instrument `order`, `paidCents` 36000) and delivered on 2026-11-16 (simulated). Click to "Pagado" took 0.8 s, including the dev compile of the routes.
 
-## Still open (needs sandbox credentials from WP-13)
+## Follow-up checks with sandbox credentials (both done)
 - [x] **Message check with an ES merchant.** (done, see "Result with the real ES sandbox app") Set `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET` and `NEXT_PUBLIC_PAYPAL_CLIENT_ID` (ES business sandbox app, EUR), then open `/spike-paylater` (page since removed; restore it from git history to re-run). Read the table: the three message columns should turn green for both intents. `window.__pppSpike` holds the same results as JSON. Note the message wording here, in words.
 - [x] **Live payment of ph1 (€360) end to end.** (done on the hosted URL, see the table) With the same env plus `PAYPAL_WEBHOOK_ID`: `npm run dev`, then `POST /api/demo/reset`, open `/p/demo`, click "Pagar con PayPal" (or "Paga a plazos") on phase 1, approve with the ES sandbox buyer, and watch the diamond turn green. Record date, time, order id and capture id here. Server path: `getAccessToken()` → `POST /v2/checkout/orders` (`PayPal-Request-Id {planId}-ph1-create-1`, `invoice_id PPP-{plan4}-F1-O1`) → `POST /v2/checkout/orders/{id}/capture` (`PayPal-Request-Id {id}-capture`).
 

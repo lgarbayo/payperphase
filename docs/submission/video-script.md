@@ -1,5 +1,7 @@
 # Demo video script (2:50, hard cap 3:00)
 
+> **Final cut: https://youtu.be/M7eus5cVwbo (2:35).** It was recorded from this script; the timings below are the plan, and the edit came out 15 seconds shorter.
+
 Required by the rules: public on YouTube, **180 seconds at most**, shows the project working on its target device, no unlicensed music, no third-party trademarks or logos, no secrets on screen. This script runs **2:50**, leaving 10 seconds of margin.
 
 The voice-over is in English, and every screen is recorded in English (`?lang=en`, which the app remembers). The quote PDF itself stays Spanish, because it is a real Spanish quote. The sandbox stays visible throughout.
@@ -77,7 +79,7 @@ The shape follows the judging-panel review:
 ## 5. Patient: pay phase 1 · 0:46–1:14
 **Screen:** `/p/demo`.
 1. Toggle EN → ES → EN once (2 s).
-2. Point at phase 1 (€360, due today). The PayPal buttons sit there with PayPal's official Pay Later message under them, unedited; phases 2–4 show a locked "not yet" button.
+2. Point at phase 1 (€360, due today). The PayPal buttons sit there with PayPal's official Pay Later message under them, unedited; phases 2–4 show a disabled pay button, "Paid on the day of your visit".
 3. Click "Paga a plazos". Show 3 s of the PayPal sandbox window with "Paga en 3 plazos · 3 pagos sin intereses. 120,00 EUR al mes a partir de hoy." selected, then jump-cut past the DNI step.
 4. Back on the page, the phase-1 diamond turns green and the capture id line appears.
 5. Cut for 3 s to the clinic's **PayPal trail** for phase 1: capture `COMPLETED` and the two webhooks with "✓ signature verified".

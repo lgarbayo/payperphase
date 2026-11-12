@@ -1,18 +1,18 @@
 # Submission checklist
 
-Checked against [`fleet/hackathon.json`](../../fleet/hackathon.json) on 2026-11-11 by WP-15, updated on 2026-11-12 after the live rehearsal on the hosted URL. `[x]` = done and verifiable in the repo. `[ ]` **HUMAN** = only a person can do it. Deadline: Thu 12 Nov 2026, 21:00 CET (12:00 PT). Plan to submit by 18:00 CET.
+Checked against [`fleet/hackathon.json`](../../fleet/hackathon.json) on 2026-11-11, updated on 2026-11-12 after the live rehearsal on the hosted URL. `[x]` = done and verifiable in the repo. `[ ]` **HUMAN** = only a person can do it. Deadline: Thu 12 Nov 2026, 21:00 CET (12:00 PT). Plan to submit by 18:00 CET.
 
 Stage 1 is pass/fail: fits the theme and reasonably uses PayPal. Stage 2 scores five equal criteria: Technological Implementation, Design, Potential Impact, Quality of the Idea, Presentation.
 
 ## Repo
-- [ ] **HUMAN** Public repo, all code and assets. The repo is `lgarbayo/payperphase`: set it to public and check in an incognito window.
+- [x] Public repo, all code and assets: https://github.com/lgarbayo/payperphase
 - [x] Licence file present: [`LICENSE`](../../LICENSE) (MIT).
-- [ ] **HUMAN** Licence detected by GitHub and shown in the repo "About" box (check after the repo is public).
+- [x] Licence detected by GitHub (MIT) and shown in the repo "About" box.
 - [x] README has the pitch, the problem with its sources, proof on the PayPal sandbox, the architecture, PayPal, Bryntum and Render usage, the AI components, install, configuration, compatibility, troubleshooting, testing and compliance.
-- [x] README and Devpost screenshots recaptured in English from the hosted demo, with PayPal and Claude live (no mock badges).
+- [x] README and Devpost screenshots recaptured in English on the dark theme, in labelled mock mode (`FORCE_MOCKS=1`, so they show "Mock"/"Cached" badges); `paypal-pay-in-3.png` is the real PayPal sandbox window.
 - [x] Hosted URL filled in: https://payperphase.onrender.com/?lang=en
 - [x] README placeholders filled: the video link is in; the sandbox buyer login goes only in Devpost's test credentials field, not in the public repo.
-- [x] [`.env.example`](../../.env.example) is complete and holds no values.
+- [x] [`.env.example`](../../.env.example) is complete and holds no secrets (only safe defaults such as the model names).
 - [x] No secrets in the repository or in git history. Scanned on 2026-11-11 for Anthropic keys, PayPal secrets and bearer tokens; the only hit is a fake token constant in a test fixture. `tests/docs/links.test.ts` re-checks the docs on every run.
 
 ## Demo
@@ -33,7 +33,7 @@ Stage 1 is pass/fail: fits the theme and reasonably uses PayPal. Stage 2 scores 
 - [ ] **HUMAN** English audio (or English subtitles).
 
 ## Devpost form ([`devpost.md`](devpost.md), [`ai-tools.md`](ai-tools.md))
-- [x] Title, tagline (56 characters), all story sections and built-with tags drafted, in English.
+- [x] Title, tagline (58 characters), all story sections and built-with tags drafted, in English.
 - [x] Text description of features drafted.
 - [x] AI tools statement drafted: every model and tool and what it did, where the LLM is not used, and that the agent ran on the Agent Toolkit (not a REST fallback).
 - [x] Prize categories: Most Impactful, Best Use of PayPal + AI and Best Demo Delivery (categories); Best Use of Bryntum and Best Use of Render (sponsors). At most one category prize and one sponsor prize can be won, so entering several only adds chances.

@@ -1,6 +1,6 @@
 # Gantt browser proof (WP-05)
 
-Real-Chromium screenshots of `/gantt-lab` at 1440×900, Bryntum Gantt trial 7.3.8.
+Real-Chromium screenshots of `/gantt-lab` at 1440×900, Bryntum Gantt trial 7.3.8. They were taken on 2026-11-11, before the dark theme (#27, #28), so they show the earlier light theme rather than the current `svalbard-dark` one.
 
 | File | Shows |
 | --- | --- |

@@ -19,10 +19,10 @@
 
 7/7 HTTP checks plus the browser check pass (exit code 0).
 
-## Still to do on the live URL
+## Re-checking the live URL
 
 1. Apply `render.yaml` (or `render.free.yaml`) per `docs/deploy.md`.
 2. Run `npx tsx scripts/demo-check.ts https://<service>.onrender.com --browser` (needs `npx playwright install chromium`).
-3. Record here: the URL, the time, the output above. If the public trial alias fails to install on Render, set `BRYNTUM_NPM_TOKEN` (fallback in `docs/deploy.md`).
+3. If the public trial alias fails to install on Render, set `BRYNTUM_NPM_TOKEN` (fallback in `docs/deploy.md`).
 
 Known limits: the trial build shows a Bryntum trial notice; request a hackathon licence key (`docs/sandbox-setup.md`, section 5).

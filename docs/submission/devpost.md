@@ -1,6 +1,6 @@
 # Devpost copy: PayPerPhase
 
-Paste each block into the matching Devpost field. English. `TODO(human)` marks what only a person can fill in.
+Paste each block into the matching Devpost field. English.
 
 ## Title
 PayPerPhase
@@ -8,7 +8,7 @@ PayPerPhase
 ## Tagline
 Pay for dental treatment phase by phase. Never in advance.
 
-(Devpost allows 60 characters for the tagline; this one is 56.)
+(Devpost allows 60 characters for the tagline; this one is 58.)
 
 ## Built with (tags)
 `claude`, `anthropic`, `paypal`, `paypal-orders-v2`, `paypal-pay-later`, `paypal-agent-toolkit`, `paypal-invoicing`, `paypal-webhooks`, `bryntum-gantt`, `render`, `nextjs`, `react`, `typescript`, `tailwindcss`, `zod`, `vitest`, `playwright`
@@ -24,7 +24,7 @@ The rules allow at most one Grand Prize or category prize, plus at most one spon
 ## Links
 - Hosted demo: https://payperphase.onrender.com/?lang=en
 - Video: https://youtu.be/M7eus5cVwbo (2:35, English captions)
-- Repository: https://github.com/lgarbayo/payperphase (`TODO(human)`: make it public first; the licence is MIT)
+- Repository: https://github.com/lgarbayo/payperphase (public, MIT licence)
 - Sandbox test access: paste the sandbox buyer email and password into Devpost's test credentials field (valid until 15 Dec 2026). They are not in the public repo; the README section "Sandbox buyer login" points judges there.
 
 ## Image gallery (in this order)

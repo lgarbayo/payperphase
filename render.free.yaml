@@ -4,11 +4,11 @@
 # restart/deploy), and a webhook to a sleeping instance can fail (the return reconcile is the
 # source of truth). Pair it with .github/workflows/keep-warm.yml (repo variable RENDER_URL).
 # Apply with New > Blueprint > Advanced > Blueprint file path: render.free.yaml. See docs/deploy.md.
-# OWNED BY WP-13. Render Blueprint for PayPerPhase: https://render.com/docs/blueprint-spec
+# Render Blueprint for PayPerPhase: https://render.com/docs/blueprint-spec
 #
-# One always-on web service (Starter, never the free plan, so it never sleeps during judging
-# 1-15 Dec) with a 1 GB persistent disk for the JSON store (DATA_DIR/db.json). The store seeds
-# on boot when db.json is missing. Redeploys automatically on every push to main.
+# One web service on the FREE plan (it sleeps when idle) with NO persistent disk: the JSON store
+# (DATA_DIR/db.json) lives in /tmp and seeds on boot when db.json is missing. Redeploys
+# automatically on every push to main.
 # How to create it, fill the secrets, roll back and read logs: docs/deploy.md.
 #
 # Every key in .env.example is declared below (tests/deploy/render-yaml.test.ts enforces it).

@@ -17,7 +17,7 @@ Render is only the host. The app is one Node 22 web service with a 1 GB persiste
 
 The hosted demo for the hackathon is `https://payperphase.onrender.com` (Starter, Frankfurt).
 
-Plan (default `render.yaml`): **Starter** (always on, about $7/month, paid from credits). It never sleeps during judging (1-15 Dec). Health check: `/api/health`. Auto-deploys on every push to `main`; docs/fleet/tests-only changes are skipped.
+Plan (default `render.yaml`): **Starter** (always on, about $7/month, paid from credits). It never sleeps during judging (1-15 Dec). Health check: `/api/health`. Auto-deploys on every push to `main`; pushes that only touch `docs/`, `fleet/`, `tests/` or Markdown files are skipped.
 
 ## Persistent disk and seeding
 
@@ -27,9 +27,9 @@ Plan (default `render.yaml`): **Starter** (always on, about $7/month, paid from 
 
 `render.free.yaml` is the same Blueprint with `plan: free`, no disk and `DATA_DIR=/tmp/payperphase-data` (a test keeps it in sync with `render.yaml`). To use it: **New** > **Blueprint** > connect the repo > **Advanced** (or the Blueprint settings) > *Blueprint file path* = `render.free.yaml`. Fill the secrets exactly as above.
 
-Trade-offs: the instance sleeps after 15 minutes idle (first request after that takes ~30-60 s), `db.json` is lost on every restart or deploy (the store reseeds on boot when `db.json` is missing, and "Reset demo" returns to the seed anyway), and a PayPal webhook arriving at a sleeping instance can fail. The return reconcile (WP-04) stays the source of truth.
+Trade-offs: the instance sleeps after 15 minutes idle (first request after that takes ~30-60 s), `db.json` is lost on every restart or deploy (the store reseeds on boot when `db.json` is missing, and "Reset demo" returns to the seed anyway), and a PayPal webhook arriving at a sleeping instance can fail. The reconcile that runs when the buyer returns from PayPal stays the source of truth.
 
-Keep it warm: in GitHub > repo **Settings** > **Secrets and variables** > **Actions** > **Variables**, add `RENDER_URL` = `https://<service>.onrender.com`. `.github/workflows/keep-warm.yml` then pings `/api/health` every 10 minutes (a no-op while the variable is unset). Cost: on a private repo every run bills at least 1 GitHub Actions minute, so about 144 minutes a day, more than the Free plan's monthly allowance over a few weeks. Set the variable only around recording and judging, or once the repo is public (Actions minutes are free on public repos). Before judging (1-15 Dec) upgrade to Starter if credits arrive: switch the Blueprint file path back to `render.yaml` (the disk is created on apply).
+Keep it warm: in GitHub > repo **Settings** > **Secrets and variables** > **Actions** > **Variables**, add `RENDER_URL` = `https://<service>.onrender.com`. `.github/workflows/keep-warm.yml` then pings `/api/health` every 10 minutes (a no-op while the variable is unset). Cost: none, because the repo is public and GitHub Actions minutes are free on public repos. Before judging (1-15 Dec) upgrade to Starter if credits arrive: switch the Blueprint file path back to `render.yaml` (the disk is created on apply).
 
 ## Env reference
 

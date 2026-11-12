@@ -46,7 +46,7 @@ The version built for the [Build What's Next with PayPal and AI](https://paypala
 - **"What if the clinic closes today?"**, an illustrative comparison of a linked loan with pay-per-phase, sourced to the Spanish consumer authority. It shows the reason the product exists in one click.
 - **A "PayPal trail" per phase** (order, capture, verified webhooks, the agent's invoice calls), so the clinic and reviewers can see the whole payment lifecycle.
 - **Spanish and English**, a labelled simulated clock, a labelled mock mode for every integration, seeded synthetic cases, a public "Reset demo" button and a Director Mode for recording the demo video.
-- **A Render Blueprint** with a persistent disk and a health check, plus CI running typecheck, tests and build on every push.
+- **A Render Blueprint** with a persistent disk and a health check, plus CI running typecheck, tests and build on every push to `main` and on every pull request.
 
 ### Known limitations
 - Invoices for future phases are sent when the plan is approved, dated to their visit. PayPal's invoice page cannot block an early payment, so only the checkout rail enforces "never in advance". See [docs/ARCHITECTURE_DECISIONS.md](docs/ARCHITECTURE_DECISIONS.md).

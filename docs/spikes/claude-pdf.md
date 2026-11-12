@@ -4,7 +4,7 @@
 
 **Status: live run passed on 2026-11-11 00:30 CET** (acceptance criterion 8 met). Claude Sonnet 5.5 read the stand-in hero PDF exactly: 12 of 12 lines, Σ = printed total, 0 invalid teeth, 8.5 s. The API accepted the request as sent (no 400, no self-heal retry). Note for the video: every line came back with confidence ≥ 0.97, so the live check bar shows "0 to review" while the cached golden extraction shows "1 to review" (L12 = 0.74). The script must say which one is on screen.
 
-What is still unproven without a key: whether the API *accepts* the request (the `fallbacks` field and beta header for this account, and the compiled schema), and the latency and accuracy at `effort: "low"`. What is proven offline: what is sent, how every failure is handled, and that the self-heal covers any 400 the fallback opt-in could cause (see [What was verified offline](#what-was-verified-offline)). If the live call fails anyway, the demo is not broken: the known hero PDF and `sampleId` return the golden extraction labelled `source: "cached"`. An *unknown* uploaded PDF, though, gets a 502 `EXTRACTION_FAILED` instead of a live read.
+Before the live run, what could not be proven without a key was whether the API *accepts* the request (the `fallbacks` field and beta header for this account, and the compiled schema), and the latency and accuracy at `effort: "low"`. What is proven offline: what is sent, how every failure is handled, and that the self-heal covers any 400 the fallback opt-in could cause (see [What was verified offline](#what-was-verified-offline)). If the live call fails anyway, the demo is not broken: the known hero PDF and `sampleId` return the golden extraction labelled `source: "cached"`. An *unknown* uploaded PDF, though, gets a 502 `EXTRACTION_FAILED` instead of a live read.
 
 ## Live-run checklist (for whoever has the key)
 
@@ -13,7 +13,6 @@ What is still unproven without a key: whether the API *accepts* the request (the
 3. Fill one row per run in [Results](#results-live) with the model served, latency, exact lines out of 12, Σ check, lines to review and any log line starting with `[claude]` or `[extract]`.
 4. If run 1 logs `[claude] request with server-side fallback rejected (400: …)` and then succeeds, the account doesn't accept the fallback opt-in. Record the 400 text here. Nothing needs to change in code: every call already self-heals within the same 45 s budget, at the cost of one fast 400.
 5. If a run fails with `api_error (400: …)` after that retry, the 400 is not about fallbacks (schema or PDF). Record the message and fix the request before the demo.
-6. Flip the criterion-8 box in `fleet/workpackages/WP-03-claude-extraction-wording.md` (orchestrator-owned).
 
 ## How to run
 
@@ -26,13 +25,13 @@ npx tsx src/ai/extract/spike/run.ts --dry --write-pdf hero.pdf    # just render 
 
 The script calls the same `liveExtract()` the route uses, with no cached fallback, and scores each line against `GOLDEN_EXTRACTION` (code, teeth, qty, unit, total, description). It prints latency, the model that served the answer, the Σ check, the lines to review and every mismatch.
 
-**Which PDF.** `public/samples/presupuesto-implantes-ribera.pdf` (WP-02) is used when it exists. Until then the script renders a stand-in from `GOLDEN_RAW_EXTRACTION` with pdf-lib (`src/ai/extract/spike/heroPdf.ts`): A4, a 12-line table, `4.070,00 €` total, Helvetica. It has fixed dates, so its sha256 is reproducible (`0ba96fb2…bd2dd`, 3,555 bytes).
+**Which PDF.** `public/samples/presupuesto-implantes-ribera.pdf` (WP-02) is used when it exists. It was added to the repository just after the live run below, which therefore used the stand-in. Without it, the script renders a stand-in from `GOLDEN_RAW_EXTRACTION` with pdf-lib (`src/ai/extract/spike/heroPdf.ts`): A4, a 12-line table, `4.070,00 €` total, Helvetica. It has fixed dates, so its sha256 is reproducible (`0ba96fb2…bd2dd`, 3,555 bytes).
 
 ## Results (live)
 
 | Run | PDF | Model served | Latency | Lines exact (of 12) | Σ = printed | To review | Notes |
 |---|---|---|---|---|---|---|---|
-| 1 | stand-in (sha256 0ba96fb2…bd2dd) | claude-sonnet-5-5 | 8,475 ms | 12 | yes (407000 = 407000) | none (L12 = 0.97) | run by the integrator with `npx tsx src/ai/extract/spike/run.ts --runs 1`; quoteDate 2026-11-12; rerun on the WP-02 PDF once it exists |
+| 1 | stand-in (sha256 0ba96fb2…bd2dd) | claude-sonnet-5-5 | 8,475 ms | 12 | yes (407000 = 407000) | none (L12 = 0.97) | run by the integrator with `npx tsx src/ai/extract/spike/run.ts --runs 1`; quoteDate 2026-11-12; the hero PDF (WP-02) now exists; no live run on it is recorded here |
 
 Acceptance for the demo: at least 11 of 12 lines exact, `sumMatches: true`, `L12` (confidence < 0.8) the only line to review, and p50 latency under 20 s. If latency is too high, keep `effort: "low"` and record the video on the labelled cached extraction, as SPEC cut item 9 allows.
 
