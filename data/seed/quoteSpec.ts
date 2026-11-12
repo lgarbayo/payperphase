@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-02. Builds a synthetic quote once and derives BOTH what the PDF prints (RawExtraction,
+ * Builds a synthetic quote once and derives BOTH what the PDF prints (RawExtraction,
  * printed text) and the post-parse ExtractionResult the engine consumes, so the two can never drift.
  * Pure: no I/O, no clock.
  */

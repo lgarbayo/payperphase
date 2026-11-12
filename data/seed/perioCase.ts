@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-02. Synthetic perio → implant quote. Its bilateral sinus lift is one indivisible €2,200 item,
+ * Synthetic perio → implant quote. Its bilateral sinus lift is one indivisible €2,200 item,
  * above Pay in 3's €2,000 max, so the engine flags that phase INSTALLMENTS (INDIVISIBLE_ITEM_OVER_PAY_IN_3_MAX).
  */
 import { extractionOf, rawOf, type QuoteSpec } from "./quoteSpec";

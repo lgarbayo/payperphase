@@ -1,10 +1,10 @@
-# OWNED BY WP-13. FREE-PLAN VARIANT of render.yaml (generated copy, kept in sync by
+# FREE-PLAN VARIANT of render.yaml (generated copy, kept in sync by
 # tests/deploy/render-yaml.test.ts). Use it only if there are no Render credits for Starter:
 # the instance sleeps after 15 min idle, has no disk (db.json lives in /tmp and reseeds on every
 # restart/deploy), and a webhook to a sleeping instance can fail (the return reconcile is the
 # source of truth). Pair it with .github/workflows/keep-warm.yml (repo variable RENDER_URL).
 # Apply with New > Blueprint > Advanced > Blueprint file path: render.free.yaml. See docs/deploy.md.
-# OWNED BY WP-13. Render Blueprint for PayPerPhase: https://render.com/docs/blueprint-spec
+# Render Blueprint for PayPerPhase: https://render.com/docs/blueprint-spec
 #
 # One always-on web service (Starter, never the free plan, so it never sleeps during judging
 # 1-15 Dec) with a 1 GB persistent disk for the JSON store (DATA_DIR/db.json). The store seeds

@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-02. Seed cases used by the store's seed-on-boot and demo reset (WP-09).
+ * Seed cases used by the store's seed-on-boot and demo reset.
  * Every plan is built by the real engine from the synthetic quote (buildPlan → approve → baseline → statuses),
  * so the seed can never disagree with what the engine would produce for the same PDF.
  */
@@ -125,13 +125,13 @@ export function seedCases(): SeedCase[] {
   ];
 }
 
-/** Golden extraction for a sample id (WP-03 `{sampleId}` path and cached fallback), or null. */
+/** Golden extraction for a sample id (the `{sampleId}` extraction path and the cached fallback), or null. */
 export function cachedExtractionBySampleId(sampleId: string): ExtractionResult | null {
   const c = seedCases().find((x) => x.key === sampleId);
   return c ? structuredClone(c.extraction) : null;
 }
 
-/** Golden extraction for a known sample PDF by its sha256 (WP-03 cached fallback), or null. */
+/** Golden extraction for a known sample PDF by its sha256 (cached extraction fallback), or null. */
 export function cachedExtractionBySha(sha256: string): ExtractionResult | null {
   const sample = SAMPLE_PDFS.find((s) => s.sha256 !== "" && s.sha256 === sha256);
   return sample ? cachedExtractionBySampleId(sample.id) : null;

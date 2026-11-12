@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# OWNED BY WP-13. Render build command (render.yaml → buildCommand). Needs no secret.
+# Render build command (render.yaml → buildCommand). Needs no secret.
 #
 # Default path (always tried first):
 #   npm ci (dev deps included: next build needs typescript and tailwind) → npm run build.
