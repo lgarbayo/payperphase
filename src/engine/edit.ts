@@ -146,10 +146,18 @@ export function applyEdit(plan: Plan, edit: PlanEdit, now: string): Plan {
   }
 
   // Re-schedule forward: a successor moves to max(current, pred.endDate + minLag) on a clinic day.
+  // A frozen (paid/delivered) successor that would have to move refuses the edit, as cascade does.
   for (const p of topoOrder(next.phases)) {
-    if (lockReason(p)) continue;
     const req = requiredStart(p, (id) => byId.get(id)?.endDate);
-    if (req && req.date > p.startDate) setPhaseStart(p, nextClinicDay(req.date));
+    if (!req || req.date <= p.startDate) continue;
+    const locked = lockReason(p);
+    if (locked) {
+      throw new EngineError(
+        locked,
+        `Edit would have to move ${p.id}, which is ${locked === "PHASE_PAID" ? "paid" : "delivered"}`,
+      );
+    }
+    setPhaseStart(p, nextClinicDay(req.date));
   }
 
   for (const p of next.phases) {

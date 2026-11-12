@@ -8,7 +8,7 @@ import {
 } from "@/contracts/fixtures/implantCase";
 import { applyEdit, diffPlans, EngineError } from "@/engine";
 import { addDays } from "@/lib/dates";
-import { paidAndDelivered, planOf } from "./helpers";
+import { earlyInvoicePaid, paidAndDelivered, planOf } from "./helpers";
 
 const NOW = "2026-11-18T10:00:00.000Z";
 
@@ -89,6 +89,31 @@ describe("applyEdit: other edits", () => {
     expect(() => applyEdit(delivered, GOLDEN_BONE_GRAFT_EDIT, NOW)).toThrow(/delivered/);
     expect(() => applyEdit(GOLDEN_PLAN, graftOn("ph9"), NOW)).toThrow(EngineError);
     expect(() => applyEdit(GOLDEN_PLAN, { kind: "REMOVE_LINE", lineId: "L99" }, NOW)).toThrow(EngineError);
+  });
+
+  it("refuses an edit whose longer healing minimum would have to move a paid or delivered successor", () => {
+    // ph3 paid early on PayPal's invoice page (ADR-8): the bone graft needs ph3 on or after 2027-05-05.
+    const paid = earlyInvoicePaid(paidAndDelivered(goldenPlan(), "ph1", "2026-11-16"), "ph3");
+    expect(() => applyEdit(paid, GOLDEN_BONE_GRAFT_EDIT, NOW)).toThrow(EngineError);
+    expect(() => applyEdit(paid, GOLDEN_BONE_GRAFT_EDIT, NOW)).toThrow(expect.objectContaining({ code: "PHASE_PAID" }));
+    const delivered = goldenPlan();
+    delivered.phases[2]!.delivery = { status: "delivered", deliveredOn: "2026-11-18" };
+    expect(() => applyEdit(delivered, GOLDEN_BONE_GRAFT_EDIT, NOW)).toThrow(
+      expect.objectContaining({ code: "PHASE_DELIVERED" }),
+    );
+  });
+
+  it("keeps a paid successor that the edit does not have to move", () => {
+    // A price change re-derives no lag: a paid ph3 stays where it is and the edit goes through.
+    const paid = earlyInvoicePaid(goldenPlan(), "ph3");
+    const out = applyEdit(paid, { kind: "SET_UNIT_PRICE", lineId: "L6", unitPriceCents: 140_000 }, NOW);
+    expect(out.phases[2]!.startDate).toBe(paid.phases[2]!.startDate);
+    for (const p of out.phases) {
+      for (const d of p.dependsOn) {
+        const pred = out.phases.find((q) => q.id === d.phaseId)!;
+        expect(p.startDate >= addDays(pred.endDate, d.minLagDays)).toBe(true);
+      }
+    }
   });
 
   it("SET_UNIT_PRICE re-sizes and re-fits the phase", () => {

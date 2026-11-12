@@ -78,3 +78,18 @@ export function paidAndDelivered(plan: Plan, phaseId: string, on: string): Plan 
     ),
   };
 }
+
+/** Plan with the given phase paid early on PayPal's invoice page (ADR-8): paid, care not yet delivered. */
+export function earlyInvoicePaid(plan: Plan, phaseId: string): Plan {
+  return {
+    ...plan,
+    phases: plan.phases.map((p) =>
+      p.id === phaseId
+        ? {
+            ...p,
+            payment: { ...p.payment, status: "paid" as const, paidCents: p.amountCents, paidAt: NOW, instrument: "invoice" as const },
+          }
+        : p,
+    ),
+  };
+}
