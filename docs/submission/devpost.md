@@ -28,13 +28,16 @@ The rules allow at most one Grand Prize or category prize, plus at most one spon
 - Sandbox test access: in the README under "Sandbox buyer login", valid until 15 Dec 2026
 
 ## Image gallery (in this order)
-Export at 3:2 from `docs/submission/screens/`. The first image becomes the project thumbnail.
+Export at 3:2 from `docs/submission/screens/`. The first image becomes the project thumbnail. The app screens are 1440×900 captures of the dark theme, taken in labelled mock mode (`FORCE_MOCKS=1`), so they show "Mock"/"Cached" badges; `paypal-pay-in-3.png` is the real PayPal sandbox window.
 1. `closure.png`: "What if the clinic closes today? €3,710 to claim back on a linked loan, €0 with PayPerPhase."
-2. `patient-plan.png`: "The patient's plan: phase 1 paid with PayPal, the rest locked until their visit."
+2. `patient-plan.png`: "The patient's plan on a Bryntum Gantt: phase 1 paid with PayPal, the rest paid on their visit day."
 3. `gantt-drag-zones.png`: "Biology vetoes the schedule: drag too early and the dentist's note explains why."
 4. `paypal-pay-in-3.png`: "Pay in 3 inside the PayPal sandbox: 3 interest-free payments of €120."
-5. `paypal-trail.png`: "PayPal trail: order, capture, two signature-verified webhooks, invoice closed by the agent."
-6. `clinic-agent.png`: "Claude drives the PayPal Agent Toolkit; every call passes a guard."
+5. `clinic-agent.png`: "On the implant's visit day, Claude drives the PayPal Agent Toolkit to invoice that phase; every call passes a guard."
+6. `patient-chat.png`: "The chat answers what-ifs with engine dates, and money questions with the engine's own figures."
+7. `clinic-quote.png`: "Claude reads the quote onto an odontogram; code checks the sum."
+8. `paypal-trail.png`: "PayPal trail: order and capture per phase; later phases invoiced on their visit day."
+9. `landing.png`: "Pay for dental treatment phase by phase. Never in advance."
 
 ## Inspiration
 In 2020 one of Spain's biggest dental chains, Dentix, closed. According to the Spanish Ministry of Consumer Affairs, 101,481 patients had paid for treatment they had not received, and 65% of them had a linked loan. Two years earlier the iDental chain had collapsed the same way. The consumer authority's advice is blunt: "we recommend not paying the full treatment in advance". Yet multi-visit treatment is still sold as one quote, paid up front or financed in full on day one. We wanted to remove that mechanism instead of explaining it.
@@ -48,20 +51,20 @@ Linked loans finance treatment you have not received yet. PayPerPhase lets PayPa
 - **The patient sees a Bryntum Gantt** with the phases, hatched healing windows and payment milestones coloured by PayPal status. Dragging a phase later moves the following phases and their payment dates. A move that breaks a healing minimum snaps back, quoting the dentist.
 - **Each phase is paid with a one-time PayPal order** on the day of its visit, with the official Pay Later message. A phase cannot be paid before its visit day: the server refuses the order. The milestone turns green live.
 - **A billing agent (Claude with the PayPal Agent Toolkit)** issues and sends one invoice per phase, with a QR code, on that phase's visit day, and reminds it if it goes overdue. A deterministic guard checks every amount and refuses an invoice for a phase that is not due yet. When the dentist edits the plan on a visit day, the agent cancels and reissues that day's invoice after one human approval. When a checkout captures, it closes that phase's invoice.
-- **A grounded patient chat (Claude Haiku)** answers "what if I wait three months?" with engine-computed dates and citations of the dentist's notes, and refers medical questions to the clinic.
+- **A grounded patient chat (Claude Haiku)** answers "what if I wait three months?" with engine-computed dates and citations of the dentist's notes, and refers medical questions to the clinic. Money questions ("How much is phase 2?", "When do I pay phase 3?") are answered by code from the engine's figures, never by the model.
 - **"What if the clinic closes today?"** compares a linked loan (€3,710 left to claim back for undelivered phases) with PayPerPhase (€0).
 
 **For clinics.** With Pay in 3, PayPal pays the clinic the full phase amount at checkout and carries the instalments. The clinic pays its usual PayPal fee per phase, and the patient pays no interest. The clinic gives up the lump sum on day one. In return it gets a plan patients can read, invoicing and reconciliation done by an agent, and a "we never charge in advance" promise it can show.
 
 ## How we built it
-Next.js 15 and React 19 in TypeScript, hosted on Render. The core rule is that **Claude reads, code decides money and dates, and the dentist approves every word**.
+Next.js 15 and React 19 in TypeScript, hosted on Render, with a dark product theme (near-black surfaces, one teal accent). The core rule is that **Claude reads, code decides money and dates, and the dentist approves every word**.
 
 - **Deterministic engine.** Money is integer cents and dates are date-only values, both produced only by the phase engine, which has property tests. Bryntum draws the dates and never computes them.
-- **Claude Sonnet 5.5** extracts the quote (structured output), drafts ES/EN wording as slot templates (a validator rejects any number or date outside a slot), and runs the billing agent as a tool loop. **Claude Haiku 5.5** runs the patient chat, with an engine tool and a numeric grounding check.
-- **PayPal.** Orders v2 per phase: the server reads the amount from its store and refuses an order for a phase that is not yet due. The JS SDK with Pay Later messaging pinned to the Pay in 3 offer. Webhooks verified through `verify-webhook-signature` and de-duplicated. Invoicing v2 through the Agent Toolkit, with each phase invoiced on its visit day. A "PayPal trail" panel shows order, capture, webhooks and invoice calls for each phase.
-- **Bryntum Gantt.** `TaskDrag.validatorFn` is wired to the engine, with healing and safe-window zones while dragging. Also baselines for the approved plan and the chat's preview, deadline indicators, time ranges, a summary row, a filtered task menu, and animated transitions. A parity test loads a real Bryntum ProjectModel in CI and checks it agrees with the engine day for day.
+- **Claude Sonnet 5.5** extracts the quote (structured output), drafts ES/EN wording as slot templates (a validator rejects any number or date outside a slot), and runs the billing agent as a tool loop. **Claude Haiku 5.5** runs the patient chat, with an engine tool and a numeric grounding check; amount and pay-date questions are routed to a code-built answer from the engine.
+- **PayPal.** Orders v2 per phase: the server reads the amount from its store, refuses an order for a phase that is not yet due, and serializes order creation per phase so a double click reuses the open order. The JS SDK with Pay Later messaging pinned to the Pay in 3 offer. Webhooks verified through `verify-webhook-signature` and de-duplicated. Invoicing v2 through the Agent Toolkit, with each phase invoiced on its visit day. A "PayPal trail" panel shows order, capture, webhooks and invoice calls for each phase.
+- **Bryntum Gantt** on Bryntum's `svalbard-dark` theme, tuned to the app's palette with contrast-checked healing stripes. `TaskDrag.validatorFn` is wired to the engine, with healing and safe-window zones while dragging. Also baselines for the approved plan and the chat's preview, deadline indicators, time ranges, a summary row, a filtered task menu, and animated transitions. A parity test loads a real Bryntum ProjectModel in CI and checks it agrees with the engine day for day.
 - **Render.** A Blueprint with a persistent disk for the JSON store and a health check that reports live or mock per integration.
-- **Testing.** Every integration has a labelled mock mode, so the whole demo runs without keys. There are more than 900 Vitest tests, plus Playwright suites for the demo path and the Gantt drag.
+- **Testing.** Every integration has a labelled mock mode, so the whole demo runs without keys. There are 1,004 Vitest tests, plus Playwright suites for the demo path and the Gantt drag.
 
 ## Challenges we ran into
 - **Pay in 3 range.** Pay in 3 only covers €20–€2,000, so each phase had to be sized for it without bending the clinical order of treatment. The engine reports the fit honestly and never claims eligibility; PayPal decides.

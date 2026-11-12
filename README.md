@@ -23,7 +23,13 @@ PayPerPhase turns a Spanish dental *presupuesto* (quote) into a **pre-treatment,
 
 > **Sandbox only.** Every payment runs in the PayPal sandbox and every patient is synthetic. In production, PayPal requires pre-approval for medical services.
 
-![The patient's plan on the hosted demo: Bryntum Gantt with healing windows and payment milestones; phase 1 paid with PayPal, the rest locked until their visit](docs/submission/screens/patient-plan.png)
+![The patient's plan: Bryntum Gantt (svalbard-dark theme) with healing windows and payment milestones; phase 1 paid with PayPal, the rest scheduled for their visit day](docs/submission/screens/patient-plan.png)
+
+*Screenshots on this page are taken from a local build in labelled mock mode (`FORCE_MOCKS=1`), so they show "Mock" and "Cached" badges; the hosted demo runs PayPal sandbox and Claude live. The PayPal window is the real sandbox.*
+
+The app has a dark product theme: near-black surfaces, hairline borders and one teal accent, with the Bryntum Gantt on Bryntum's own `svalbard-dark` theme.
+
+![Landing page: "Pay for dental treatment phase by phase, as you receive it. Never in advance." with a sample plan](docs/submission/screens/landing.png)
 
 ## What is new here
 - **It starts from the quote, before treatment**, not from the bill afterwards. Claude reads the clinic's PDF; code checks every euro and tooth.
@@ -65,7 +71,7 @@ Every row was run against the real PayPal sandbox and the Anthropic API. The IDs
 
 The **PayPal trail** in the clinic console shows the same chain for every phase: order, capture, verified webhook and the agent's invoice calls.
 
-![PayPal trail in the clinic console: order, capture, two signature-verified webhooks and the agent's invoice calls for phase 1](docs/submission/screens/paypal-trail.png)
+![PayPal trail in the clinic console (mock mode): order and capture for phase 1, and phases 2–4 "Invoiced on its visit day" with their dates. On the hosted demo the same panel lists the real sandbox IDs and the signature-verified webhooks above](docs/submission/screens/paypal-trail.png)
 
 ## Try it in 60 seconds
 Open the [hosted demo](https://payperphase.onrender.com/?lang=en), or run it locally (see [Install](#install)). No account is needed for the first three steps.
@@ -74,10 +80,14 @@ Open the [hosted demo](https://payperphase.onrender.com/?lang=en), or run it loc
 2. Open **`/p/demo`**, the patient's plan for the synthetic case Clínica Dental Ribera (4 phases, €4,070 in total).
    - Drag a future phase on the Gantt. While you drag, the chart shades "Healing · not before …" and the "Safe window". Drop it too early and it snaps back with the dentist's note. Drop it later and the following phases and payments move with it, while the approved plan stays visible as a ghost.
    - Press **What if the clinic closes today?**.
-   - Press **Ask about your plan** and ask "What if I wait three months for the implant?".
+   - Press **Ask about your plan** and ask "What if I wait three months for the implant?", then "How much is phase 2?" or "When do I pay phase 3?". Money answers are built by code from the engine's figures, never by the model.
    - Use the ES/EN toggle at the top right.
 3. Open **`/clinic`**, the clinic console. Pick a sample presupuesto (or drop a PDF), watch the lines appear on the odontogram, approve the plan and watch the billing agent invoice phase 1, the only phase due today. The later phases get a note instead: each is invoiced on its visit day. Open **PayPal trail** on a plan to see order, capture, webhooks and invoice calls.
 4. To pay phase 1 with the PayPal sandbox, use the sandbox buyer below.
+
+![Clinic console: the hero presupuesto read line by line onto the FDI odontogram, with the check bar (sum equals the printed total)](docs/submission/screens/clinic-quote.png)
+
+![Clinic console: the phased plan the engine built from the quote, drawn by the Bryntum Gantt, as a draft waiting for the dentist's note approval](docs/submission/screens/clinic-plan.png)
 
 ### Sandbox buyer login
 Valid until **15 Dec 2026**. Use only on [sandbox.paypal.com](https://www.sandbox.paypal.com).
@@ -100,7 +110,7 @@ When PayPal's window opens, choose **Paga en 3 plazos**. It asks for a test DNI:
 | 4 | **"What if the clinic closes today?"** The engine computes what you would have to claim back on a linked loan for undelivered phases, against PayPerPhase's €0. It is labelled illustrative and sourced. | [`src/components/impact`](src/components/impact) |
 | 5 | **The quote builds itself.** Claude Sonnet 5.5 reads the PDF while an FDI odontogram lights up tooth by tooth. A check bar computed in code shows Σ lines = printed total, invalid teeth and lines to review. Then the Gantt assembles. | [`src/components/clinic`](src/components/clinic), [`src/components/odontogram`](src/components/odontogram), [`src/ai/extract`](src/ai/extract) |
 | 6 | **The billing agent.** Claude drives the PayPal Agent Toolkit to create, send and QR-code one invoice per phase, on that phase's visit day. A plan edit (the "+€450 bone graft" preset, added on the implant day) shows a plain-language diff and reissues that day's invoice after one Approve click. A guard rejects a wrong amount on camera and refuses an invoice for a phase that is not due yet. An overdue invoice gets a reminder as the simulated clock moves. | [`src/agent`](src/agent) |
-| 7 | **Grounded patient chat.** Claude Haiku 5.5 answers only from the dentist's approved notes, with citation chips. A `simulate_delay` tool runs the engine, so every date comes from code, and a numeric grounding check rejects any number not in the sources. Medical questions get a fixed referral to the clinic. | [`src/ai/chat`](src/ai/chat), [`src/components/chat`](src/components/chat) |
+| 7 | **Grounded patient chat.** Claude Haiku 5.5 answers only from the dentist's approved notes, with citation chips. A `simulate_delay` tool runs the engine, so every date comes from code, and a numeric grounding check rejects any number not in the sources. Money questions ("How much is phase 2?", "When do I pay phase 3?", "How much do I still owe?") skip the model: code answers them from the engine's plan data (phase amount, pay date, total, paid, remaining). Medical questions get a fixed referral to the clinic. | [`src/ai/chat`](src/ai/chat), [`src/components/chat`](src/components/chat) |
 | 8 | **PayPal trail.** For each phase it shows order, capture, verified webhooks and the agent's invoice calls, with IDs and statuses only. | [`src/components/clinic/PayPalTrail.tsx`](src/components/clinic/PayPalTrail.tsx) |
 
 Also included:
@@ -111,7 +121,9 @@ Also included:
 - Seeded synthetic cases: implants, aligners and periodontics.
 - **Director Mode** for recording the video (`/demo?director=1`). Hotkeys: **R** reset, **1–6** beat states, **C** clock +7 weeks, **G** guard test, **H** hide the overlay.
 
-![Clinic console: the plan editor with a bone-graft preset, and the billing agent feed with Claude and the PayPal Agent Toolkit live](docs/submission/screens/clinic-agent.png)
+![Clinic console on phase 2's visit day (Director beat 5): the plan editor with the bone-graft preset, and the billing agent feed creating, sending and QR-coding phase 2's invoice, with phase 3 noted for its own visit day](docs/submission/screens/clinic-agent.png)
+
+![Patient chat: a what-if answered with engine dates and cited notes, and "How much is phase 2 and when do I pay it?" answered from the engine's figures](docs/submission/screens/patient-chat.png)
 
 ## Architecture
 The design rule: **Claude reads, code decides money and dates, the dentist approves every word.**
@@ -155,10 +167,13 @@ A fuller version is in [`docs/architecture/diagram.mmd`](docs/architecture/diagr
 
 **PayPal edge cases handled:**
 - `PayPal-Request-Id` on create and capture, so retries are idempotent.
+- Order creation is serialized per phase: a double click or two open tabs get the same open order back instead of two orders for one phase.
+- An order for an unknown plan → `404 PLAN_NOT_FOUND`.
 - `INSTRUMENT_DECLINED` → `actions.restart()`, so the buyer can pick another funding source.
 - `ORDER_ALREADY_CAPTURED` → reconcile instead of an error.
 - A duplicate invoice number → bump to the next `v{k}` and retry.
 - A phase that is not due yet → the order gate refuses it with `NOT_DUE_YET`, and the guard refuses `create_invoice` and `send_invoice` for it with `PHASE_NOT_DUE`.
+- A capture, webhook or return for an order that does not match the server amount in EUR, or for a phase not yet due, is recorded but never settles the phase.
 - The simulated clock jumps past a visit day → a phase that goes straight to overdue with no open invoice is invoiced then. A phase that goes overdue with an open sent invoice gets a reminder.
 - A plan edit changes a future phase's amount → no invoice exists yet, so nothing is cancelled; the phase is invoiced with the new amount on its visit day.
 - Webhook signature verification with de-duplication.
@@ -172,7 +187,7 @@ Why not send future-dated invoices at approval instead? PayPal makes an invoice 
 ## Bryntum Gantt: the API map
 The Gantt is the product, not decoration. [Bryntum Gantt](https://bryntum.com/) (the public trial package; it shows a trial notice) is the only module that draws dates. Every task is `manuallyScheduled`: Bryntum renders, validates and animates, while the engine owns every date.
 
-![Dragging phase 3 too early: the chart shades "Healing · not before 7 Apr 2027" and the "Safe window", and the tooltip quotes the dentist](docs/submission/screens/gantt-drag-zones.png)
+![Dragging phase 3 too early on the svalbard-dark Gantt: the chart shades "Healing · not before 7 Apr 2027" and the "Safe window", and the tooltip quotes the dentist](docs/submission/screens/gantt-drag-zones.png)
 
 | Bryntum API | What it does here |
 |---|---|
@@ -189,7 +204,7 @@ The Gantt is the product, not decoration. [Bryntum Gantt](https://bryntum.com/) 
 | Custom `viewPreset` | Month headers, with a blank top lane for the time-range labels. |
 | `transition: { changeEvent: true }` | Successors glide into place when a plan update arrives, instead of jumping. |
 | `LocaleManager` | Spanish and English, switched live with the app. |
-| `svalbard-light` theme | Restyled through CSS variables to match the app. |
+| `svalbard-dark` theme | Bryntum's dark theme, tuned through CSS variables to the app's near-black surfaces and teal accent; healing stripes and phase numbers are contrast-checked for the dark background. |
 | Editing features off | `taskEdit`, `cellEdit`, `taskResize`, `taskDragCreate` and others are disabled, so nothing in the chart can change a date behind the engine's back. |
 
 **A parity test proves it.** [`tests/gantt/parity.test.ts`](tests/gantt/parity.test.ts) loads a real Bryntum `ProjectModel` in CI and checks, after Bryntum's own scheduling pass, that every date matches the engine's day for day, including after the demo's delay move.
@@ -207,7 +222,7 @@ Full statement: [`docs/submission/ai-tools.md`](docs/submission/ai-tools.md).
 - **Quote extraction** (Claude Sonnet 5.5, structured output) reads the PDF into lines. Code parses the Spanish prices, re-sums the lines, compares them to the printed total and validates the FDI tooth numbers. A labelled cached extraction is the fallback.
 - **Wording** (Claude Sonnet 5.5) drafts ES/EN slot templates for the patient notes, and the dentist approves them.
 - **Clinic billing agent** (Claude Sonnet 5.5) runs a tool loop over the PayPal Agent Toolkit, behind the deterministic guard. It invoices each phase on its visit day, reissues an invoice after a plan edit, reminds overdue invoices and closes an invoice when the checkout captures. A labelled deterministic playbook takes over when the model is unavailable.
-- **Patient chat** (Claude Haiku 5.5) answers from the approved notes as cited documents. Its `simulate_delay` tool calls the engine; a numeric grounding check, a referral for medical questions and a rate limit keep it safe.
+- **Patient chat** (Claude Haiku 5.5) answers from the approved notes as cited documents. Its `simulate_delay` tool calls the engine; a numeric grounding check, a referral for medical questions and a rate limit keep it safe. Questions about what a phase costs or when it is paid never reach the model: code answers them from the engine's figures.
 - **Claude Code** was used to build the project.
 
 ## Install
@@ -285,12 +300,12 @@ All variables are listed in [`.env.example`](.env.example). Nothing in the repo 
 | `npm ci` cannot install `@bryntum/gantt` | It comes from the public trial alias. See "Bryntum registry fallback" in [`docs/deploy.md`](docs/deploy.md). |
 
 ### Testing
-- `npm test` runs the Vitest suites (more than 900 tests). They cover:
+- `npm test` runs the Vitest suites (1,004 tests in 89 files on 12 Nov 2026). They cover:
   - property tests of the engine (cents, dates, dependencies, Pay in 3 fit, what-if, exposure);
   - the Gantt parity test and drag validator;
   - PayPal checkout and webhooks;
   - the agent guard and approvals;
-  - Claude extraction and the chat against scripted clients;
+  - Claude extraction and the chat against scripted clients, including the engine-built money answers;
   - i18n key parity, UI components and the docs checks.
 - `npm run check` adds the typecheck.
 - `npm run e2e` runs the Playwright demo path and Gantt drag suites against a mock-mode production build.

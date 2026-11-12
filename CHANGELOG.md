@@ -12,12 +12,21 @@ This file is the human-readable history of PayPerPhase: what changed, and **why*
 ## [Unreleased]
 
 ### Added
+- **The patient chat answers money questions from the engine** (#30). "How much is phase 2?", "When do I pay phase 3?" and "How much do I still owe?" used to be referred to the clinic. Code now builds the answer from the engine's plan data (phase amount, pay date, total, paid so far, remaining) and cites the approved pay-per-phase note; the model never produces these figures. Care questions that only mention a phase or a date still take the normal path.
+- New dark-theme screenshots for the README and the Devpost gallery (landing, patient plan, Gantt drag zones, closure modal, clinic quote and plan, agent feed, patient chat, PayPal trail), taken at 1440×900 in labelled mock mode.
 - Open-source project files: this changelog, a contributing guide, a security policy, a code of conduct and an architecture decision record. The repository goes public for judging, and these files tell visitors how to run, change and report problems in the project, and why it is built the way it is.
 
 ### Changed
+- **A dark product theme** (#27) in the style of Linear: near-black surfaces, hairline borders, one teal accent, Inter as the UI font and a product-first landing hero. The Bryntum Gantt moves to Bryntum's `svalbard-dark` theme with no feature changes, and its healing stripes and scheduled phase numbers were made readable on the dark background (#28).
+- README, Devpost copy, AI tools statement and architecture decisions describe the dark theme, the engine-built chat money answers and serialized order creation, and give the current test count (1,004 Vitest tests).
 - **Each phase invoice is now created and sent on that phase's visit day, not when the plan is approved.** Before, the billing agent sent every phase's invoice at approval, and PayPal's invoice page would have let a patient pay a future phase early. Now a phase has no invoice until it is due, the guard refuses `create_invoice` and `send_invoice` for a phase that is not due (`PHASE_NOT_DUE`), reminders go only to overdue invoices, and the clinic console's invoice preview and the PayPal trail show a future phase as "Invoiced on its visit day" with its date. This makes "never pay in advance" hold on the invoice rail as it already did at checkout. Director key **5** now puts the simulated clock on phase 2's visit day, so the bone-graft edit cancels and reissues that day's invoice. See ADR-8 in [docs/ARCHITECTURE_DECISIONS.md](docs/ARCHITECTURE_DECISIONS.md).
 
+### Removed
+- The `/spike-paylater` dev page (#30). It threw PayPal SDK errors in mock mode and nothing linked to it; its result stays in [docs/spikes/paylater-es.md](docs/spikes/paylater-es.md).
+
 ### Fixed
+- **PayPal order creation is serialized per phase** (#30). Parallel requests for one phase (a double click, two tabs) each created a PayPal order, and only one could be captured. Now the open order is handed back while it is recent and for the same server amount. An order for an unknown plan now returns `404 PLAN_NOT_FOUND`.
+- The PayPal buttons no longer throw when their container unmounts mid-render, and the patient page refetches a removed plan quietly instead of logging a 404 (#30).
 - The Gantt drag tooltip now shows the clinic day a weekend drop actually lands on (the following Monday) and the shift to that day. Before, it showed the raw Saturday or Sunday while the drop committed Monday, so the tooltip and the result disagreed.
 - Every PayPal confirmation path (the capture route, the webhook and the return page) now settles a phase only for the server-set amount in euros and only once its visit day has come. Before, an order made in the browser with the public client id and the phase's reference (for example for EUR 0.01, in another currency, or for a phase not yet due) could be captured and mark the phase paid and delivered; the capture route now checks the order before any money moves, and a webhook for such a capture is recorded but not applied.
 
