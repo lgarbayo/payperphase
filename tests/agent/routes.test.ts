@@ -7,7 +7,7 @@ import { POST as postApprove } from "../../app/api/agent/approve/route";
 import { POST as postGuardTest } from "../../app/api/agent/guard-test/route";
 import { POST as postRun } from "../../app/api/agent/run/route";
 import { store } from "@/server/store";
-import { applyEditedGolden, invoiceOf, PLAN_ID, resetWorld, steps, usePlaybookDeps } from "./helpers";
+import { applyEditedGolden, atPhase2VisitDay, invoiceOf, PLAN_ID, resetWorld, steps, usePlaybookDeps } from "./helpers";
 
 const post = (body: unknown) => new Request("http://x/api", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
 
@@ -24,6 +24,7 @@ describe("GET /api/agent/steps", () => {
   });
 
   it("returns the audit trail and pending approvals (and resolves the demo alias)", async () => {
+    await atPhase2VisitDay();
     await executeRun(PLAN_ID, "PLAN_APPROVED", { type: "PLAN_APPROVED" });
     await applyEditedGolden();
     await executeRun(PLAN_ID, "PLAN_EDITED", { type: "PLAN_EDITED", diff: GOLDEN_BONE_GRAFT_DIFF });
@@ -38,6 +39,7 @@ describe("GET /api/agent/steps", () => {
 
 describe("POST /api/agent/approve", () => {
   it("approves the stored payload; unknown ids are 404; bad bodies are 422", async () => {
+    await atPhase2VisitDay();
     await executeRun(PLAN_ID, "PLAN_APPROVED", { type: "PLAN_APPROVED" });
     await applyEditedGolden();
     await executeRun(PLAN_ID, "PLAN_EDITED", { type: "PLAN_EDITED", diff: GOLDEN_BONE_GRAFT_DIFF });
@@ -55,6 +57,7 @@ describe("POST /api/agent/approve", () => {
 
 describe("POST /api/agent/guard-test (Director key G)", () => {
   it("pushes a create_invoice with the pre-edit amount through the guard: rejected, labelled, never sent", async () => {
+    await atPhase2VisitDay();
     await executeRun(PLAN_ID, "PLAN_APPROVED", { type: "PLAN_APPROVED" });
     await applyEditedGolden();
     await executeRun(PLAN_ID, "PLAN_EDITED", { type: "PLAN_EDITED", diff: GOLDEN_BONE_GRAFT_DIFF });
@@ -101,7 +104,9 @@ describe("POST /api/agent/run", () => {
     expect(runId).toMatch(/^run_/);
     await agentIdle();
     expect((await steps()).every((s) => s.runId === runId)).toBe(true);
-    expect((await store.getPlan(PLAN_ID))!.phases.every((p) => p.payment.invoice?.status === "SENT")).toBe(true);
+    const plan = (await store.getPlan(PLAN_ID))!;
+    expect(plan.phases[0]!.payment.invoice?.status).toBe("SENT"); // the due phase
+    expect(plan.phases.slice(1).every((p) => !p.payment.invoice)).toBe(true); // invoiced on their visit day
     expect((await postRun(post({ planId: "pln_nopeabcd" }))).status).toBe(404);
     expect((await postRun(post({}))).status).toBe(422);
   });
