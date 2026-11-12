@@ -53,6 +53,11 @@ export default {
     spanMonth: "1 mes",
     spanMonths: "{{n}} meses",
     listSep: ", ",
+    costPhase: "La Fase {{n}} ({{title}}) cuesta {{amount}}.",
+    costPhasePaid: "La Fase {{n}} ({{title}}) cuesta {{amount}} y ya está pagada.",
+    costPhaseDate: "Se paga el día de su visita, el {{date}}.",
+    costTotals: "Total del plan: {{total}}. Pagado hasta hoy: {{paid}}. Pendiente: {{remaining}}.",
+    costNoPhase: "No encuentro esa fase en tu plan.",
   },
   en: {
     title: "Ask about your plan",
@@ -99,5 +104,10 @@ export default {
     spanMonth: "1 month",
     spanMonths: "{{n}} months",
     listSep: ", ",
+    costPhase: "Phase {{n}} ({{title}}) costs {{amount}}.",
+    costPhasePaid: "Phase {{n}} ({{title}}) costs {{amount}} and is already paid.",
+    costPhaseDate: "You pay it on the day of its visit, {{date}}.",
+    costTotals: "Plan total: {{total}}. Paid so far: {{paid}}. Remaining: {{remaining}}.",
+    costNoPhase: "I can't find that phase in your plan.",
   },
 } as const satisfies Dictionary;
