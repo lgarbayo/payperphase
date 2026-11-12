@@ -55,6 +55,38 @@ export async function applyEditedGolden(): Promise<Plan> {
   return store.updatePlan(PLAN_ID, (p) => editedGolden(p));
 }
 
+/** Phase 2's visit day in the golden plan (the implant). */
+export const PH2_VISIT_DAY = "2027-01-12";
+
+/**
+ * As beat B5: phase 1 paid at its visit and delivered, the simulated clock on phase 2's visit day, so
+ * phase 2 is due (and invoiced) while phases 3–4 are not due yet (invoiced on their own visit day).
+ */
+export async function atPhase2VisitDay(): Promise<void> {
+  await store.updatePlan(PLAN_ID, (p) => ({
+    ...p,
+    phases: p.phases.map((ph) =>
+      ph.id === "ph1"
+        ? {
+            ...ph,
+            payment: {
+              ...ph.payment,
+              status: "paid" as const,
+              instrument: "order" as const,
+              orderId: "MOCK-ORDER-RIBE-PH1",
+              orderAttempt: 1,
+              captureId: "MOCK-CAPTURE-RIBE-PH1",
+              paidCents: ph.amountCents,
+              paidAt: "2026-11-16T10:00:00.000Z",
+            },
+            delivery: { status: "delivered" as const, deliveredOn: "2026-11-16" },
+          }
+        : ph,
+    ),
+  }));
+  await store.setClock(PH2_VISIT_DAY);
+}
+
 export const steps = () => store.listAgentSteps(PLAN_ID);
 
 /** tool_call / approval_required / guard_rejected steps in order, as "kind:tool". */

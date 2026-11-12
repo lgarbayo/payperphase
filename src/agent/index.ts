@@ -3,11 +3,20 @@
  * invoice tools (wrapped by a deterministic amount/currency/number/recipient/allowlist guard), with a
  * deterministic playbook fallback calling the same tools. Every step → store + AGENT_STEP event.
  *
- *   PLAN_APPROVED        → per unpaid phase: create_invoice → send_invoice (+ QR for the due phase)
- *   PAYMENT_CAPTURED     → record_payment_for_invoice on that phase's open invoice
- *   PLAN_EDITED          → explanation → cancel_sent_invoice → create_invoice v+1 → approval_required
- *                          → (Approve) send_invoice with the stored payload → generate_invoice_qr_code
- *   PHASE_STATUS_CHANGED → (to "upcoming") send_invoice_reminder
+ * Invoice on the visit day: a phase is invoiced only when it is due, i.e. its payment status recomputed
+ * by the engine at the simulated clock's today (src/engine/payments.ts, never the stored status) is
+ * "due" or "overdue". Before the visit no invoice exists, so nothing can be paid in advance on either
+ * rail (checkout refuses early orders with canCreateOrder; the guard refuses PHASE_NOT_DUE).
+ *
+ *   PLAN_APPROVED / MANUAL → per unpaid due phase: create_invoice → send_invoice → generate_invoice_qr_code;
+ *                            a phase not due yet: no tool call, a note "invoiced on its visit day, <date>"
+ *   PAYMENT_CAPTURED       → record_payment_for_invoice on that phase's open invoice (no invoice: a note)
+ *   PLAN_EDITED            → explanation → (live invoice, amount changed) cancel_sent_invoice → create_invoice
+ *                            v+1 → approval_required → (Approve) send_invoice with the stored payload →
+ *                            generate_invoice_qr_code; no invoice and not due: a note with the new amount;
+ *                            no invoice and due: issued
+ *   PHASE_STATUS_CHANGED   → (to "due", or to "overdue" without an open invoice) issue that phase (+ QR);
+ *                            (to "overdue" with an open sent invoice) send_invoice_reminder
  * Runs for one plan are serialized; every run is idempotent.
  */
 import { randomUUID } from "node:crypto";
@@ -20,7 +29,7 @@ import { resolveDeps } from "./deps";
 import { checkToolCall } from "./guard";
 import { runLlmLoop, type LoopOutcome } from "./loop";
 import { resetMockInvoices } from "./mockTools";
-import { executeActions, hasWork, planFor } from "./playbook";
+import { executeActions, hasWork, planFor, type PlaybookAction } from "./playbook";
 import { buildCreateInvoiceInput, buildQrInput, isPhaseSettled, liveInvoice, nextInvoiceVersion, recipientFor } from "./policy";
 import { AgentRun, approvalInvoiceId, type TriggerPayload } from "./runtime";
 import { lt, money } from "./text";
@@ -64,6 +73,20 @@ function newRunId(): string {
 
 /** Triggers whose run is skipped entirely (no feed noise) when there is nothing to do. */
 const QUIET = new Set<TriggerPayload["type"]>(["PLAN_APPROVED", "PAYMENT_CAPTURED", "PHASE_STATUS_CHANGED"]);
+
+/** "Invoiced on its visit day" notes (the phases that are not due yet). */
+const deferredNotes = (actions: readonly PlaybookAction[]) => actions.filter((a) => a.kind === "note" && a.deferred);
+
+/**
+ * Skip the run when it has nothing to do. Exception: the first run of an approved plan (PLAN_APPROVED
+ * on a plan without agent steps) still shows when no phase is due yet, so the clinic sees each phase's
+ * "invoiced on its visit day" note.
+ */
+async function isQuiet(planId: string, payload: TriggerPayload, actions: readonly PlaybookAction[]): Promise<boolean> {
+  if (hasWork(actions) || !QUIET.has(payload.type)) return false;
+  if (payload.type !== "PLAN_APPROVED" || deferredNotes(actions).length === 0) return true;
+  return (await store.listAgentSteps(planId)).length > 0;
+}
 
 /** Short, camera-safe labels for the feed when the Claude call fails. */
 const LLM_ERROR_LABELS: Record<string, string> = {
@@ -132,7 +155,7 @@ export async function executeRun(
   const run = new AgentRun({ planId, trigger, mode: deps.mode, tools, payload, runId });
 
   const actions = await planFor(run, payload);
-  if (!hasWork(actions) && QUIET.has(payload.type)) return { runId, skipped: true };
+  if (await isQuiet(planId, payload, actions)) return { runId, skipped: true };
 
   await run.start();
   try {
@@ -150,12 +173,15 @@ export async function executeRun(
         run.mode = "playbook";
         await executeActions(run, await planFor(run, payload));
       } else {
-        const rest = (await planFor(run, payload)).filter((a) => a.kind !== "note");
+        const after = await planFor(run, payload);
+        const rest = after.filter((a) => a.kind !== "note");
         if (rest.length) {
           run.mode = "playbook";
           await run.explain(lt("explainCompletion"));
           await executeActions(run, rest);
         }
+        // The phases that are not due yet get their "invoiced on its visit day" note on this path too.
+        await executeActions(run, deferredNotes(after));
       }
     } else {
       run.mode = "playbook";
@@ -217,7 +243,8 @@ function onEvent(e: DomainEvent): void {
       };
       break;
     case "PHASE_STATUS_CHANGED":
-      if (e.to === "upcoming") {
+      // Visit day reached (→ due: issue it) or grace period over (→ overdue: issue or remind).
+      if (e.to === "due" || e.to === "overdue") {
         job = {
           planId: e.planId,
           trigger: "PHASE_STATUS_CHANGED",
@@ -388,7 +415,7 @@ export async function runGuardTest(
       text: lt("guardTestRun"),
       output: { label: "guard test", guardTest: true, phaseId: phase.id },
     });
-    const verdict = checkToolCall("create_invoice", input, { plan, recipientEmail: recipientFor(plan) });
+    const verdict = checkToolCall("create_invoice", input, { plan, recipientEmail: recipientFor(plan), today: await run.simToday() });
     if (!verdict.ok) {
       await run.emit({
         kind: "guard_rejected",

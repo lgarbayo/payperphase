@@ -32,7 +32,7 @@ export type LoopOutcome =
   | { kind: "aborted"; iterations: number }
   | { kind: "error"; iterations: number; message: string };
 
-export const AGENT_SYSTEM_PROMPT = `You are the billing agent of a Spanish dental clinic using PayPerPhase. Patients pay for treatment one clinical phase at a time, on the day each phase is delivered. You issue and maintain one PayPal invoice per phase through the PayPal invoicing tools. Everything runs in the PayPal sandbox with synthetic patients.
+export const AGENT_SYSTEM_PROMPT = `You are the billing agent of a Spanish dental clinic using PayPerPhase. Patients pay for treatment one clinical phase at a time, on the day each phase is delivered, never in advance. You issue and maintain one PayPal invoice per phase through the PayPal invoicing tools, and a phase is invoiced only on or after its visit day. Everything runs in the PayPal sandbox with synthetic patients.
 
 Hard rules (a deterministic guard enforces every one of them on every call):
 1. Money comes only from get_plan. For an invoice use exactly one item: name = phases[].itemName, quantity "1", unit_amount = {"currency_code":"EUR","value": phases[].amountValue}, item_date = phases[].visitDate. Never compute, round, add or change an amount, and never add tax, discount, tip, shipping or partial payments.
@@ -41,7 +41,8 @@ Hard rules (a deterministic guard enforces every one of them on every call):
 4. primary_recipients is exactly [{"billing_info":{"email_address": recipientEmail, "language": patientLanguage}}]. Never add other recipients.
 5. invoice_date = phases[].invoiceDate when it is not null; otherwise omit invoice_date. note = phases[].note. invoicer_business_name = invoicerBusinessName; invoicer_email_address = invoicerEmail when it is not null.
 6. Only touch invoices whose invoice_id appears in get_plan. A phase whose paymentStatus is "paid" or "processing" is never invoiced again.
-7. To record a checkout payment use record_payment_for_invoice with method "PAYPAL", amount {"currency_code":"EUR","value": the phase amountValue}, payment_date = simToday, payment_id = the capture id when it has at most 22 characters.
+7. Invoice on the visit day: create_invoice and send_invoice only for a phase whose invoiceableNow is true (its paymentStatus, recomputed at simToday, is "due" or "overdue"). A phase that is "scheduled" or "upcoming" gets no invoice and no tool call: it will be invoiced on its visit day (visitDate). The guard rejects anything else with PHASE_NOT_DUE.
+8. To record a checkout payment use record_payment_for_invoice with method "PAYPAL", amount {"currency_code":"EUR","value": the phase amountValue}, payment_date = simToday, payment_id = the capture id when it has at most 22 characters.
 
 How to work:
 - Start with get_plan. Call tools one at a time unless the calls are independent.
@@ -78,13 +79,15 @@ export function taskFor(planId: string, payload: TriggerPayload): string {
   switch (payload.type) {
     case "PLAN_APPROVED":
     case "MANUAL":
-      return `Event ${payload.type} for plan ${planId}. The dentist approved the plan; that approval covers the first issue of every phase invoice. For each phase that is not paid and has no invoice (or only a CANCELLED one): create_invoice, then send_invoice. A DRAFT invoice with the right amount only needs send_invoice. For phases whose paymentStatus is "due" or "overdue", also generate_invoice_qr_code after sending. Skip phases that already have a sent invoice.`;
+      return `Event ${payload.type} for plan ${planId}. The dentist approved the plan; that approval covers the first issue of each phase invoice, made on the phase's visit day. For each phase that is not paid, has invoiceableNow = true and has no invoice (or only a CANCELLED one): create_invoice, then send_invoice, then generate_invoice_qr_code. A DRAFT invoice with the right amount on such a phase only needs send_invoice and generate_invoice_qr_code. Make no tool call for a phase with invoiceableNow = false ("scheduled" or "upcoming"): it will be invoiced on its visit day. Skip phases that already have a sent invoice.`;
     case "PLAN_EDITED":
-      return `Event PLAN_EDITED for plan ${planId}. Changed amounts: ${fmtDiff(payload.diff)}. For every unpaid phase whose current invoice amount differs from the engine amount in get_plan: cancel_sent_invoice on the old invoice (only if it was sent), create_invoice with the phase's nextInvoiceNumber and the new engine amount, then send_invoice for the new invoice (it will be held for the dentist's approval).`;
+      return `Event PLAN_EDITED for plan ${planId}. Changed amounts: ${fmtDiff(payload.diff)}. For every unpaid phase with invoiceableNow = true whose current invoice amount differs from the engine amount in get_plan: cancel_sent_invoice on the old invoice (only if it was sent), create_invoice with the phase's nextInvoiceNumber and the new engine amount, then send_invoice for the new invoice (it will be held for the dentist's approval). An unpaid phase with invoiceableNow = true and no invoice (or only a CANCELLED one) is issued: create_invoice, then send_invoice. Make no tool call for a phase with invoiceableNow = false that has no invoice: it will be invoiced on its visit day at the new amount.`;
     case "PAYMENT_CAPTURED":
       return `Event PAYMENT_CAPTURED for plan ${planId}, phase ${payload.phaseId}: PayPal checkout captured ${payload.amountCents} cents (capture id ${payload.captureId ?? "unknown"}). Record this payment on that phase's open invoice with record_payment_for_invoice so the invoice is closed and the patient cannot pay twice. If the invoice is not open, do nothing.`;
     case "PHASE_STATUS_CHANGED":
-      return `Event PHASE_STATUS_CHANGED for plan ${planId}: phase ${payload.phaseId} is now "${payload.to}" (its visit is close). Send one send_invoice_reminder for that phase's open invoice, with a short subject and a note saying it is paid on the day of the visit (the phase visitDate).`;
+      return payload.to === "overdue"
+        ? `Event PHASE_STATUS_CHANGED for plan ${planId}: phase ${payload.phaseId} is now "overdue" (its visit day has passed and it is still unpaid). If that phase has an open sent invoice in get_plan, send one send_invoice_reminder for it, with a short subject and a note saying the visit of the phase visitDate is still unpaid. If it has no invoice (or only a CANCELLED one), issue it: create_invoice, send_invoice, then generate_invoice_qr_code. Touch no other phase.`
+        : `Event PHASE_STATUS_CHANGED for plan ${planId}: phase ${payload.phaseId} is now "${payload.to}": its visit day has come. If that phase is unpaid and has no invoice (or only a CANCELLED one), issue it: create_invoice, send_invoice, then generate_invoice_qr_code. Touch no other phase.`;
   }
 }
 
