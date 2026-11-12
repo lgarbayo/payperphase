@@ -1,4 +1,4 @@
-# OWNED BY WP-13. Render Blueprint for PayPerPhase: https://render.com/docs/blueprint-spec
+# Render Blueprint for PayPerPhase: https://render.com/docs/blueprint-spec
 #
 # One always-on web service (Starter, never the free plan, so it never sleeps during judging
 # 1-15 Dec) with a 1 GB persistent disk for the JSON store (DATA_DIR/db.json). The store seeds

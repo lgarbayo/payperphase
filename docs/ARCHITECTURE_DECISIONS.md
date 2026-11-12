@@ -74,7 +74,7 @@ Maintainers add new entries at the end. An entry is never deleted: when a decisi
 
 **Consequences.**
 - A sandbox check confirmed it: the server ignored an amount sent in the request (order `8UF12137GP897594C`) and refused a phase that was not yet due with `NOT_DUE_YET`.
-- Future phases show a locked "not yet" button instead of a PayPal button.
+- Future phases show a disabled pay button, "Paid on the day of your visit", instead of a PayPal button.
 
 ## ADR-5: JS SDK v5 with Pay Later messaging pinned to Pay in 3
 **Context.** The hackathon also lists PayPal's newer JS SDK v6, but the Pay Later message for a Spanish buyer in EUR was the riskiest unknown, so we spiked it first ([`docs/spikes/paylater-es.md`](spikes/paylater-es.md)).

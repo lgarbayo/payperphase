@@ -11,7 +11,7 @@ PayPerPhase turns a Spanish dental *presupuesto* (quote) into a **pre-treatment,
 <!-- REUSE badge: register at https://api.reuse.software/register, then add
      [![REUSE status](https://api.reuse.software/badge/github.com/lgarbayo/payperphase)](https://api.reuse.software/info/github.com/lgarbayo/payperphase) -->
 <!-- OpenSSF Best Practices badge: create the project at https://www.bestpractices.dev/en/projects/new, then add the badge it gives you. -->
-<!-- OpenSSF Scorecard badge: once the repo is public, follow https://scorecard.dev/ ("Use the Scorecard GitHub Action"), then add
+<!-- OpenSSF Scorecard badge: follow https://scorecard.dev/ ("Use the Scorecard GitHub Action"), then add
      [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/lgarbayo/payperphase/badge)](https://scorecard.dev/viewer/?uri=github.com/lgarbayo/payperphase) -->
 
 | | |
@@ -102,7 +102,7 @@ When PayPal's window opens, choose **Paga en 3 plazos**. It asks for a test DNI:
 | # | Feature | Where |
 |---|---|---|
 | 1 | **A clinical Gantt.** Bryntum Gantt with dependencies and lags, hatched healing windows, payment diamonds coloured by PayPal status, a baseline ghost, a "Today (simulated)" line, clinical-deadline flags and a "Paid this month" summary row. It has a phone layout below 640 px. | [`src/components/gantt`](src/components/gantt) |
-| 2 | **Pay each phase.** One PayPal Orders v2 checkout per phase, with the official Pay Later message unedited. Only today's phase is payable; future phases show a locked "not yet" button. The milestone turns green live over SSE. | [`src/components/pay`](src/components/pay), [`src/lib/paypal`](src/lib/paypal) |
+| 2 | **Pay each phase.** One PayPal Orders v2 checkout per phase, with the official Pay Later message unedited. Only today's phase is payable; a future phase shows a disabled pay button with "Paid on the day of your visit" under it. The milestone turns green live over SSE. | [`src/components/pay`](src/components/pay), [`src/lib/paypal`](src/lib/paypal) |
 | 3 | **Drag what-if.** Dragging a phase moves its successors and due dates, all computed by the engine. An illegal drag snaps back with the dentist-approved reason, and going past the clinical deadline turns it red. | [`src/components/gantt`](src/components/gantt) |
 | 4 | **"What if the clinic closes today?"** The engine computes what you would have to claim back on a linked loan for undelivered phases, against PayPerPhase's €0. It is labelled illustrative and sourced. | [`src/components/impact`](src/components/impact) |
 | 5 | **The quote builds itself.** Claude Sonnet 5.5 reads the PDF while an FDI odontogram lights up tooth by tooth. A check bar computed in code shows Σ lines = printed total, invalid teeth and lines to review. Then the Gantt assembles. | [`src/components/clinic`](src/components/clinic), [`src/components/odontogram`](src/components/odontogram), [`src/ai/extract`](src/ai/extract) |
@@ -206,19 +206,33 @@ The Gantt is the product, not decoration. [Bryntum Gantt](https://bryntum.com/) 
 
 **A parity test proves it.** [`tests/gantt/parity.test.ts`](tests/gantt/parity.test.ts) loads a real Bryntum `ProjectModel` in CI and checks, after Bryntum's own scheduling pass, that every date matches the engine's day for day, including after the demo's delay move.
 
-## Built on Render
-The hosted demo runs on [Render](https://render.com) from the Blueprint in [`render.yaml`](render.yaml) ([how to deploy](docs/deploy.md)):
-- One Node 22 web service on the **Starter** plan in Frankfurt. It is always on, so it never sleeps while judges are clicking.
-- A **1 GB persistent disk** at `/var/data` holds the JSON store, so the demo state survives deploys. The store reseeds itself if the file is missing.
-- A **health check** at `/api/health` reports the commit and, for each integration, whether it is live or mocked. Webhooks from PayPal arrive at the Render URL.
-- It **auto-deploys** from `main`, with a build filter that skips docs and test-only changes.
-- Every environment variable is declared in the Blueprint, with secrets as `sync: false`; [`tests/deploy/render-yaml.test.ts`](tests/deploy/render-yaml.test.ts) enforces this. A free-plan variant, [`render.free.yaml`](render.free.yaml), is kept in sync by the same test.
+## Deployed on Render
+The hosted demo runs on [Render](https://render.com) from the Blueprint in [`render.yaml`](render.yaml) ([how to deploy](docs/deploy.md)).
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/lgarbayo/payperphase)
+
+| What | How it runs on Render |
+|---|---|
+| **Web service** | One Node 22 web service on the **Starter** plan in **Frankfurt**. It is always on, so it never sleeps while judges are clicking. Build: [`scripts/render-build.sh`](scripts/render-build.sh) (needs no secret); start: `npm start`. |
+| **Persistent disk** | A **1 GB disk** mounted at `/var/data` (`DATA_DIR`) holds the JSON store, so the demo state survives deploys and restarts. The store reseeds itself if the file is missing. |
+| **Health check** | `healthCheckPath: /api/health`. It returns the deployed commit (`RENDER_GIT_COMMIT`) and, for each integration, whether it is `live` or `mock`. It answers 503 if the disk store cannot be read or an env value is malformed, so a broken deploy never goes live. |
+| **PayPal webhooks** | PayPal delivers `PAYMENT.CAPTURE.COMPLETED` and `INVOICING.INVOICE.PAID` to `https://payperphase.onrender.com/api/paypal/webhook`, where the signature is verified. |
+| **Environment** | Every variable in `.env.example` is declared in the Blueprint. Secrets use `sync: false`, so Render asks for them at creation and they never live in git; each is optional, and a missing one puts that integration in labelled mock mode. [`tests/deploy/render-yaml.test.ts`](tests/deploy/render-yaml.test.ts) enforces this. |
+| **Deploys** | Auto-deploy on every push to `main`. A build filter skips the deploy when a push only changes docs, fleet notes, tests or Markdown files. |
+| **Free variant** | [`render.free.yaml`](render.free.yaml): the same service on the free plan, without a disk (it sleeps when idle and reseeds on restart). The same test keeps it in sync. |
+
+The "Deploy to Render" button creates the service from `render.yaml`; PayPal and Claude keys are optional, so it starts in labelled mock mode.
+
+```bash
+curl https://payperphase.onrender.com/api/health   # output on 12 Nov 2026
+# {"ok":true,"version":"c4ded02","modes":{"paypal":"live","paypalWebhooks":"live","anthropic":"live","agent":"llm"},"simToday":"2027-01-12"}
+```
 
 ## AI components
 Full statement: [`docs/submission/ai-tools.md`](docs/submission/ai-tools.md).
 - **Quote extraction** (Claude Sonnet 5.5, structured output) reads the PDF into lines. Code parses the Spanish prices, re-sums the lines, compares them to the printed total and validates the FDI tooth numbers. A labelled cached extraction is the fallback.
 - **Wording** (Claude Sonnet 5.5) drafts ES/EN slot templates for the patient notes, and the dentist approves them.
-- **Clinic billing agent** (Claude Sonnet 5.5) runs a tool loop over the PayPal Agent Toolkit, behind the deterministic guard. It invoices each phase on its visit day, reissues an invoice after a plan edit, reminds overdue invoices and closes an invoice when the checkout captures. A labelled deterministic playbook takes over when the model is unavailable.
+- **Clinic billing agent** (Claude Sonnet 5.5) runs a tool loop over the PayPal Agent Toolkit, behind the deterministic guard. It invoices each phase on its visit day, reissues an invoice after a plan edit, sends reminders for overdue invoices and closes an invoice when the checkout captures. A labelled deterministic playbook takes over when the model is unavailable.
 - **Patient chat** (Claude Haiku 5.5) answers from the approved notes as cited documents. Its `simulate_delay` tool calls the engine; a numeric grounding check, a referral for medical questions and a rate limit keep it safe. Questions about what a phase costs or when it is paid never reach the model: code answers them from the engine's figures.
 - **Claude Code** was used to build the project.
 
@@ -287,9 +301,9 @@ All variables are listed in [`.env.example`](.env.example). Nothing in the repo 
 ### Troubleshooting
 | Symptom | Cause and fix |
 |---|---|
-| "Pagar (simulación)" instead of PayPal buttons | `NEXT_PUBLIC_PAYPAL_CLIENT_ID` was empty at build time. Set it and rebuild (or redeploy). |
+| "Pagar (simulación)" / "Pay (mock)" instead of PayPal buttons | PayPal is in mock mode: `PAYPAL_CLIENT_ID` or `PAYPAL_CLIENT_SECRET` is missing, or `FORCE_MOCKS=1`. Set them and restart; `/api/health` should report `"paypal":"live"`. |
 | No Pay Later message under the button | The message needs an ES merchant app, EUR and `NEXT_PUBLIC_PAYPAL_BUYER_COUNTRY=ES`. PayPal shows nothing when it has no offer for the amount. |
-| A phase shows "not yet" and cannot be paid | Only a phase whose visit day has come is payable. Move the simulated clock (Director key **C**) or reset the demo. |
+| A phase's pay button is disabled ("Paid on the day of your visit") | Only a phase whose visit day has come is payable. Move the simulated clock (Director key **C**) or reset the demo. |
 | Webhooks never show "verified" | `PAYPAL_WEBHOOK_ID` must be the id of the webhook registered for this exact URL. `/api/health` reports `paypalWebhooks`. |
 | The agent feed says "Playbook" | No `ANTHROPIC_API_KEY`, `AGENT_MODE=playbook`, or the model was unavailable. The run shows the reason, for example `HTTP 529 overloaded`. |
 | `npm run dev` fails with `UnhandledSchemeError: node:crypto` | Node-only imports in `instrumentation.ts` must stay inside its `NEXT_RUNTIME === "nodejs"` block. |
@@ -297,7 +311,7 @@ All variables are listed in [`.env.example`](.env.example). Nothing in the repo 
 | `npm ci` cannot install `@bryntum/gantt` | It comes from the public trial alias. See "Bryntum registry fallback" in [`docs/deploy.md`](docs/deploy.md). |
 
 ### Testing
-- `npm test` runs the Vitest suites (1,004 tests in 89 files on 12 Nov 2026). They cover:
+- `npm test` runs the Vitest suites (1,004 passing and 1 skipped, in 89 test files, on 12 Nov 2026). They cover:
   - property tests of the engine (cents, dates, dependencies, Pay in 3 fit, what-if, exposure);
   - the Gantt parity test and drag validator;
   - PayPal checkout and webhooks;
@@ -306,7 +320,7 @@ All variables are listed in [`.env.example`](.env.example). Nothing in the repo 
   - i18n key parity, UI components and the docs checks.
 - `npm run check` adds the typecheck.
 - `npm run e2e` runs the Playwright demo path and Gantt drag suites against a mock-mode production build.
-- CI runs typecheck, tests and build on every push.
+- CI runs typecheck, tests and build on every push to `main` and on every pull request.
 
 ### Project layout
 ```
@@ -317,10 +331,11 @@ src/ai/             Claude extraction, wording and patient chat (money and dates
 src/agent/          billing agent, guard, approvals, Agent Toolkit adapter, deterministic playbook
 src/lib/paypal/     Orders v2, webhooks, return reconcile
 src/server/         plan store (JSON), event bus and SSE, simulated clock, seed on boot
-src/components/     gantt, patient, clinic, odontogram, chat, pay, impact, agent, director, brand
+src/components/     gantt, patient, clinic, odontogram, chat, pay, impact, agent, director, brand, motion, shell
+src/i18n/           Spanish and English dictionaries (slot templates filled with engine values)
 data/ public/       seeded synthetic cases and generated sample presupuesto PDFs
 docs/               deploy, sandbox setup, spikes, architecture, submission copy
-fleet/              spec, idea and work packages
+fleet/              planning artefacts of the AI-agent workflow (idea, spec, work packages)
 tests/              Vitest and Playwright suites
 ```
 
@@ -341,7 +356,7 @@ tests/              Vitest and Playwright suites
 ## Submission material
 [Devpost copy](docs/submission/devpost.md) · [AI tools statement](docs/submission/ai-tools.md) · [video script](docs/submission/video-script.md) · [submission checklist](docs/submission/checklist.md)
 
-## License
+## Licence
 [MIT](LICENSE)
 
 ## Contributing, security and support

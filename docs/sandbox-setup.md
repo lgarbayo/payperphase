@@ -14,7 +14,7 @@ Apps & Credentials > Sandbox > **Create App** (merchant = the business account a
 
 ## 3. Webhook
 
-In the same app > Webhooks > **Add Webhook**: URL `https://<render-url>/api/paypal/webhook`, events `PAYMENT.CAPTURE.COMPLETED` and `INVOICING.INVOICE.PAID`. Copy the **Webhook ID**. (Register after the Render URL exists; see `docs/deploy.md`.)
+In the same app > Webhooks > **Add Webhook**: URL `https://<render-url>/api/paypal/webhook`, events `PAYMENT.CAPTURE.COMPLETED` and `INVOICING.INVOICE.PAID` (optionally also `PAYMENT.CAPTURE.PENDING`, `PAYMENT.CAPTURE.DENIED` and `PAYMENT.CAPTURE.DECLINED`, which the handler also routes). Copy the **Webhook ID**. (Register after the Render URL exists; see `docs/deploy.md`.)
 
 ## 4. Where each value goes
 
