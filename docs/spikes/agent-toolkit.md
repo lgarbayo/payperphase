@@ -51,6 +51,8 @@ A future `invoice_date` does make `send_invoice` return a SCHEDULED invoice, but
 
 ## Results (live, Claude Sonnet 5.5 + sandbox, 2026-11-11)
 
+> This table records the run as it happened on 2026-11-11. Since 2026-11-12 the agent invoices a phase only once it is due (see ADR-8 in [`docs/ARCHITECTURE_DECISIONS.md`](../ARCHITECTURE_DECISIONS.md)): `PLAN_APPROVED` creates invoices only for due phases, and a phase becoming `upcoming` no longer triggers a reminder, because it has no invoice yet.
+
 | Trigger | Steps (tool order) | Result |
 |---|---|---|
 | `PLAN_APPROVED` (4 phases, none paid) | get_plan → create ×4 (€360 / €1,500 / €520 / €1,690) → send ×4 → qr (due phase only) | all `SENT`, amounts equal the engine's cents, no guard rejection needed |
