@@ -33,7 +33,7 @@ import { Button, Card, cx, LiveBadge, ModeBadge, SimClockBadge } from "@/lib/ui"
 import { useToast } from "@/lib/ui/Toast";
 import { ApprovedNotes } from "./ApprovedNotes";
 import { describeShifts, formatPatientAlias } from "./format";
-import { AlertIcon, ChatIcon, CloseIcon, InfoIcon, ShieldIcon, SparkIcon, ToothIcon } from "./icons";
+import { AlertIcon, ChatIcon, CloseIcon, InfoIcon, ShieldIcon, ToothIcon } from "./icons";
 import { Ledger } from "./Ledger";
 import { NoteCard } from "./NoteCard";
 import { PhaseCard, phaseCardDomId } from "./PhaseCard";
@@ -283,7 +283,7 @@ export function PatientPlanView({ initial, planRef }: PatientPlanViewProps) {
                 </span>
               )}
             </div>
-            <div className="p-1">
+            <div className="[&_.ppp-gantt-root]:rounded-none [&_.ppp-gantt-root]:border-0 [&_.ppp-gantt-root]:shadow-none">
               <PlanGantt
                 plan={plan}
                 today={clock.today}
@@ -307,7 +307,7 @@ export function PatientPlanView({ initial, planRef }: PatientPlanViewProps) {
               className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--ppp-radius)] border border-dashed border-primary/40 bg-primary/5 px-4 py-3"
             >
               <p className="flex items-start gap-2.5 text-sm text-ink">
-                <SparkIcon className="mt-0.5 shrink-0 text-primary" />
+                <InfoIcon className="mt-0.5 shrink-0 text-primary" />
                 <span>
                   <span className="font-semibold">{t("ghostTitle")}.</span> {t("ghostBody")}{" "}
                   <span className="text-muted">{describeShifts(live.ghostShifts, "", plan.phases, locale)}</span>
@@ -601,8 +601,8 @@ function PlainAlert({
       role="alert"
       data-testid="move-alert"
       className={cx(
-        "relative flex items-start gap-2.5 rounded-[var(--ppp-radius)] border border-l-4 border-border p-4 pr-10 shadow-[var(--ppp-shadow)]",
-        tone === "danger" ? "border-l-status-overdue bg-status-overdue/5" : "border-l-status-upcoming bg-status-upcoming/5",
+        "relative flex items-start gap-2.5 rounded-[var(--ppp-radius)] border p-4 pr-10 shadow-[var(--ppp-shadow)]",
+        tone === "danger" ? "border-status-overdue/35 bg-status-overdue/5" : "border-status-upcoming/35 bg-status-upcoming/5",
       )}
     >
       <AlertIcon className={cx("mt-0.5 shrink-0", tone === "danger" ? "text-status-overdue" : "text-status-upcoming")} />

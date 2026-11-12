@@ -43,7 +43,7 @@
 
   --ppp-radius: 14px;
   --ppp-radius-sm: 8px;
-  --ppp-shadow: 0 1px 2px rgba(16, 36, 58, 0.06), 0 4px 16px rgba(16, 36, 58, 0.06);
+  --ppp-shadow: 0 1px 2px rgba(16, 36, 58, 0.05), 0 1px 3px rgba(16, 36, 58, 0.04);
   --ppp-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --ppp-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }

@@ -54,7 +54,7 @@ export function AssistantTurn({ itemId, response, locale, ghostActive, onToggleG
       <div
         className={cx(
           "max-w-full rounded-2xl rounded-bl-md border px-3.5 py-2.5 text-sm leading-relaxed text-ink shadow-sm",
-          response.refused ? "border-status-upcoming/40 border-l-4 border-l-status-upcoming bg-status-upcoming/5" : "border-border bg-surface-2",
+          response.refused ? "border-status-upcoming/40 bg-status-upcoming/5" : "border-border bg-surface-2",
         )}
       >
         {response.refused && (
