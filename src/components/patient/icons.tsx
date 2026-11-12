@@ -38,12 +38,6 @@ export const CalendarIcon = (p: SVGProps<SVGSVGElement>) => (
     <path d="M16 3v4M8 3v4M3 10h18" />
   </Svg>
 );
-export const ClockIcon = (p: SVGProps<SVGSVGElement>) => (
-  <Svg {...p}>
-    <circle cx="12" cy="12" r="9" />
-    <path d="M12 7v5l3 2" />
-  </Svg>
-);
 export const ShieldIcon = (p: SVGProps<SVGSVGElement>) => (
   <Svg {...p}>
     <path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6L12 3Z" />
@@ -75,11 +69,6 @@ export const InfoIcon = (p: SVGProps<SVGSVGElement>) => (
 export const ToothIcon = (p: SVGProps<SVGSVGElement>) => (
   <Svg {...p}>
     <path d="M7.5 3.5c-2.4 0-4 1.9-4 4.6 0 2.1.9 3.4 1.6 5 .7 1.7.9 7.4 2.9 7.4 1.6 0 1.5-4.6 4-4.6s2.4 4.6 4 4.6c2 0 2.2-5.7 2.9-7.4.7-1.6 1.6-2.9 1.6-5 0-2.7-1.6-4.6-4-4.6-1.8 0-2.7 1-4.5 1s-2.7-1-4.5-1Z" />
-  </Svg>
-);
-export const SparkIcon = (p: SVGProps<SVGSVGElement>) => (
-  <Svg {...p}>
-    <path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8" />
   </Svg>
 );
 export const LockIcon = (p: SVGProps<SVGSVGElement>) => (
