@@ -305,7 +305,7 @@ describe("<AgentFeed/> live (mocked SSE)", () => {
 describe("<AgentFeed/> approval card", () => {
   it("Approve posts the decision for that approval and removes the card", async () => {
     let decided = false;
-    const { calls } = mockFetch((url, init) => {
+    const { calls } = mockFetch((url) => {
       if (url.startsWith("/api/agent/approve")) {
         decided = true;
         return { body: { approval: approval({ status: "executed", decidedBy: "Clínica" }) } };
