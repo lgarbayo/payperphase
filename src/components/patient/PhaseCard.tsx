@@ -64,13 +64,13 @@ export function PhaseCard({ planId, phase, locale, pulse = 0, highlighted, onPai
         data-ripple={pulse}
         aria-labelledby={`phase-title-${phase.id}`}
         className={cx(
-          "relative flex h-full flex-col gap-4 overflow-hidden pt-6 outline-none transition-shadow duration-700",
+          "relative flex h-full flex-col gap-4 overflow-hidden pt-5 outline-none transition-shadow duration-700",
           glow && "shadow-[0_0_0_3px_var(--ppp-status-paid),0_8px_30px_rgba(22,163,74,0.25)]",
           highlighted && !glow && "shadow-[0_0_0_3px_var(--ppp-focus)]",
           status === "due" && "border-status-due/40",
         )}
       >
-        <span aria-hidden className="absolute inset-x-0 top-0 h-1.5" style={{ background: STATUS_COLOR_VAR[status] }} />
+        <span aria-hidden className="absolute inset-x-0 top-0 h-[3px]" style={{ background: STATUS_COLOR_VAR[status] }} />
 
         <header className="flex items-start justify-between gap-3">
           <div className="min-w-0">

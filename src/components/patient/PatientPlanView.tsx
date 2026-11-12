@@ -283,7 +283,7 @@ export function PatientPlanView({ initial, planRef }: PatientPlanViewProps) {
                 </span>
               )}
             </div>
-            <div className="p-1">
+            <div className="[&_.ppp-gantt-root]:rounded-none [&_.ppp-gantt-root]:border-0 [&_.ppp-gantt-root]:shadow-none">
               <PlanGantt
                 plan={plan}
                 today={clock.today}
@@ -601,8 +601,8 @@ function PlainAlert({
       role="alert"
       data-testid="move-alert"
       className={cx(
-        "relative flex items-start gap-2.5 rounded-[var(--ppp-radius)] border border-l-4 border-border p-4 pr-10 shadow-[var(--ppp-shadow)]",
-        tone === "danger" ? "border-l-status-overdue bg-status-overdue/5" : "border-l-status-upcoming bg-status-upcoming/5",
+        "relative flex items-start gap-2.5 rounded-[var(--ppp-radius)] border p-4 pr-10 shadow-[var(--ppp-shadow)]",
+        tone === "danger" ? "border-status-overdue/35 bg-status-overdue/5" : "border-status-upcoming/35 bg-status-upcoming/5",
       )}
     >
       <AlertIcon className={cx("mt-0.5 shrink-0", tone === "danger" ? "text-status-overdue" : "text-status-upcoming")} />

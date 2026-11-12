@@ -31,9 +31,9 @@ export interface NoteCardProps {
 }
 
 const toneStyles: Record<NoteTone, { border: string; icon: string; bg: string }> = {
-  default: { border: "border-l-primary", icon: "text-primary", bg: "bg-surface" },
-  warning: { border: "border-l-status-upcoming", icon: "text-status-upcoming", bg: "bg-status-upcoming/5" },
-  danger: { border: "border-l-status-overdue", icon: "text-status-overdue", bg: "bg-status-overdue/5" },
+  default: { border: "border-border", icon: "text-primary", bg: "bg-surface" },
+  warning: { border: "border-status-upcoming/35", icon: "text-status-upcoming", bg: "bg-status-upcoming/5" },
+  danger: { border: "border-status-overdue/35", icon: "text-status-overdue", bg: "bg-status-overdue/5" },
 };
 
 export function NoteCard({
@@ -57,7 +57,7 @@ export function NoteCard({
       data-note-id={note.id}
       role={alert ? "alert" : undefined}
       className={cx(
-        "relative flex flex-col gap-2 rounded-[var(--ppp-radius)] border border-l-4 border-border p-4 shadow-[var(--ppp-shadow)]",
+        "relative flex flex-col gap-2 rounded-[var(--ppp-radius)] border p-4",
         s.border,
         s.bg,
         className,
