@@ -15,6 +15,7 @@ import {
   storedPlan,
   useLiveEnv,
   withPayment,
+  type Route,
 } from "./fakes";
 
 vi.mock("@/server/store", async () => ({ store: (await import("./fakes")).fakeStore }));
@@ -28,6 +29,9 @@ const PLAN = "pln_ribera01";
 const ORDER = "5O190127TN364715T";
 const REQ = { planId: PLAN, phaseId: "ph1", orderId: ORDER };
 const CAPTURE_PATH = `/v2/checkout/orders/${ORDER}/capture`;
+/** The capture path reads the order first to check it is this phase's, for the server amount. */
+const GET_ORDER: Route = { method: "GET", path: `/v2/checkout/orders/${ORDER}`, reply: () => ({ status: 200, body: approvedOrder(ORDER) }) };
+const posts = <T extends { method: string }>(calls: T[]) => calls.filter((c) => c.method === "POST");
 
 function postCapture(orderIdInPath: string, body: unknown) {
   return captureRoute(
@@ -56,12 +60,13 @@ describe("capturePhaseOrder (Orders v2, live sandbox)", () => {
 
   it("COMPLETED → milestone paid (order instrument), phase delivered today, PAYMENT_CAPTURED {via:capture}", async () => {
     const { apiCalls } = mockPayPal([
+      GET_ORDER,
       { method: "POST", path: CAPTURE_PATH, reply: () => ({ status: 201, body: completedOrder(ORDER) }) },
     ]);
     const out = await capturePhaseOrder(REQ);
     expect(out).toEqual({ outcome: "COMPLETED", captureId: "CAP-1", paidCents: 36_000, mode: "live" });
 
-    const [call] = apiCalls();
+    const [call] = posts(apiCalls());
     expect(call!.path).toBe(CAPTURE_PATH);
     expect(call!.headers["paypal-request-id"]).toBe(`${ORDER}-capture`);
 
@@ -94,6 +99,7 @@ describe("capturePhaseOrder (Orders v2, live sandbox)", () => {
 
   it("PENDING → processing (not delivered, no PAYMENT_CAPTURED)", async () => {
     mockPayPal([
+      GET_ORDER,
       {
         method: "POST",
         path: CAPTURE_PATH,
@@ -112,6 +118,7 @@ describe("capturePhaseOrder (Orders v2, live sandbox)", () => {
   it("INSTRUMENT_DECLINED → DECLINED (the button restarts), state untouched, next try uses a fresh request id", async () => {
     let n = 0;
     const { apiCalls } = mockPayPal([
+      GET_ORDER,
       {
         method: "POST",
         path: CAPTURE_PATH,
@@ -126,7 +133,7 @@ describe("capturePhaseOrder (Orders v2, live sandbox)", () => {
     // actions.restart() → buyer picks another funding source → onApprove → capture again.
     const second = await capturePhaseOrder(REQ);
     expect(second.outcome).toBe("COMPLETED");
-    expect(apiCalls().map((c) => c.headers["paypal-request-id"])).toEqual([`${ORDER}-capture`, `${ORDER}-capture-r1`]);
+    expect(posts(apiCalls()).map((c) => c.headers["paypal-request-id"])).toEqual([`${ORDER}-capture`, `${ORDER}-capture-r1`]);
   });
 
   it("ORDER_ALREADY_CAPTURED → GET the order and reconcile it into the store", async () => {
@@ -136,19 +143,24 @@ describe("capturePhaseOrder (Orders v2, live sandbox)", () => {
     ]);
     const out = await capturePhaseOrder(REQ);
     expect(out).toMatchObject({ outcome: "ALREADY_CAPTURED", captureId: "CAP-1", paidCents: 36_000 });
-    expect(apiCalls().map((c) => `${c.method} ${c.path}`)).toEqual([`POST ${CAPTURE_PATH}`, `GET /v2/checkout/orders/${ORDER}`]);
+    expect(apiCalls().map((c) => `${c.method} ${c.path}`)).toEqual([
+      `GET /v2/checkout/orders/${ORDER}`,
+      `POST ${CAPTURE_PATH}`,
+      `GET /v2/checkout/orders/${ORDER}`,
+    ]);
     expect(storedPlan().phases[0]!.payment).toMatchObject({ status: "paid", captureId: "CAP-1" });
     expect(eventsOfType("PAYMENT_CAPTURED")).toHaveLength(1);
   });
 
   it("is idempotent: capturing a paid phase again does not call PayPal and publishes nothing", async () => {
     const { apiCalls } = mockPayPal([
+      GET_ORDER,
       { method: "POST", path: CAPTURE_PATH, reply: () => ({ status: 201, body: completedOrder(ORDER) }) },
     ]);
     await capturePhaseOrder(REQ);
     const again = await capturePhaseOrder(REQ);
     expect(again).toMatchObject({ outcome: "ALREADY_CAPTURED", captureId: "CAP-1", paidCents: 36_000 });
-    expect(apiCalls()).toHaveLength(1);
+    expect(posts(apiCalls())).toHaveLength(1);
     expect(eventsOfType("PAYMENT_CAPTURED")).toHaveLength(1);
   });
 
@@ -168,7 +180,7 @@ describe("capturePhaseOrder (Orders v2, live sandbox)", () => {
   });
 
   it("route: the path order id must match the body (400) and a good capture returns the outcome", async () => {
-    mockPayPal([{ method: "POST", path: CAPTURE_PATH, reply: () => ({ status: 201, body: completedOrder(ORDER) }) }]);
+    mockPayPal([GET_ORDER, { method: "POST", path: CAPTURE_PATH, reply: () => ({ status: 201, body: completedOrder(ORDER) }) }]);
     expect((await postCapture("OTHER", REQ)).status).toBe(400);
     const res = await postCapture(ORDER, REQ);
     expect(res.status).toBe(200);

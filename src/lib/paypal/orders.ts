@@ -28,7 +28,7 @@ import { centsToPayPalValue, payPalValueToCents } from "@/lib/money";
 import { store } from "@/server/store";
 import { applyPaymentEvent, type PaymentVia } from "./apply";
 import { PayPalApiError, paypalRequest } from "./client";
-import type { CreateOrderBody, PayPalCapture, PayPalOrder } from "./types";
+import type { CreateOrderBody, PayPalCapture, PayPalMoney, PayPalOrder } from "./types";
 
 export class PaymentNotAllowedError extends Error {
   constructor(public readonly reason: string) {
@@ -64,6 +64,16 @@ const declines = (g.__pppCaptureDeclines ??= new Map<string, number>());
 export function captureRequestId(orderId: string): string {
   const n = declines.get(orderId) ?? 0;
   return n === 0 ? `${orderId}-capture` : `${orderId}-capture-r${n}`;
+}
+
+/** A PayPal amount in EUR cents; undefined when it is missing, malformed or in another currency. */
+export function eurCents(money: PayPalMoney | undefined): number | undefined {
+  if (!money || money.currency_code !== CURRENCY) return undefined;
+  try {
+    return payPalValueToCents(money.value);
+  } catch {
+    return undefined;
+  }
 }
 
 function paypalLocale(plan: Plan): string {
@@ -156,7 +166,12 @@ export async function capturePhaseOrder(req: CapturePhaseOrderRequest): Promise<
   return captureInternal(req, "capture");
 }
 
-async function captureInternal(req: CapturePhaseOrderRequest, via: PaymentVia): Promise<CapturePhaseOrderResponse> {
+async function captureInternal(
+  req: CapturePhaseOrderRequest,
+  via: PaymentVia,
+  /** The order as just read from PayPal, when the caller already has it. */
+  fetched?: PayPalOrder,
+): Promise<CapturePhaseOrderResponse> {
   const plan = await store.getPlan(req.planId);
   if (!plan) throw new PaymentNotAllowedError("UNKNOWN_PLAN");
   const phase = plan.phases.find((p) => p.id === req.phaseId);
@@ -166,6 +181,11 @@ async function captureInternal(req: CapturePhaseOrderRequest, via: PaymentVia): 
   if (phase.payment.status === "paid") {
     return { outcome: "ALREADY_CAPTURED", captureId: phase.payment.captureId, paidCents: phase.payment.paidCents, mode };
   }
+
+  // No payment before the visit (ADR-4), on this path too. A pending capture may be retried.
+  const clock = await store.getClock();
+  const ok = canCreateOrder(plan, phase.id, clock.today);
+  if (!ok.ok && ok.reason !== "PROCESSING") throw new PaymentNotAllowedError(ok.reason);
 
   if (mode === "mock") {
     if (phase.payment.orderId !== req.orderId) throw new PaymentNotAllowedError("ORDER_MISMATCH");
@@ -185,14 +205,15 @@ async function captureInternal(req: CapturePhaseOrderRequest, via: PaymentVia): 
     return { outcome: "COMPLETED", captureId, paidCents: phase.amountCents, mode };
   }
 
-  // An order we did not just create for this phase: check it really is this phase's order first.
-  if (phase.payment.orderId !== req.orderId) {
-    const order = await getOrder(req.orderId);
-    const route = parsePhaseCustomId(order.purchase_units?.[0]?.custom_id ?? "");
-    if (!route || route.planId !== plan.id || route.phaseId !== phase.id) {
-      throw new PaymentNotAllowedError("ORDER_MISMATCH");
-    }
+  // Before any money moves: the order must be this phase's, for the server-set amount in EUR. The
+  // public client id lets anyone create an order with this custom_id, and the clinic may have
+  // changed the price since our own order was created.
+  const unit = (fetched ?? (await getOrder(req.orderId))).purchase_units?.[0];
+  const route = parsePhaseCustomId(unit?.custom_id ?? "");
+  if (!route || route.planId !== plan.id || route.phaseId !== phase.id) {
+    throw new PaymentNotAllowedError("ORDER_MISMATCH");
   }
+  if (eurCents(unit?.amount) !== phase.amountCents) throw new PaymentNotAllowedError("AMOUNT_MISMATCH");
 
   let order: PayPalOrder;
   try {
@@ -248,14 +269,14 @@ async function applyOrderCapture(
   if (!capture) return { outcome: "DECLINED" };
   const route = routeOf(order, capture) ?? fallback;
   if (!route) return { outcome: "DECLINED", captureId: capture.id };
-  const paidCents = capture.amount ? payPalValueToCents(capture.amount.value) : undefined;
+  const paidCents = eurCents(capture.amount);
 
   switch (capture.status) {
     case "COMPLETED":
     case "REFUNDED":
     case "PARTIALLY_REFUNDED": {
       // A refund is the clinic's business; for the milestone, money was captured.
-      await applyPaymentEvent({
+      const r = await applyPaymentEvent({
         ...route,
         event: {
           type: "CAPTURE_COMPLETED",
@@ -266,11 +287,18 @@ async function applyOrderCapture(
         },
         via,
       });
+      if (r.refused) throw new PaymentNotAllowedError(r.refused);
       return { outcome: "COMPLETED", captureId: capture.id, paidCents };
     }
-    case "PENDING":
-      await applyPaymentEvent({ ...route, event: { type: "CAPTURE_PENDING", orderId: order.id, captureId: capture.id }, via });
+    case "PENDING": {
+      const r = await applyPaymentEvent({
+        ...route,
+        event: { type: "CAPTURE_PENDING", orderId: order.id, captureId: capture.id, amountCents: paidCents ?? 0 },
+        via,
+      });
+      if (r.refused) throw new PaymentNotAllowedError(r.refused);
       return { outcome: "PENDING", captureId: capture.id, paidCents };
+    }
     case "DECLINED":
     case "FAILED":
       await applyPaymentEvent({ ...route, event: { type: "CAPTURE_DENIED", orderId: order.id, captureId: capture.id }, via });
@@ -321,7 +349,7 @@ export async function reconcileReturn(args: { planId: string; orderId: string })
     if (!route || route.planId !== plan.id) return { phaseId: null, outcome: "UNKNOWN_ORDER" };
 
     if (order.status === "APPROVED") {
-      const r = await captureInternal({ planId: plan.id, phaseId: route.phaseId, orderId: args.orderId }, "return");
+      const r = await captureInternal({ planId: plan.id, phaseId: route.phaseId, orderId: args.orderId }, "return", order);
       return { phaseId: route.phaseId, outcome: r.outcome === "ALREADY_CAPTURED" ? "COMPLETED" : r.outcome };
     }
     if (order.status === "COMPLETED") {

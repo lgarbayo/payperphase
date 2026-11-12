@@ -19,6 +19,7 @@ This file is the human-readable history of PayPerPhase: what changed, and **why*
 
 ### Fixed
 - The Gantt drag tooltip now shows the clinic day a weekend drop actually lands on (the following Monday) and the shift to that day. Before, it showed the raw Saturday or Sunday while the drop committed Monday, so the tooltip and the result disagreed.
+- Every PayPal confirmation path (the capture route, the webhook and the return page) now settles a phase only for the server-set amount in euros and only once its visit day has come. Before, an order made in the browser with the public client id and the phase's reference (for example for EUR 0.01, in another currency, or for a phase not yet due) could be captured and mark the phase paid and delivered; the capture route now checks the order before any money moves, and a webhook for such a capture is recorded but not applied.
 
 ## [0.1.0] - 2026-11-11
 

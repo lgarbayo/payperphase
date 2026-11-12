@@ -3,8 +3,8 @@
  * Capture responses, webhooks and the return reconcile all call this, so a fact that arrives three
  * times changes the store once and publishes once.
  */
-import type { Phase, PaymentStatus, Plan } from "@/contracts";
-import { markDelivered } from "@/engine";
+import type { IsoDate, Phase, PaymentStatus, Plan } from "@/contracts";
+import { markDelivered, paymentStatusAt } from "@/engine";
 import { nowIso } from "@/lib/http";
 import { publish } from "@/server/events";
 import { store } from "@/server/store";
@@ -15,6 +15,8 @@ export type PaymentVia = "capture" | "webhook" | "return";
 export interface ApplyResult {
   changed: boolean;
   ignored?: IgnoredReason | "UNKNOWN_PHASE";
+  /** Set when a capture was refused by captureRefusal(): the milestone was left untouched. */
+  refused?: CaptureRefusal;
   from?: PaymentStatus;
   to?: PaymentStatus;
   /** Phase as stored after the call (null when the plan/phase does not exist). */
@@ -23,6 +25,22 @@ export interface ApplyResult {
 
 /** Statuses at which the visit day has been reached: a payment then also means "delivered". */
 const VISIT_REACHED: ReadonlySet<PaymentStatus> = new Set<PaymentStatus>(["due", "overdue", "processing"]);
+
+export type CaptureRefusal = "PLAN_NOT_APPROVED" | "NOT_DUE_YET" | "AMOUNT_MISMATCH";
+
+/**
+ * ADR-4 on the way in: a checkout capture settles a phase only for the server-set amount (EUR cents,
+ * callers pass 0 for a non-EUR or missing amount) and only once the visit day has come. Anything
+ * else (e.g. an order made in the browser with the public client id and this phase's custom_id)
+ * is refused here, so no confirmation path (capture, webhook, return) can count it.
+ */
+export function captureRefusal(plan: Plan, phase: Phase, event: PaymentEvent, today: IsoDate): CaptureRefusal | null {
+  if (event.type !== "CAPTURE_COMPLETED" && event.type !== "CAPTURE_PENDING") return null;
+  if (plan.status !== "approved") return "PLAN_NOT_APPROVED";
+  if (!VISIT_REACHED.has(paymentStatusAt(phase, today))) return "NOT_DUE_YET";
+  if (event.amountCents !== undefined && event.amountCents !== phase.amountCents) return "AMOUNT_MISMATCH";
+  return null;
+}
 
 export async function applyPaymentEvent(args: {
   planId: string;
@@ -47,6 +65,11 @@ export async function applyPaymentEvent(args: {
         result = { changed: false, ignored: r.ignored, phase };
         return p;
       }
+      const refused = captureRefusal(p, phase, event, clock.today);
+      if (refused) {
+        result = { changed: false, refused, phase };
+        return p;
+      }
       let next: Plan = {
         ...p,
         updatedAt: now,
@@ -65,6 +88,9 @@ export async function applyPaymentEvent(args: {
     return { changed: false, ignored: "UNKNOWN_PHASE", phase: null };
   }
 
+  if (result.refused) {
+    console.warn(`[paypal] ${event.type} via ${via} refused for ${planId}:${phaseId}: ${result.refused}`);
+  }
   if (!result.changed) return result;
   const phase = result.phase;
   const realPlanId = plan.id;
