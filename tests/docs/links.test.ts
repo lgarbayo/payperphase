@@ -122,10 +122,10 @@ describe("docs: submission requirements", () => {
     expect(readme).toMatch(/\[MIT\]\(LICENSE\)/);
   });
 
-  it("the hosted demo is the real Render URL, and every other human-only value is a TODO(human) placeholder", () => {
+  it("the hosted demo and the video are real links, and the buyer login is still a TODO(human) placeholder", () => {
     const readme = read("README.md");
     expect(readme).toMatch(/Hosted demo\*\* \| \[payperphase\.onrender\.com\]\(https:\/\/payperphase\.onrender\.com\/\?lang=en\)/);
-    expect(readme).toMatch(/Demo video \(under 3 min\)\*\* \| `TODO\(human\)/);
+    expect(readme).toMatch(/Demo video \([0-9]:[0-5][0-9]\)\*\* \| https:\/\/youtu\.be\/M8x4rEFkYV0/);
     expect(readme).toMatch(/Buyer email \| `TODO\(human\)/);
     expect(readme).toMatch(/Buyer password \| `TODO\(human\)/);
   });
