@@ -21,6 +21,7 @@ import type {
   PlanViewResponse,
   WhatIfResponse,
 } from "@/contracts";
+import { phaseSummaryText } from "@/ai/wording/summary";
 import { PlanChat } from "@/components/chat/PlanChat";
 import { PlanGantt } from "@/components/gantt/PlanGantt";
 import { ClinicClosureButton } from "@/components/impact/ClinicClosureButton";
@@ -354,6 +355,7 @@ export function PatientPlanView({ initial, planRef }: PatientPlanViewProps) {
                   key={p.id}
                   planId={plan.id}
                   phase={p}
+                  summary={phaseSummaryText(plan, p)}
                   locale={locale}
                   pulse={live.pulses[p.id] ?? 0}
                   highlighted={highlight === p.id}

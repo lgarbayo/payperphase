@@ -4,6 +4,7 @@
  * approved-note checklist and (optional, cut-able) wording drafts. Everything is engine output.
  */
 import type { ClinicalNote, Locale, NoteId, Phase, Plan, PhaseWordingDraft, QuoteLine } from "@/contracts";
+import { phaseSummaryText } from "@/ai/wording/summary";
 import { Stagger } from "@/components/motion";
 import { formatIsoDate } from "@/lib/dates";
 import { formatCents } from "@/lib/money";
@@ -87,7 +88,7 @@ function PhaseCard({
   const dep = phase.dependsOn[0];
   const predecessor = dep ? plan.phases.find((p) => p.id === dep.phaseId) : undefined;
   const draft = drafts.status === "ready" ? drafts.byPhase[phase.id] : undefined;
-  const approvedSummary = readOnly ? phase.summary?.[locale] : undefined;
+  const approvedSummary = readOnly ? phaseSummaryText(plan, phase)?.[locale] : undefined;
   return (
     <Card data-testid={`phase-review-${phase.id}`} className="flex min-w-0 flex-col gap-4 p-4">
       <div className="flex items-start justify-between gap-3">

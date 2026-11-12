@@ -9,7 +9,7 @@
  * Pure formatting: amounts and dates come from the engine via the server view.
  */
 import { useEffect, useState } from "react";
-import type { Locale, Phase } from "@/contracts";
+import type { Locale, LocalizedText, Phase } from "@/contracts";
 import { Ripple } from "@/components/motion";
 import { PayLaterMessage } from "@/components/pay/PayLaterMessage";
 import { PayPhaseButton } from "@/components/pay/PayPhaseButton";
@@ -23,6 +23,8 @@ import { CalendarIcon, CheckCircleIcon, CheckIcon, LockIcon, ToothIcon } from ".
 export interface PhaseCardProps {
   planId: string;
   phase: Phase;
+  /** The approved summary filled with this phase's current engine values (phaseSummaryText), if any. */
+  summary?: LocalizedText;
   locale: Locale;
   /** Bumps on each payment of this phase → green ripple + glow. */
   pulse?: number;
@@ -37,7 +39,7 @@ const GLOW_MS = 2_400;
 /** DOM id of a phase card (Gantt "Pay this phase" scrolls to it). */
 export const phaseCardDomId = (phaseId: string) => `phase-${phaseId}`;
 
-export function PhaseCard({ planId, phase, locale, pulse = 0, highlighted, onPaid, onPayError }: PhaseCardProps) {
+export function PhaseCard({ planId, phase, summary, locale, pulse = 0, highlighted, onPaid, onPayError }: PhaseCardProps) {
   const t = useT("patient");
   const status = phase.payment.status;
   const [glow, setGlow] = useState(false);
@@ -84,9 +86,9 @@ export function PhaseCard({ planId, phase, locale, pulse = 0, highlighted, onPai
           </span>
         </header>
 
-        {phase.summary && (
+        {summary && (
           <p data-testid="phase-summary" className="-mt-1 text-sm leading-relaxed text-muted">
-            {phase.summary[locale]}
+            {summary[locale]}
           </p>
         )}
 

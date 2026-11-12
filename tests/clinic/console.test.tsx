@@ -315,10 +315,11 @@ describe("clinic console · plan, notes and approval", () => {
     };
     expect(body.approvedBy).toBe("Dra. Lucía Ruiz");
     expect([...body.noteIds].sort()).toEqual(GOLDEN_PLAN.approvedNotes.map((n) => n.noteId).sort());
+    // The slot template, not the rendered text: the patient page fills it from current engine values.
     expect(body.summaries).toEqual([
       {
         phaseId: "ph1",
-        text: { es: "Fase 1: Diagnóstico, limpieza y extracción", en: "Phase 1: Diagnosis, cleaning and extraction" },
+        text: { es: "Fase {{phaseN}}: Diagnóstico, limpieza y extracción", en: "Phase {{phaseN}}: Diagnosis, cleaning and extraction" },
       },
     ]);
 
@@ -358,6 +359,16 @@ describe("clinic console · editor, diff and agent", () => {
     expect(editor).not.toBeNull();
     expect(within(editor).getByTestId("plan-editor-body")).toBeTruthy();
     expect(within(feed).getByTestId("agent-feed-stub").getAttribute("data-plan-id")).toBe("pln_ribera01");
+  });
+
+  it("the approved summary is filled from the phase's current amount and date, not the ones at approval", () => {
+    mockFetch(baseRoutes());
+    const plan = goldenPlan();
+    plan.phases[1]!.summary = { es: "Pagas {{amount}} el {{date}}.", en: "You pay {{amount}} on {{date}}." };
+    plan.phases[1]!.amountCents = 195_000; // as after the bone-graft edit
+    renderConsole({ plan });
+    const quote = screen.getByTestId("phase-review-ph2").querySelector("blockquote");
+    expect(norm(quote?.textContent)).toBe("Pagas 1.950,00 € el 12 de enero de 2027.");
   });
 
   it("the bone-graft preset posts exactly GOLDEN_BONE_GRAFT_EDIT and the diff panel shows +450,00 €", async () => {
