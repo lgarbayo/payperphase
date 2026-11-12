@@ -147,11 +147,11 @@ describe("createPhaseOrder (Orders v2, live sandbox)", () => {
     expect(apiCalls()).toHaveLength(2);
   });
 
-  it("validates the body (bad ids → 422) and resolves only real plans (unknown → 409)", async () => {
+  it("validates the body (bad ids → 422) and resolves only real plans (unknown → 404 PLAN_NOT_FOUND)", async () => {
     mockPayPal([]);
     expect((await post({ planId: "demo", phaseId: "ph1" })).status).toBe(422);
     const res = await post({ planId: "pln_zzzzzzzz", phaseId: "ph1" });
-    expect(res.status).toBe(409);
-    expect(await res.json()).toMatchObject({ error: { code: "UNKNOWN_PLAN" } });
+    expect(res.status).toBe(404);
+    expect(await res.json()).toMatchObject({ error: { code: "PLAN_NOT_FOUND" } });
   });
 });

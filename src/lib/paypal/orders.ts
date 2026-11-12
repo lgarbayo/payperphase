@@ -121,7 +121,7 @@ function randomSuffix(): string {
 
 export async function createPhaseOrder(req: CreatePhaseOrderRequest): Promise<CreatePhaseOrderResponse> {
   const plan = await store.getPlan(req.planId);
-  if (!plan) throw new PaymentNotAllowedError("UNKNOWN_PLAN");
+  if (!plan) throw new PaymentNotAllowedError("PLAN_NOT_FOUND");
   const clock = await store.getClock();
   const ok = canCreateOrder(plan, req.phaseId, clock.today);
   if (!ok.ok) throw new PaymentNotAllowedError(ok.reason);
