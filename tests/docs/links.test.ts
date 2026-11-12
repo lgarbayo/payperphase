@@ -76,7 +76,7 @@ describe("docs: submission requirements", () => {
     const readme = read("README.md");
     expect(readme).toContain("## Hackathon milestones");
     expect(readme).toMatch(/- \[x\] AI core connected to PayPal/);
-    expect(readme).toMatch(/- \[ \] End-to-end flow on the hosted URL/);
+    expect(readme).toMatch(/- \[x\] End-to-end flow on the hosted URL/);
   });
 
   it("the first screenful carries the positioning against the rivals", () => {
@@ -93,9 +93,10 @@ describe("docs: submission requirements", () => {
     expect(readme).toMatch(/\[MIT\]\(LICENSE\)/);
   });
 
-  it("every human-only value is a TODO(human) placeholder, not an invented one", () => {
+  it("the hosted demo is the real Render URL, and every other human-only value is a TODO(human) placeholder", () => {
     const readme = read("README.md");
-    expect(readme).toMatch(/Hosted demo\*\* \| `TODO\(human\)/);
+    expect(readme).toMatch(/Hosted demo\*\* \| \[payperphase\.onrender\.com\]\(https:\/\/payperphase\.onrender\.com\/\?lang=en\)/);
+    expect(readme).toMatch(/Demo video \(under 3 min\)\*\* \| `TODO\(human\)/);
     expect(readme).toMatch(/Buyer email \| `TODO\(human\)/);
     expect(readme).toMatch(/Buyer password \| `TODO\(human\)/);
   });
@@ -110,11 +111,12 @@ describe("docs: submission requirements", () => {
     }
     expect(devpost).toMatch(/Most Impactful/);
     expect(devpost).toMatch(/Best Use of Bryntum/);
+    expect(devpost).toMatch(/Best Use of Render/);
   });
 
   it("the AI tools statement names every model and says where the LLM is not used", () => {
     const ai = read("docs/submission/ai-tools.md");
-    for (const s of ["Claude Sonnet 5.5", "Agent Toolkit", "Claude Code", "Where the LLM is not used"]) {
+    for (const s of ["Claude Sonnet 5.5", "Claude Haiku 5.5", "Agent Toolkit", "Claude Code", "Where the LLM is not used"]) {
       expect(ai, s).toContain(s);
     }
     expect(ai).toMatch(/not on a REST fallback/);
@@ -139,6 +141,14 @@ describe("docs: submission requirements", () => {
     }
     expect(prevEnd).toBeLessThanOrEqual(limit);
     expect(prevEnd).toBeLessThanOrEqual(175);
+  });
+
+  it("no doc calls the shipped odontogram or patient chat unbuilt, and none overclaims the invoice rail", () => {
+    for (const doc of docs) {
+      const text = read(doc);
+      expect(text, doc).not.toMatch(/not in this build/i);
+      expect(text, doc).not.toMatch(/provably €0/i);
+    }
   });
 
   it("the checklist flags the items that need a human", () => {

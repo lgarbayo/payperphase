@@ -4,7 +4,6 @@ Render is only the host. The app is one Node 22 web service with a 1 GB persiste
 
 ## Create the service (about 5 minutes, one time)
 
-0. Wait until branch `wp/WP-13` is merged into `main` **on GitHub**. Before that, `main` holds only a scaffold `render.yaml` (no plan, disk or build command) and `render.free.yaml` does not exist.
 1. Push the repo to GitHub (branch `main`).
 2. Render dashboard > **New** > **Blueprint** > connect the GitHub repo > select branch `main`. Render reads `render.yaml`.
 3. Fill the prompted values (all optional; any blank secret leaves that integration in mock mode with a "Mock" badge):
@@ -14,6 +13,9 @@ Render is only the host. The app is one Node 22 web service with a 1 GB persiste
 4. **Apply**. The first build takes a few minutes. When live, copy the URL, set `PUBLIC_BASE_URL` to it (Environment tab) and save (this redeploys).
    `NEXT_PUBLIC_*` values are inlined at build time, so changing them needs a redeploy.
 5. Verify: `npx tsx scripts/demo-check.ts https://<service>.onrender.com`. Add `--browser` to also confirm Bryntum task bars on `/gantt-lab` (needs `npx playwright install chromium`).
+6. Register the PayPal webhook for `https://<service>.onrender.com/api/paypal/webhook` (see `docs/sandbox-setup.md`), set `PAYPAL_WEBHOOK_ID` and check that `/api/health` reports `paypalWebhooks: live`.
+
+The hosted demo for the hackathon is `https://payperphase.onrender.com` (Starter, Frankfurt).
 
 Plan (default `render.yaml`): **Starter** (always on, about $7/month, paid from credits). It never sleeps during judging (1-15 Dec). Health check: `/api/health`. Auto-deploys on every push to `main`; docs/fleet/tests-only changes are skipped.
 
