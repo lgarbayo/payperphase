@@ -23,7 +23,7 @@ The rules allow at most one Grand Prize or category prize, plus at most one spon
 
 ## Links
 - Hosted demo: https://payperphase.onrender.com/?lang=en
-- Video: https://youtu.be/M8x4rEFkYV0 (2:49, English captions)
+- Video: https://youtu.be/M7eus5cVwbo (2:35, English captions)
 - Repository: https://github.com/lgarbayo/payperphase (`TODO(human)`: make it public first; the licence is MIT)
 - Sandbox test access: paste the sandbox buyer email and password into Devpost's test credentials field (valid until 15 Dec 2026). They are not in the public repo; the README section "Sandbox buyer login" points judges there.
 

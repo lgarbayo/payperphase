@@ -28,7 +28,7 @@ Stage 1 is pass/fail: fits the theme and reasonably uses PayPal. Stage 2 scores 
 ## Video ([`video-script.md`](video-script.md))
 - [x] Script rewritten after the judging-panel review: cold open on the closure modal, English screens, live PayPal and Claude only, 2:50, under the 180-second limit.
 - [x] Beat 8 rewritten for invoices issued on the visit day: key **5** puts the clock on phase 2's visit day, and the bone graft reissues that day's invoice.
-- [x] **HUMAN** Record, edit and upload. Public on YouTube, 3:00 or less: https://youtu.be/M8x4rEFkYV0 (2:49).
+- [x] **HUMAN** Record, edit and upload. Public on YouTube, 3:00 or less: https://youtu.be/M7eus5cVwbo (2:35).
 - [ ] **HUMAN** Shows the real product end to end on a laptop; no copyrighted music or third-party trademarks; no secrets on screen.
 - [ ] **HUMAN** English audio (or English subtitles).
 

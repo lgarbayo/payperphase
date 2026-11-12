@@ -17,7 +17,7 @@ PayPerPhase turns a Spanish dental *presupuesto* (quote) into a **pre-treatment,
 | | |
 |---|---|
 | **Hosted demo** | [payperphase.onrender.com](https://payperphase.onrender.com/?lang=en) (PayPal sandbox and Claude live; always on until 15 Dec 2026) |
-| **Demo video (2:49)** | https://youtu.be/M8x4rEFkYV0 |
+| **Demo video (2:35)** | https://youtu.be/M7eus5cVwbo |
 | **Built for** | [Build What's Next with PayPal and AI](https://paypalaihackathon.devpost.com/) (PayPal AI Hackathon 2026) |
 | **Licence** | [MIT](LICENSE) |
 
