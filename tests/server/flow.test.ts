@@ -1,7 +1,7 @@
 /**
  * WP-09 · The demo path through the real API and the REAL engine (WP-01): B1 → create from the
- * seeded quote → approve (becomes the hero) → delay what-if → illegal move → bone-graft edit →
- * clock +7 weeks. Skipped while src/engine is still the scaffold stub (it runs after WP-01 merges).
+ * seeded quote → approve (becomes the hero) → delay what-if → illegal move → B5 (implant day) →
+ * bone-graft edit → clock +7 weeks. Skipped while src/engine is still the scaffold stub (it runs after WP-01 merges).
  */
 import { describe, expect, it } from "vitest";
 import * as engine from "@/engine";
@@ -36,7 +36,7 @@ const realEngine = typeof (engine as Record<string, unknown>).paymentStatusAt ==
 useTmpDataDir();
 
 describe.runIf(realEngine)("demo path with the real engine", () => {
-  it("B1 → create → approve → what-if → snap-back → bone graft → clock reminder transition", async () => {
+  it("B1 → create → approve → what-if → snap-back → bone graft → clock overdue transition", async () => {
     await beatRoute(post(`${BASE}/demo/beat`, { beat: "B1_CLINIC_EMPTY" }));
     expect(await store.resolvePlanId(HERO_PLAN_ALIAS)).toBeNull();
 
@@ -72,9 +72,11 @@ describe.runIf(realEngine)("demo path with the real engine", () => {
     const rejected = WhatIfResponseSchema.parse(await illegal.json());
     expect(rejected.ok === false && rejected.validation).toMatchObject({ ok: false, reason: "MIN_LAG", noteId: "HEALING_EXTRACTION_MIN_8W" });
 
-    // B5 restores the approved dates; the bone graft gives exactly the golden diff
+    // B5 restores the approved dates with the clock on phase 2's visit day; the bone graft gives exactly the golden diff
     await beatRoute(post(`${BASE}/demo/beat`, { beat: "B5_AGENT_READY" }));
     const hero = (await store.resolvePlanId(HERO_PLAN_ALIAS))!;
+    expect((await store.getClock()).today).toBe("2027-01-12");
+    expect((await store.getPlan(hero))!.phases[1]!.payment.status).toBe("due");
     const edited = EditPlanResponseSchema.parse(
       await (
         await editRoute(post(`${BASE}/plans/demo/edit`, { edit: GOLDEN_BONE_GRAFT_EDIT, editedBy: GOLDEN_DENTIST }), ctx({ id: HERO_PLAN_ALIAS }))
@@ -82,12 +84,14 @@ describe.runIf(realEngine)("demo path with the real engine", () => {
     );
     expect(edited.diff).toEqual({ ...GOLDEN_BONE_GRAFT_DIFF, planId: hero });
 
-    // clock +7 weeks → ph2 (2027-01-12) turns upcoming → the agent's reminder trigger
+    // clock +7 weeks → ph2 (visit 2027-01-12) still unpaid turns overdue in one jump → the agent's
+    // reminder trigger; ph3 (moved to 2027-05-05) is still scheduled, so it is not invoiced yet
     const bus = captureEvents();
     await clockRoute(post(`${BASE}/clock`, { advanceDays: 49 }));
     bus.stop();
     const changes = bus.events.filter((e): e is Extract<DomainEvent, { type: "PHASE_STATUS_CHANGED" }> => e.type === "PHASE_STATUS_CHANGED");
-    expect(changes).toContainEqual(expect.objectContaining({ planId: hero, phaseId: "ph2", from: "scheduled", to: "upcoming" }));
+    expect(changes).toContainEqual(expect.objectContaining({ planId: hero, phaseId: "ph2", from: "due", to: "overdue" }));
+    expect(changes.some((c) => c.planId === hero && c.phaseId === "ph3")).toBe(false);
     expect(bus.types().at(-1)).toBe("CLOCK_ADVANCED");
   });
 });
