@@ -49,11 +49,12 @@ On the dev server (`FORCE_MOCKS=1`), `/p/demo` → click "Pagar (simulación)" o
 
 ## Still open (needs sandbox credentials from WP-13)
 - [x] **Message check with an ES merchant.** (done, see "Result with the real ES sandbox app") Set `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET` and `NEXT_PUBLIC_PAYPAL_CLIENT_ID` (ES business sandbox app, EUR), then open `/spike-paylater`. Read the table: the three message columns should turn green for both intents. `window.__pppSpike` holds the same results as JSON. Note the message wording here, in words.
-- [ ] **Live payment of ph1 (€360) end to end.** With the same env plus `PAYPAL_WEBHOOK_ID`: `npm run dev`, then `POST /api/demo/reset`, open `/p/demo`, click "Pagar con PayPal" (or "Paga a plazos") on phase 1, approve with the ES sandbox buyer, and watch the diamond turn green. Record date, time, order id and capture id here. Server path: `getAccessToken()` → `POST /v2/checkout/orders` (`PayPal-Request-Id {planId}-ph1-create-1`, `invoice_id PPP-{plan4}-F1-O1`) → `POST /v2/checkout/orders/{id}/capture` (`PayPal-Request-Id {id}-capture`).
+- [x] **Live payment of ph1 (€360) end to end.** (done on the hosted URL, see the table) With the same env plus `PAYPAL_WEBHOOK_ID`: `npm run dev`, then `POST /api/demo/reset`, open `/p/demo`, click "Pagar con PayPal" (or "Paga a plazos") on phase 1, approve with the ES sandbox buyer, and watch the diamond turn green. Record date, time, order id and capture id here. Server path: `getAccessToken()` → `POST /v2/checkout/orders` (`PayPal-Request-Id {planId}-ph1-create-1`, `invoice_id PPP-{plan4}-F1-O1`) → `POST /v2/checkout/orders/{id}/capture` (`PayPal-Request-Id {id}-capture`).
 
 | When (CET) | Order id | Capture id | Result |
 |---|---|---|---|
-| _integrator runs the buyer-approved payment_ | | | |
+| 2026-11-11 ~15:10 | `7KJ1289425611743W` | `60Y069311N401201C` | Hosted URL, in-app **Pay in 3** (test DNI 12345678Z, sandbox card). EUR 360.00 captured, phase 1 paid and delivered, exposure €0. |
+| 2026-11-11 15:26 | `9S058375J3368024G` | `1VT88810KH3701720` | Hosted URL, in-app **Pay in 3**. `PAYMENT.CAPTURE.COMPLETED` and `INVOICING.INVOICE.PAID` received with `verified: true`, de-duplicated (already applied). Invoice `PPP-QBV8-F1-v1` → `MARKED_AS_PAID` by the agent. |
 
 ## Server-side sandbox check by WP-04 reviewer (Wed 2026-11-11, 00:35 CET)
 With the real ES sandbox credentials (no buyer approval): OAuth token OK; `createPhaseOrder` for ph2 (scheduled) refused with `NOT_DUE_YET`; with the simulated clock on 2026-11-16, ph1 created order `8UF12137GP897594C` (status `CREATED`, `amount EUR 360.00`, `custom_id pln_ribera01:ph1`, `invoice_id PPP-RIBE-F1-O1`; an `amount` in the request was ignored). A webhook call with a made-up signature came back not `SUCCESS` (so the route answers 401). The buyer approval and capture are left to the integrator.

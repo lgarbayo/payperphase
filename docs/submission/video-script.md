@@ -1,88 +1,131 @@
-# Demo video script (2:52, hard cap 3:00)
+# Demo video script (2:50, hard cap 3:00)
 
-Required by the rules: public on YouTube, **180 seconds at most**, shows the project working on its target device, no unlicensed music, no third-party trademarks or logos, no secrets on screen. This script runs **2:52**, leaving 8 seconds of margin. English voice-over; the UI is Spanish with the ES→EN toggle shown once. The sandbox stays visible throughout.
+Required by the rules: public on YouTube, **180 seconds at most**, shows the project working on its target device, no unlicensed music, no third-party trademarks or logos, no secrets on screen. This script runs **2:50**, leaving 10 seconds of margin.
 
-How to record: each beat is recorded on its own from a Director Mode deep link (`/demo?director=1`), then cut together. Director keys: **R** reset · **1–6** jump to a beat state · **C** clock +7 weeks · **G** guard test. Every clock state is labelled "Simulated" on screen. Record the live Claude and PayPal calls first, and use the labelled cached state only where a take fails (the badge must stay visible).
+The voice-over is in English, and every screen is recorded in English (`?lang=en`, which the app remembers). The quote PDF itself stays Spanish, because it is a real Spanish quote. The sandbox stays visible throughout.
 
-Ground rules for the voice-over (about 150 words a minute, so each block below fits its time):
-- Say "sandbox", "synthetic patients" and "illustrative" where the screen says them.
-- Never promise that a patient will be eligible for Pay in 3. Say "sized for Pay in 3": PayPal decides.
-- Do not mention anything that is not on the screen.
+The shape follows the judging-panel review:
+- open cold on the punchline (the closure modal);
+- show the real PayPal sandbox and Claude, never a mock badge;
+- close the arc on the same button.
 
-| Beat | Time | Director key / link |
+## How to record
+- **Where:** the hosted URL (`https://payperphase.onrender.com`), where PayPal and Claude are live. Retake any shot that shows a "Mock", "Cached" or "Playbook" badge.
+- **Order of recording ≠ order of the cut.** Record the beats in this order:
+  1. the clinic (beat 4);
+  2. the patient payment (beat 5);
+  3. the closure modal, now with phase 1 really paid (beats 1 and 9);
+  4. the drag (beat 6);
+  5. the chat (beat 7);
+  6. the agent (beat 8);
+  7. the title cards.
+
+  Press **Reset demo** on `/demo` before the clinic take.
+- **Director Mode:** open `/demo?director=1`.
+  - Keys: **R** reset · **1–6** jump to a beat state · **C** clock +7 weeks · **G** guard test · **H** hide the overlay. Press **H** after each beat key.
+  - Every clock state is labelled "Simulated" on screen.
+  - Beat key **3** (phase 1 paid) is only a fallback if the real payment take fails. Say so in the edit notes; the VO must not claim a live payment for that take.
+- **Capture:**
+  - Use OBS display capture (the PayPal window is a separate window) at 1920×1080, with browser zoom 125%.
+  - Use a clean browser profile, with the sandbox buyer already logged in at sandbox.paypal.com so no password appears.
+  - Show one shot with the address bar on the onrender.com URL.
+- **Voice:** record it separately at about 140 words a minute, normalised to −14 LUFS. Optional: a licensed YouTube Audio Library bed at about −25 dB. Burn in English captions and upload the SRT.
+- **VO rules:**
+  - Say "sandbox", "synthetic" and "illustrative" where the screen says them.
+  - Never promise Pay in 3 eligibility: say "sized for Pay in 3", because PayPal decides.
+  - Read figures from the screen, never from memory.
+
+| Beat | Time | Screen / Director key |
 |---|---|---|
-| 1. Hook | 0:00–0:12 | `/demo/title` (title cards) |
-| 2. Title | 0:12–0:20 | `/demo/title` |
-| 3. Quote → plan | 0:20–0:50 | **1** → `/clinic` |
-| 4. Patient pays phase 1 | 0:50–1:18 | **2** → `/p/demo` (then **3** if the take needs the paid state) |
-| 5. Delay what-if | 1:18–1:52 | **4** → `/p/demo#gantt` |
-| 6. Clinic agent | 1:52–2:28 | **5** → `/clinic#plan-editor`, keys **G** and **C** |
-| 7. The button | 2:28–2:44 | **6** → `/p/demo#closure` |
-| 8. Close | 2:44–2:52 | `/demo/closing` |
+| 1. Cold open | 0:00–0:07 | `/p/demo?lang=en#closure`, after the real payment |
+| 2. Hook | 0:07–0:15 | `/demo/title?lang=en&rec=1`, card 1 |
+| 3. Title | 0:15–0:22 | `/demo/title?lang=en&rec=1`, title card |
+| 4. Quote → plan | 0:22–0:46 | key **1** → `/clinic` |
+| 5. Patient pays phase 1 | 0:46–1:14 | key **2** → `/p/demo` |
+| 6. Biology vetoes the schedule | 1:14–1:36 | key **4** → `/p/demo#gantt` |
+| 7. Ask the plan | 1:36–1:48 | `/p/demo`, "Ask about your plan" |
+| 8. Clinic agent | 1:48–2:20 | key **5** → `/clinic#plan-editor`, then **G** |
+| 9. The button | 2:20–2:40 | `/p/demo#closure` |
+| 10. Close | 2:40–2:50 | `/demo/closing?lang=en&rec=1` |
 
 ---
 
-## 1. Hook · 0:00–0:12
-**Screen:** dark title cards. The text of the Spanish consumer authority's guidance (dsca.gob.es) appears as text only, no logos.
-**Lower third:** "Source: dsca.gob.es, official consumer guidance"
-**VO:** "In 2020 one of Spain's biggest dental chains closed overnight. Thousands of patients kept paying loans for implants they never received."
-**Director:** the hook card from `/demo/title`.
+## 1. Cold open · 0:00–0:07
+**Screen:** the settled "What if the clinic closes today?" modal, with phase 1 really paid: red "Yours to claim back €3,710.00 for treatment you never received" next to green "€0.00". Start on the numbers, already settled.
+**VO:** "The clinic just closed. Same patient, same treatment. Left: the loan the clinic offered. Right: PayPerPhase."
 
-## 2. Title · 0:12–0:20
-**Screen:** the PayPerPhase wordmark, then the positioning line.
-**Lower third:** "Pre-treatment Spanish quote · clinical healing windows · pay per phase · €0 exposure"
-**VO:** "PayPerPhase. Pay for dental treatment phase by phase, as you receive it. Never in advance."
-**Director:** the title card from `/demo/title`.
+## 2. Hook · 0:07–0:15
+**Screen:** hook card 1: "2020: a big dental chain closes overnight. 101,481 patients had paid-for treatments left unfinished; 65% of them with a linked loan." The source line stays on screen. No chain names or logos.
+**VO:** "In 2020 a Spanish dental chain closed overnight. More than a hundred thousand patients had paid for treatment they never got."
 
-## 3. Clinic: quote to plan · 0:20–0:50 (wow moment 5)
-**Screen:** `/clinic`. Choose the synthetic Clínica Dental Ribera presupuesto from "Probar con un ejemplo" (12 lines, €4,070). The lines stream in with tooth chips (36, 37, 46). The check bar reads "Σ lines = printed total", with the number of invalid teeth and lines to review. The Gantt assembles with healing windows and "within Pay in 3 range" badges. The dentist ticks the note approvals, then clicks "Approve & send to patient": the link and QR code appear and the invoice table lists four invoices.
-**Lower third:** "Claude Sonnet 5.5 extracts. A tested rules engine groups phases, healing times and amounts in cents."
-**VO:** "The clinic drops in a Spanish quote. Claude reads the lines. Code checks every sum and every tooth number. A tested engine builds the phases, with the healing time bone needs between them. The dentist approves every note, and the patient gets a link."
-**Director:** key **1**. Say aloud in the take which extraction is on screen: a live call (badge "Live") or the labelled cached one.
-**Sandbox shot:** none.
+## 3. Title · 0:15–0:22
+**Screen:** the PayPerPhase title card.
+**VO:** "PayPerPhase. Pay for each phase of dental treatment on the day you get it. Never in advance."
 
-## 4. Patient: pay phase 1 · 0:50–1:18 (wow moment 2)
-**Screen:** `/p/demo` on a laptop. Show the ES→EN toggle once, then back to the language of the take. Point at the Gantt and the €360 phase. The official PayPal Pay Later message sits under the button, untouched. Click PayPal, approve in the sandbox window (the sandbox URL stays visible) and return. The phase-1 diamond turns green with a ripple. The ledger reads "Paid €360 · received €360" and the exposure meter stays at €0,00.
-**Lower third:** "PayPal Orders v2 · one order per phase · sandbox"
-**VO:** "The patient sees the whole plan. Phase one is due today, so that is the only thing they can pay. PayPal's own Pay Later message sits under the button. They approve in the sandbox, and the milestone turns green. Paid, received, and nothing paid in advance."
-**Director:** key **2**; key **3** if a take needs the paid state without the PayPal round trip (then use the real take for the sandbox shot).
-**Sandbox shot:** the approval window of the PayPal sandbox. Record the Pay in 3 flow once by hand if you want it in the cut: it asks for the test DNI 12345678Z, a card and the contract checkbox.
+## 4. Clinic: quote to plan · 0:22–0:46
+**Screen:** `/clinic`.
+1. Under "Try a sample", choose the synthetic Clínica Dental Ribera presupuesto: 12 lines, €4,070.
+2. Jump-cut the wait for the live call. Punch in 2× on the odontogram lighting up as the lines arrive.
+3. Punch in on the check bar: Σ lines = printed total.
+4. Press "Create plan": the Gantt assembles with healing windows.
+5. Tick "Approve notes", then press "Approve & send to patient": the link and the QR code appear.
 
-## 5. Patient: delay what-if · 1:18–1:52 (wow moment 3)
-**Screen:** scroll to the Gantt. Drag phase 2 (implants) six weeks to the right: phases 3 and 4 and their payment diamonds follow, the baseline ghost shows the original plan, and the due dates change. Then drag it left past the healing minimum: it snaps back and the dentist's note appears ("bone needs at least 8 weeks to heal"). Drag far to the right, past six months: the deadline turns red.
-**Lower third:** "Bryntum draws it. The engine computes every date."
-**VO:** "Life happens. Drag the implants six weeks later, and the crowns and their payments follow. The original plan stays visible. Drag them too early and the plan snaps back, with the reason from the dentist. Wait too long and the clinical deadline turns red. Bryntum draws it, and our tested engine computes every date."
+**Lower third:** "Claude Sonnet 5.5 reads. A tested engine decides phases, dates and cents."
+**VO:** "María's clinic uploads her Spanish quote. Claude reads every line and tooth, and the odontogram lights up as it reads. Code, not the model, re-checks the sum. A tested engine builds four phases with the healing time between them, each sized for Pay in 3. The dentist approves every note and sends María a link."
+**Director:** key **1**. If the live extraction fails, retake; use the cached one only with its badge visible.
+
+## 5. Patient: pay phase 1 · 0:46–1:14
+**Screen:** `/p/demo`.
+1. Toggle EN → ES → EN once (2 s).
+2. Point at phase 1 (€360, due today). The PayPal buttons sit there with PayPal's official Pay Later message under them, unedited; phases 2–4 show a locked "not yet" button.
+3. Click "Paga a plazos". Show 3 s of the PayPal sandbox window with "Paga en 3 plazos · 3 pagos sin intereses. 120,00 EUR al mes a partir de hoy." selected, then jump-cut past the DNI step.
+4. Back on the page, the phase-1 diamond turns green and the capture id line appears.
+5. Cut for 3 s to the clinic's **PayPal trail** for phase 1: capture `COMPLETED` and the two webhooks with "✓ signature verified".
+
+**Lower third:** "PayPal Orders v2 + Pay in 3 · sandbox · webhooks signature-verified"
+**VO:** "Only today's phase can be paid; the server refuses anything earlier. María chooses Pay in 3 in the PayPal sandbox. The clinic is paid in full today, and PayPal carries the instalments. The milestone turns green, and PayPal's webhooks confirm it, signature verified."
+
+## 6. Biology vetoes the schedule · 1:14–1:36
+**Screen:** the Gantt close up.
+1. Drag phase 3 slowly to the left. The chart shades "Healing · not before 7 Apr 2027" and the green "Safe window". Hold the tooltip with the dentist's note for 1.5 s.
+2. Drop: it snaps back, and the reason appears under the chart.
+3. Then drag phase 2 six weeks to the right: phases 3 and 4 and their payment diamonds glide, and the approved plan stays as a ghost.
+
+**Lower third:** "Bryntum TaskDrag validatorFn → our engine · baseline = approved plan"
+**VO:** "Life happens, but biology sets the dates. Move the abutments too early and the plan snaps back, in the dentist's own words. Move the implant later, and every phase and payment follows. Bryntum draws it; our engine computes every date."
 **Director:** key **4**.
 
-## 6. Clinic agent · 1:52–2:28 (wow moment 6)
-**Screen:** `/clinic#plan-editor`. The dentist presses the "Injerto óseo (+450 €)" shortcut on phase 2. A plain-language diff appears ("+€450, phase 2 still within Pay in 3 range"). The agent feed streams the calls: `cancel_sent_invoice` then `create_invoice`. Press **G**: the guard rejects a stale amount, labelled "guard test". Click **Approve**: `send_invoice` then `generate_invoice_qr_code` run. Cut to the sandbox invoice and its QR code. Press **C**: phase 2 turns amber ("upcoming") and the feed shows `send_invoice_reminder`.
-**Lower third:** "Claude Sonnet 5.5 drives the PayPal Agent Toolkit. A deterministic guard checks every call."
-**VO:** "The dentist adds a bone graft. The agent cancels the old invoice and prepares a new one for the new amount. The guard checks the amount, the currency and the recipient, and here it rejects a wrong amount. After one approval the invoice is sent, with its QR code. Weeks pass on the simulated clock, and the agent sends the reminder."
-**Director:** key **5**, then **G**, then **C** (the clock jump is labelled "Simulated").
-**Sandbox shot:** the invoice page and QR code in the PayPal sandbox.
+## 7. Ask the plan · 1:36–1:48
+**Screen:** "Ask about your plan" → type "What if I wait three months for the implant?". The answer gives the new dates. Two citation chips "Dra. Lucía Ruiz" and the Gantt preview ghost appear.
+**VO:** "María can ask her plan. Claude answers from her dentist's approved notes, and every date comes from the engine."
 
-## 7. The button · 2:28–2:44 (wow moment 4)
-**Screen:** `/p/demo#closure`. Press "¿Y si la clínica cierra hoy?". The counters animate: "Linked loan: you still owe …" against "PayPerPhase: €0". The source (dsca.gob.es) and the "illustrative" label are on screen.
-**Lower third:** "Illustrative. Computed by the engine from undelivered phases."
-**VO:** "What if the clinic closes today? With a linked loan, you still owe for treatment you never got. With PayPerPhase, nothing."
-**Director:** key **6**. Read the loan figure from the screen; do not say a number that the screen does not show.
+## 8. Clinic agent · 1:48–2:20
+**Screen:** `/clinic#plan-editor`. Punch in 1.6× on the agent feed throughout.
+1. The dentist presses the "+ Bone graft (+€450)" preset on phase 2. A plain-language diff appears.
+2. The agent feed, with "Claude" and "PayPal sandbox · Agent Toolkit" badges, streams `cancel_sent_invoice` → `create_invoice`.
+3. Press **G**: the guard rejects a wrong amount, shown as a red line labelled "guard test". Hold it for 2 s.
+4. Click **Approve**: `send_invoice` → `generate_invoice_qr_code`.
+5. Cut for 3 s to the sandbox invoice page with its QR code.
 
-## 8. Close · 2:44–2:52
-**Screen:** closing card with the compliance line, the tagline and the hosted URL (`TODO(human)`: put the final Render URL on the card).
-**On screen:** "Sandbox only · synthetic patients · medical services require PayPal pre-approval in production."
-**VO:** "PayPerPhase. Sandbox only, synthetic patients, and in production medical services need PayPal's pre-approval. Pay for the treatment you receive."
-**Director:** `/demo/closing`.
+**Lower third:** "Claude Sonnet 5.5 → PayPal Agent Toolkit · every call guarded"
+**VO:** "The dentist adds a bone graft. Claude cancels the old invoice and drafts a new one through PayPal's Agent Toolkit. A deterministic guard checks every call, and here it blocks a wrong amount. One human approval sends the new invoice, with its QR code."
+**Director:** key **5**, then **G**. Blur the invoice email if it is on screen.
+
+## 9. The button · 2:20–2:40
+**Screen:** `/p/demo#closure`. Press "What if the clinic closes today?". The counters settle at €3,710.00 vs €0.00. Then hold 3 s on the "Phases the clinic would never deliver" list and the source line.
+**Lower third:** "Illustrative. Computed by the engine from undelivered phases. Source: dsca.gob.es"
+**VO:** "María has paid three hundred and sixty euros, for care she has received. If her clinic closes today, with a linked loan, three thousand seven hundred and ten euros are hers to claim back. With PayPerPhase: nothing."
+
+## 10. Close · 2:40–2:50
+**Screen:** the closing card: the tagline large, the hosted URL, and the compliance line small, all in English.
+**VO:** "PayPerPhase. Pay for the care you receive."
+Leave the compliance line on screen; do not read it.
 
 ---
 
-## Optional insert: "Ask the plan" (only if the patient chat is merged before the freeze)
-The patient chat is not part of the current build, so it is not in the cut above. If it merges, add it between beats 5 and 6 as a 12-second insert (for example 1:52–2:04) and free the time by trimming beats 3, 5 and 6 by 4 seconds each, so the total stays at 2:52:
-"If I wait 3 months for the implant, what changes?" The answer shows dates from the engine and a chip "Approved by Dra. Ruiz · Phase 2". "Can I take ibuprofen?" gets a polite refusal and a "Message my clinic" button.
-Update `docs/submission/ai-tools.md` and the README at the same time.
-
 ## Checks before upload
-- Length 2:52 or less; never above 3:00.
-- Public on YouTube; English audio (or English subtitles).
-- The video shows the project running on a laptop, not mock-ups.
-- No secrets, emails or real accounts on screen: hide the sandbox buyer's password, and blur the invoice email if it is shown.
-- No music unless licensed; no third-party logos other than what the product itself shows inside PayPal's own sandbox pages.
+- The length is 2:50 or less after YouTube processing; never above 3:00.
+- Public on YouTube, with English audio and captions. Use a custom thumbnail of the closure numbers.
+- The video shows the project running, not mock-ups. No "Mock", "Cached" or "Playbook" badge appears.
+- No secrets, emails or real accounts on screen. The sandbox buyer is logged in beforehand, and any invoice email is blurred.
+- No music unless licensed. No third-party logos other than what the product itself shows inside PayPal's own sandbox pages.
