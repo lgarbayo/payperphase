@@ -43,7 +43,7 @@
   --b-baseline-wrap-size: 0.28;
   --b-baseline-flex: 1;
   --ppp-bar: var(--ppp-status-scheduled);
-  --ppp-heal-stripe: color-mix(in srgb, var(--ppp-healing) 55%, var(--ppp-ink) 18%);
+  --ppp-heal-stripe: color-mix(in srgb, var(--ppp-healing) 50%, var(--ppp-ink) 30%);
   --ppp-heal-min-bg: color-mix(in srgb, var(--ppp-healing) 45%, var(--ppp-surface));
   --ppp-heal-wait-bg: color-mix(in srgb, var(--ppp-healing) 18%, var(--ppp-surface));
   --ppp-heal-over-bg: color-mix(in srgb, var(--ppp-deadline) 22%, var(--ppp-surface));
@@ -540,7 +540,7 @@
 }
 .ppp-legend-heal {
   background:
-    repeating-linear-gradient(135deg, color-mix(in srgb, var(--ppp-healing) 55%, var(--ppp-ink) 18%) 0 2px, transparent 2px 6px),
+    repeating-linear-gradient(135deg, var(--ppp-heal-stripe) 0 2px, transparent 2px 6px),
     color-mix(in srgb, var(--ppp-healing) 45%, var(--ppp-surface));
   border: 1px solid var(--ppp-healing);
 }
@@ -656,4 +656,11 @@
   color: var(--ppp-ink);
   font-size: 12px;
   font-weight: 700;
+}
+
+/* Dark theme: the grey "scheduled" fill is too dark for the dark ink, so its phase number is white. */
+.ppp-status-scheduled .ppp-visit-n,
+.ppp-n.ppp-status-scheduled,
+.ppp-status-scheduled .ppp-n {
+  color: #ffffff;
 }
