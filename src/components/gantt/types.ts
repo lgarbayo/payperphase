@@ -20,7 +20,7 @@ export interface PlanGanttProps {
   onPayPhase?: (phaseId: string) => void;
   /** taskMenu "What if I delay?". */
   onAskDelay?: (phaseId: string) => void;
-  /** Height in px (Bryntum needs a sized parent). Default 420. Includes the legend strip. */
+  /** Non-empty plans ignore it (the chart sizes itself to every row); it only caps the empty-state placeholder at min(height, 200). Default 420. */
   height?: number;
   /**
    * Optional engine warnings (e.g. `WhatIfResult.warnings` from the last persisted what-if). The chart

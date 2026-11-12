@@ -1,5 +1,9 @@
 /*
  * Clinical Gantt skin on top of Bryntum's svalbard-dark theme.
+ * Bryntum is themed mainly through its --b-* CSS variables (see "Theme bridge"), plus a few
+ * targeted overrides of Bryntum classes (grid/time-axis headers, tree cells) scoped under
+ * .ppp-gantt. Everything else styles our own ppp-* classes rendered by taskRenderer, column
+ * renderers, labels, baselines, indicators, time ranges, the summary footer and tooltips.
  * Colours come from the shared --ppp-* variables (app/globals.css); never raw hex here.
  */
 

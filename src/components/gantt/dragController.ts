@@ -1,14 +1,14 @@
 /**
- * Drag validation wrapper between Bryntum's TaskDrag and the engine.
- * Pure TypeScript (no @bryntum import) so it is unit-tested in node.
+ * Drag controller: the bridge between Bryntum's TaskDrag feature and the clinical scheduling engine.
+ * Pure TypeScript (no @bryntum import) so the whole drag contract is unit-tested in node.
  *
- * - `validate` runs on every drag frame (Bryntum `validatorFn`). It calls `engine.validateMove`
- *   synchronously and memoises the verdict per (phase, day) for the current plan, so a long drag
- *   never clones the plan or re-validates the same day twice.
- * - `drop` runs once when Bryntum accepts a drop: re-checks, previews `engine.reschedule` (the
- *   successors move instantly) and hands the move to the parent (`onMoveCommitted`).
- * - `snapBack` runs once when Bryntum rejected the drop: reports the clinician note to the parent
- *   (`onMoveRejected`) so it can show the snap-back card.
+ * - `validate` backs `TaskDrag.validatorFn` and the TaskDrag tooltip, so it runs on every drag frame.
+ *   It calls `engine.validateMove` synchronously and memoises the verdict per (phase, day) for the
+ *   current plan: a long drag never clones the plan or re-validates the same day twice.
+ * - `drop` runs once from `afterTaskDrop` when Bryntum accepted the drop: it re-checks, previews
+ *   `engine.reschedule` (successors move instantly) and hands the move to the parent (`onMoveCommitted`).
+ * - `snapBack` runs once from `afterTaskDrop` when Bryntum rejected the drop: it reports the
+ *   clinician note to the parent (`onMoveRejected`) so it can show the snap-back card.
  */
 import type { ClinicalNote, Locale, MoveRequest, MoveValidation, NoteId, Phase, Plan, WhatIfResult } from "@/contracts";
 import { reschedule, snapToClinicDay, validateMove } from "@/engine";
@@ -82,7 +82,7 @@ export function rejectionMessage(
 }
 
 export function createDragController(opts: DragControllerOptions): DragController {
-  // Lightweight index, rebuilt only when the plan / today / locale / notes identity changes.
+  // Phase index + verdict cache, invalidated only when the plan / today / locale / notes identity changes.
   let keyPlan: Plan | null = null;
   let keyToday = "";
   let keyLocale: Locale | null = null;

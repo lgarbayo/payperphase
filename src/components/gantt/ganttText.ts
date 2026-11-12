@@ -1,6 +1,8 @@
 /**
- * Pure render helpers for the Gantt: grid cells (DomConfig objects, so text is set
- * as textContent) and tooltips (HTML strings, every interpolated value escaped).
+ * Pure render helpers for the Gantt, kept free of @bryntum imports so they are unit-tested in node.
+ * - Grid cells: column `renderer`s return DomConfig objects, so Bryntum sets text as textContent.
+ * - Tooltips: HTML strings for the TaskTooltip, TaskDrag and Dependencies tooltip templates,
+ *   with every interpolated value escaped.
  */
 import type { ClinicalNote, Locale, NoteId } from "@/contracts";
 import { snapToClinicDay } from "@/engine";

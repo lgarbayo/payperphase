@@ -1,8 +1,12 @@
 "use client";
-/** Legend strip under the Gantt (also shows the snap-back reason briefly). */
+/**
+ * Legend strip under the Gantt: explains the healing hatch, baseline / preview ghosts and the
+ * deadline indicator flag, and briefly shows the snap-back reason after a rejected drag.
+ */
 import type { Locale } from "@/contracts";
 import { LEGEND_HEIGHT, tg } from "./toBryntum";
 
+// Re-exported so the chart can size itself next to the component that owns the strip.
 export { LEGEND_HEIGHT };
 
 export function GanttLegend({
