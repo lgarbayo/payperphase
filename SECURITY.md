@@ -44,7 +44,7 @@ We prefer to state these openly:
 - **No external security audit** has been done. The code was written in a few days during a hackathon, much of it with AI coding agents and reviewed by the maintainer.
 - **The demo has no login, by design.** The clinic console, "Reset demo" and Director Mode are public so that judges can try everything. A real deployment needs clinic and patient authentication before anything else.
 - **Single instance, one JSON file.** The store is a JSON file on one server's disk. It is not built for concurrent instances or for real health data.
-- **Invoices for future phases are sent at plan approval.** PayPal's invoice page cannot block an early payment. The app records such a payment but does not count it as delivered care, and sending invoices on the visit day is planned.
+- **"Never pay in advance" is enforced by our own server and guard, not by PayPal.** PayPal's invoice page cannot block an early payment, so a phase's invoice is created and sent only on its visit day, and the agent's guard refuses an invoice for a phase that is not due (`PHASE_NOT_DUE`). The rule depends on the server's simulated clock and on that guard; a bug in either would be a security issue, so please report it as one.
 - **Only the patient chat is rate-limited** (10 questions a minute per plan). Other public endpoints are not.
 - **Dependencies have not been audited** beyond the lockfile and the CI build, and Bryntum Gantt is used as its public trial package.
 

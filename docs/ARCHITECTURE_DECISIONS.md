@@ -19,7 +19,7 @@ Maintainers add new entries at the end. An entry is never deleted: when a decisi
 | 5 | [JS SDK v5 with Pay Later messaging pinned to Pay in 3](#adr-5-js-sdk-v5-with-pay-later-messaging-pinned-to-pay-in-3) | Accepted |
 | 6 | [Webhooks verified by PayPal, one transition for every rail](#adr-6-webhooks-verified-by-paypal-one-transition-for-every-rail) | Accepted |
 | 7 | [A Claude agent over the PayPal Agent Toolkit, behind a guard and a human approval](#adr-7-a-claude-agent-over-the-paypal-agent-toolkit-behind-a-guard-and-a-human-approval) | Accepted |
-| 8 | [Invoices issued at approval, dated to the visit in the note](#adr-8-invoices-issued-at-approval-dated-to-the-visit-in-the-note) | Accepted, to revisit |
+| 8 | [Each phase invoice issued on its visit day](#adr-8-each-phase-invoice-issued-on-its-visit-day) | Accepted (revised 2026-11-12) |
 | 9 | [Bryntum draws and validates; the engine owns every date](#adr-9-bryntum-draws-and-validates-the-engine-owns-every-date) | Accepted |
 | 10 | [Patient wording as approved slot templates; a grounded chat](#adr-10-patient-wording-as-approved-slot-templates-a-grounded-chat) | Accepted |
 | 11 | [One JSON file on a persistent disk, an event bus and SSE](#adr-11-one-json-file-on-a-persistent-disk-an-event-bus-and-sse) | Accepted for the demo |
@@ -117,7 +117,7 @@ They arrive in any order, sometimes twice. Applying them independently would dou
 **Decision.**
 - Claude Sonnet 5.5 runs a tool loop over the official PayPal Agent Toolkit (`@paypal/agent-toolkit` 1.11.0), in sandbox mode.
 - The loop is limited to seven invoice tools plus two read-only local tools (`get_plan`, `get_plan_diff`).
-- Every call passes a deterministic guard that checks amount, currency, invoice number and recipient against the engine and the store. When a call is wrong, the guard returns a visible error to the model.
+- Every call passes a deterministic guard that checks amount, currency, invoice number and recipient against the engine and the store, and refuses an invoice for a phase that is not due yet (ADR-8). When a call is wrong, the guard returns a visible error to the model.
 - After a plan edit, `send_invoice` waits for one human Approve click, bound to a sha256 of the exact stored payload.
 - If the model is unavailable, a labelled deterministic playbook calls the same tools in a fixed order.
 
@@ -131,23 +131,29 @@ They arrive in any order, sometimes twice. Applying them independently would dou
 - It is a real Toolkit integration, with no REST fallback.
 - The model overloading (HTTP 529) does not break the demo: the feed shows the reason and the playbook takes over.
 
-## ADR-8: Invoices issued at approval, dated to the visit in the note
+## ADR-8: Each phase invoice issued on its visit day
 **Context.**
-- We wanted each phase's invoice to arrive on its visit day.
+- The product's promise is "never pay in advance". The checkout rail already keeps it: the server refuses an order for a phase that is not due (ADR-4).
+- Until 2026-11-12 the agent issued and sent every phase invoice when the plan was approved. PayPal's invoice page cannot block an early payment, so a patient could have paid a future phase early from its invoice. The invoice rail did not keep the promise.
 - The toolkit's `create_invoice` has no due date.
-- A future `invoice_date` makes the invoice `SCHEDULED`, and the sandbox then refuses both `cancel_sent_invoice` ("Cannot cancel a scheduled invoice") and `send_invoice_reminder`. The edit flow (cancel → reissue) and reminders would break.
+- A future `invoice_date` makes the invoice `SCHEDULED`, and the sandbox then refuses both `cancel_sent_invoice` ("Cannot cancel a scheduled invoice") and `send_invoice_reminder` with a 422. The edit flow (cancel → reissue) and reminders would break, so a future-dated invoice is not a way out.
 
-**Decision.** `INVOICE_DATING_POLICY = "note_only"`:
-- issue and send every phase invoice when the plan is approved;
-- put the visit date on the line item;
-- write "pay at your visit" in the note.
+**Decision.**
+- **A phase is invoiced only when it is due.** "Due" means its payment status, recomputed from the engine's dates at the simulated clock's today exactly as `src/engine/payments.ts` does, is `due` or `overdue`. A status stored in the plan is never trusted.
+- **Plan approved (and a manual run).** The agent runs `create_invoice` → `send_invoice` → `generate_invoice_qr_code` for each unpaid phase that is due. A phase that is not due gets no tool call, only a note step in Spanish and English, such as "Phase 3 will be invoiced on its visit day, 7 Apr 2027".
+- **Phase status changed.** A phase that becomes `due`, or jumps straight to `overdue` with no open invoice, is invoiced then, with its QR code. A phase that becomes `overdue` with an open sent invoice gets `send_invoice_reminder`. A phase that becomes `upcoming` gets nothing, because it has no invoice yet.
+- **Plan edited.** A phase with a live invoice whose amount changed is reissued as before: `cancel_sent_invoice` → `create_invoice` v+1 → human approval → `send_invoice` → QR code. A phase with no invoice that is not due gets only a note that it will be invoiced on its visit day with the new amount. A due phase with no invoice is invoiced.
+- **Payment captured.** An open invoice is closed as before, recording the payment as made today. With no invoice, the agent writes a note only.
+- **The guard enforces it.** `create_invoice` and `send_invoice` for a phase that is not due are rejected with the code `PHASE_NOT_DUE` and a Spanish and English message, whatever the model or the playbook asks for.
+- **Dating stays `INVOICE_DATING_POLICY = "note_only"`.** `invoice_date` is omitted, so PayPal dates the invoice the day it is issued, which is now the visit day, and the visit date goes on the line item. The `visit_date` branch stays in `src/agent/policy.ts`, unused, for the 422 reason above.
 
-The `visit_date` branch is still in `src/agent/policy.ts`, so switching is one constant.
+**Consequences.**
+- "Never pay in advance" holds on both rails. Before a phase's visit there is no order and no invoice, so the patient has no payment link for it, and the exposure meter stays at €0 on both rails.
+- Pages show a future phase's invoice as "Invoiced on its visit day" with the date, a normal state rather than a missing value.
+- Every invoice is `SENT`, never `SCHEDULED`, so cancel, reissue and reminders keep working in the sandbox.
+- The demo's agent beat changed. Director key **5** puts the simulated clock on phase 2's visit day, so phase 2's invoice was issued that morning, and the bone-graft edit cancels and reissues it. A plan approved on another day invoices only the phases due that day.
 
-**Consequences, stated plainly.**
-- The checkout rail enforces "never in advance". The invoice rail cannot: PayPal's invoice page would accept an early payment.
-- If one arrived, the app would record it but would not mark the care as delivered, so the exposure meter would show it instead of hiding it.
-- The fix is to send each invoice on its visit day, from the simulated clock's due event. That is the next change to make. It was left out of the hackathon build because it changes the agent beat of the demo.
+**Before 2026-11-12.** The first version of this decision was "Invoices issued at approval, dated to the visit in the note": issue and send every phase invoice when the plan was approved, put the visit date on the line item and write "pay at your visit" in the note. It kept the edit flow and reminders working, but the invoice rail could take an early payment, which the app would have recorded without marking the care as delivered. It was replaced on 2026-11-12 because it was the one place where the product did not keep its own promise.
 
 ## ADR-9: Bryntum draws and validates; the engine owns every date
 **Context.** A Gantt chart is the natural picture of a treatment plan. But Bryntum has its own scheduling engine, and two engines computing dates will eventually disagree.

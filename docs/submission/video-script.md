@@ -44,7 +44,7 @@ The shape follows the judging-panel review:
 | 5. Patient pays phase 1 | 0:46–1:14 | key **2** → `/p/demo` |
 | 6. Biology vetoes the schedule | 1:14–1:36 | key **4** → `/p/demo#gantt` |
 | 7. Ask the plan | 1:36–1:48 | `/p/demo`, "Ask about your plan" |
-| 8. Clinic agent | 1:48–2:20 | key **5** → `/clinic#plan-editor`, then **G** |
+| 8. Clinic agent | 1:48–2:20 | key **5** (clock on phase 2's visit day) → `/clinic#plan-editor`, then **G** |
 | 9. The button | 2:20–2:40 | `/p/demo#closure` |
 | 10. Close | 2:40–2:50 | `/demo/closing?lang=en&rec=1` |
 
@@ -100,16 +100,17 @@ The shape follows the judging-panel review:
 **VO:** "María can ask her plan. Claude answers from her dentist's approved notes, and every date comes from the engine."
 
 ## 8. Clinic agent · 1:48–2:20
-**Screen:** `/clinic#plan-editor`. Punch in 1.6× on the agent feed throughout.
-1. The dentist presses the "+ Bone graft (+€450)" preset on phase 2. A plain-language diff appears.
-2. The agent feed, with "Claude" and "PayPal sandbox · Agent Toolkit" badges, streams `cancel_sent_invoice` → `create_invoice`.
-3. Press **G**: the guard rejects a wrong amount, shown as a red line labelled "guard test". Hold it for 2 s.
-4. Click **Approve**: `send_invoice` → `generate_invoice_qr_code`.
-5. Cut for 3 s to the sandbox invoice page with its QR code.
+**Screen:** `/clinic#plan-editor`, with the simulated clock on phase 2's visit day (12 Jan 2027, labelled "Simulated"). Punch in 1.6× on the agent feed throughout.
+1. Hold 2 s on the feed: phase 2's invoice (€1,500) was created and sent that morning, with its QR code, and the notes say phases 3 and 4 will be invoiced on their visit days.
+2. The dentist presses the "+ Bone graft (+€450)" preset on phase 2. A plain-language diff appears.
+3. The agent feed, with "Claude" and "PayPal sandbox · Agent Toolkit" badges, streams `cancel_sent_invoice` → `create_invoice` (€1,950).
+4. Press **G**: the guard rejects a wrong amount, shown as a red line labelled "guard test". Hold it for 2 s.
+5. Click **Approve**: `send_invoice` → `generate_invoice_qr_code`.
+6. Cut for 3 s to the sandbox invoice page with its QR code.
 
-**Lower third:** "Claude Sonnet 5.5 → PayPal Agent Toolkit · every call guarded"
-**VO:** "The dentist adds a bone graft. Claude cancels the old invoice and drafts a new one through PayPal's Agent Toolkit. A deterministic guard checks every call, and here it blocks a wrong amount. One human approval sends the new invoice, with its QR code."
-**Director:** key **5**, then **G**. Blur the invoice email if it is on screen.
+**Lower third:** "Claude Sonnet 5.5 → PayPal Agent Toolkit · invoiced on the visit day · every call guarded"
+**VO:** "Implant day: the invoice went out today, never earlier. The dentist finds thin bone and adds a graft. Claude cancels it through PayPal's Agent Toolkit and drafts a new one. The guard blocks a wrong amount. One approval sends it, with its QR code."
+**Director:** key **5** (phase 1 paid, clock on phase 2's visit day, phase 2 invoiced), then **G**. Read the amounts and the date from the screen. Blur the invoice email if it is on screen.
 
 ## 9. The button · 2:20–2:40
 **Screen:** `/p/demo#closure`. Press "What if the clinic closes today?". The counters settle at €3,710.00 vs €0.00. Then hold 3 s on the "Phases the clinic would never deliver" list and the source line.

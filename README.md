@@ -58,7 +58,7 @@ Every row was run against the real PayPal sandbox and the Anthropic API. The IDs
 | **Webhooks for that payment** | `PAYMENT.CAPTURE.COMPLETED` and `INVOICING.INVOICE.PAID`, both **signature verified** through `verify-webhook-signature` and de-duplicated ("already applied"). |
 | **The agent closed the phase invoice** | `PPP-QBV8-F1-v1` → `MARKED_AS_PAID`. PayPal does not link a checkout capture to an invoice, so the agent's first `record_payment_for_invoice` was rejected and it recorded the payment as external. |
 | A second in-app Pay in 3 run on the hosted URL | order `7KJ1289425611743W`, capture `60Y069311N401201C` |
-| **Claude driving the PayPal Agent Toolkit** | 4 invoices created and sent in about 20 s. On a plan edit: `cancel_sent_invoice` → `create_invoice` v2 (€1,950.00) → held for a human Approve (sha256 of the exact payload) → `send_invoice` → QR code → reminder ([`docs/spikes/agent-toolkit.md`](docs/spikes/agent-toolkit.md)). |
+| **Claude driving the PayPal Agent Toolkit** | Live run of 11 Nov, made before invoices moved to the visit day: 4 invoices created and sent in about 20 s. On a plan edit: `cancel_sent_invoice` → `create_invoice` v2 (€1,950.00) → held for a human Approve (sha256 of the exact payload) → `send_invoice` → QR code → reminder ([`docs/spikes/agent-toolkit.md`](docs/spikes/agent-toolkit.md)). |
 | **The server, not the browser, sets the amount** | Order `8UF12137GP897594C` was created with the stored €360.00; the amount sent in the request was ignored. Phase 2, not yet due, was refused with `NOT_DUE_YET` ([`docs/spikes/paylater-es.md`](docs/spikes/paylater-es.md)). |
 | **Live Claude extraction** of the hero quote | 12 of 12 lines exact, sum equal to the printed total, about 8.5 s |
 | **Live patient chat** (Claude Haiku 5.5) | "What if I wait three months for the implant?" was answered with engine-computed dates and two citations of the dentist's approved notes. "Can I take ibuprofen?" was referred to the clinic. |
@@ -70,13 +70,13 @@ The **PayPal trail** in the clinic console shows the same chain for every phase:
 ## Try it in 60 seconds
 Open the [hosted demo](https://payperphase.onrender.com/?lang=en), or run it locally (see [Install](#install)). No account is needed for the first three steps.
 
-1. Open **`/demo`**, the demo hub. Press **Reset demo** to return to the seeded state. It is public and safe to press at any time; the agent then reissues the phase invoices in the sandbox.
+1. Open **`/demo`**, the demo hub. Press **Reset demo** to return to the seeded state. It is public and safe to press at any time; the agent then issues phase 1's invoice in the sandbox again, because phase 1 is the only phase due on the seeded day.
 2. Open **`/p/demo`**, the patient's plan for the synthetic case Clínica Dental Ribera (4 phases, €4,070 in total).
    - Drag a future phase on the Gantt. While you drag, the chart shades "Healing · not before …" and the "Safe window". Drop it too early and it snaps back with the dentist's note. Drop it later and the following phases and payments move with it, while the approved plan stays visible as a ghost.
    - Press **What if the clinic closes today?**.
    - Press **Ask about your plan** and ask "What if I wait three months for the implant?".
    - Use the ES/EN toggle at the top right.
-3. Open **`/clinic`**, the clinic console. Pick a sample presupuesto (or drop a PDF), watch the lines appear on the odontogram, approve the plan and watch the billing agent issue the invoices. Open **PayPal trail** on a plan to see order, capture, webhooks and invoice calls.
+3. Open **`/clinic`**, the clinic console. Pick a sample presupuesto (or drop a PDF), watch the lines appear on the odontogram, approve the plan and watch the billing agent invoice phase 1, the only phase due today. The later phases get a note instead: each is invoiced on its visit day. Open **PayPal trail** on a plan to see order, capture, webhooks and invoice calls.
 4. To pay phase 1 with the PayPal sandbox, use the sandbox buyer below.
 
 ### Sandbox buyer login
@@ -99,7 +99,7 @@ When PayPal's window opens, choose **Paga en 3 plazos**. It asks for a test DNI:
 | 3 | **Drag what-if.** Dragging a phase moves its successors and due dates, all computed by the engine. An illegal drag snaps back with the dentist-approved reason, and going past the clinical deadline turns it red. | [`src/components/gantt`](src/components/gantt) |
 | 4 | **"What if the clinic closes today?"** The engine computes what you would have to claim back on a linked loan for undelivered phases, against PayPerPhase's €0. It is labelled illustrative and sourced. | [`src/components/impact`](src/components/impact) |
 | 5 | **The quote builds itself.** Claude Sonnet 5.5 reads the PDF while an FDI odontogram lights up tooth by tooth. A check bar computed in code shows Σ lines = printed total, invalid teeth and lines to review. Then the Gantt assembles. | [`src/components/clinic`](src/components/clinic), [`src/components/odontogram`](src/components/odontogram), [`src/ai/extract`](src/ai/extract) |
-| 6 | **The billing agent.** Claude drives the PayPal Agent Toolkit to create, send and QR-code one invoice per phase. A plan edit (the "+€450 bone graft" preset) shows a plain-language diff and reissues the invoice after one Approve click. A guard rejects a wrong amount on camera, and reminders follow the simulated clock. | [`src/agent`](src/agent) |
+| 6 | **The billing agent.** Claude drives the PayPal Agent Toolkit to create, send and QR-code one invoice per phase, on that phase's visit day. A plan edit (the "+€450 bone graft" preset, added on the implant day) shows a plain-language diff and reissues that day's invoice after one Approve click. A guard rejects a wrong amount on camera and refuses an invoice for a phase that is not due yet. An overdue invoice gets a reminder as the simulated clock moves. | [`src/agent`](src/agent) |
 | 7 | **Grounded patient chat.** Claude Haiku 5.5 answers only from the dentist's approved notes, with citation chips. A `simulate_delay` tool runs the engine, so every date comes from code, and a numeric grounding check rejects any number not in the sources. Medical questions get a fixed referral to the clinic. | [`src/ai/chat`](src/ai/chat), [`src/components/chat`](src/components/chat) |
 | 8 | **PayPal trail.** For each phase it shows order, capture, verified webhooks and the agent's invoice calls, with IDs and statuses only. | [`src/components/clinic/PayPalTrail.tsx`](src/components/clinic/PayPalTrail.tsx) |
 
@@ -128,7 +128,8 @@ flowchart LR
   ORD --> TR["One transition per phase<br/>capture, webhook, reconcile"]
   TR -->|SSE| PAT
   APP -->|plan approved| AG["Billing agent<br/>Claude tool loop"]
-  AG --> GUARD["Guard<br/>amount, EUR, number, recipient"]
+  CLK["Simulated clock<br/>a visit day arrives"] -->|phase due| AG
+  AG --> GUARD["Guard<br/>amount, EUR, number, recipient,<br/>phase due"]
   GUARD --> TK["PayPal Agent Toolkit<br/>Invoicing v2"]
   TK -->|INVOICE.PAID webhook| TR
 ```
@@ -138,8 +139,8 @@ A fuller version is in [`docs/architecture/diagram.mmd`](docs/architecture/diagr
 - **Money** is integer EUR cents produced only by the deterministic phase engine ([`src/engine`](src/engine)). The browser never sends an amount: the server reads it from the store. It creates an order only for a phase whose visit day has come, so the no-prepayment rule is enforced on the server.
 - **Dates** are date-only values produced only by the engine. Bryntum draws them and never computes them: every task is manually scheduled. Dragging uses the same engine in the browser and on the server.
 - **LLM output never contains money or dates.** Wording is drafted as slot templates, and a validator rejects any digit, currency sign or month name outside a slot. A dentist approves each text, and patients see only approved text. The chat's numbers must appear in its sources, or the answer is replaced.
-- **The billing agent** can only call seven allow-listed invoice tools, and every call passes a deterministic guard (amount, currency, invoice number, recipient). After a plan edit, sending needs one human Approve click on the exact stored payload.
-- **Pay at the visit.** A phase's due date is its visit date. Its status runs scheduled → upcoming (not payable) → due → overdue, plus processing and paid.
+- **The billing agent** can only call seven allow-listed invoice tools, and every call passes a deterministic guard (amount, currency, invoice number, recipient, and whether the phase is due). After a plan edit, sending needs one human Approve click on the exact stored payload.
+- **Pay at the visit.** A phase's due date is its visit date. Its status runs scheduled → upcoming (not payable) → due → overdue, plus processing and paid. Its PayPal order and its invoice can exist only once the status is due or overdue, recomputed from the engine's dates at the simulated clock's today, never read from the store.
 - **State** is one JSON file on a persistent disk, written atomically (temp file + rename) through a serial queue and validated with zod on every read. A domain event bus streams changes to every open page over SSE, and a labelled simulated clock drives the demo.
 
 ## PayPal APIs used and why
@@ -148,20 +149,25 @@ A fuller version is in [`docs/architecture/diagram.mmd`](docs/architecture/diagr
 | **Orders v2** (CAPTURE) | One one-time order per phase. Pay Later excludes recurring payments, so a subscription would not work. The amount comes from the store, with `custom_id` = plan and phase and a `PayPal-Request-Id` per attempt. |
 | **JS SDK v5 + Pay Later messaging** | One button stack per phase (PayPal, Paga a plazos, card) and the official Pay Later message with the phase amount, shown unedited and pinned to the Pay in 3 offer for €20–€2,000. We stayed on v5 because that is the version we verified Pay Later messaging with, for a Spanish merchant in EUR ([`docs/spikes/paylater-es.md`](docs/spikes/paylater-es.md)). |
 | **Webhooks** | `PAYMENT.CAPTURE.COMPLETED` and `INVOICING.INVOICE.PAID` confirm payments independently of the browser. They are verified through PayPal's `verify-webhook-signature` call and de-duplicated on the event id. |
-| **Invoicing v2 via the Agent Toolkit** | One invoice per phase, a QR code, reminders, and recording the checkout payment on the phase invoice. The toolkit is the only path, with no REST fallback ([`docs/spikes/agent-toolkit.md`](docs/spikes/agent-toolkit.md)). |
+| **Invoicing v2 via the Agent Toolkit** | One invoice per phase, created and sent with a QR code on the phase's visit day, a reminder when it goes overdue, and recording the checkout payment on the phase invoice. The toolkit is the only path, with no REST fallback ([`docs/spikes/agent-toolkit.md`](docs/spikes/agent-toolkit.md)). |
 
-**Two PayPal rails, one ledger.** Checkout payments and invoice payments both go through one `transition()` per phase, so a phase can only be paid once. When a checkout captures, the agent closes that phase's invoice, so the patient cannot pay twice.
+**Two PayPal rails, one ledger.** Checkout payments and invoice payments both go through one `transition()` per phase, so a phase can only be paid once. Neither rail can take money before the visit: the server refuses an order for a phase that is not due, and a phase has no invoice until its visit day. When a checkout captures, the agent closes that phase's invoice, so the patient cannot pay twice.
 
 **PayPal edge cases handled:**
 - `PayPal-Request-Id` on create and capture, so retries are idempotent.
 - `INSTRUMENT_DECLINED` → `actions.restart()`, so the buyer can pick another funding source.
 - `ORDER_ALREADY_CAPTURED` → reconcile instead of an error.
 - A duplicate invoice number → bump to the next `v{k}` and retry.
+- A phase that is not due yet → the order gate refuses it with `NOT_DUE_YET`, and the guard refuses `create_invoice` and `send_invoice` for it with `PHASE_NOT_DUE`.
+- The simulated clock jumps past a visit day → a phase that goes straight to overdue with no open invoice is invoiced then. A phase that goes overdue with an open sent invoice gets a reminder.
+- A plan edit changes a future phase's amount → no invoice exists yet, so nothing is cancelled; the phase is invoiced with the new amount on its visit day.
 - Webhook signature verification with de-duplication.
 - A return-reconcile page for the redirect flow.
 - The Agent Toolkit always runs with its sandbox flag set.
 
-**A known limit, stated plainly.** Invoices for future phases are sent when the plan is approved, so the patient has them in advance. Each is dated to its visit and says "pay at your visit". PayPal's invoice page cannot block an early payment. If one arrived, it would be recorded but would not mark the care as delivered, so the exposure meter would show it rather than hide it. Sending each invoice on its visit day instead is the next step. The checkout rail never takes an early payment.
+**Each phase invoice is issued on its visit day.** The billing agent creates and sends a phase's invoice, with its QR code, only once the phase is due: on its visit day, or later if the simulated clock jumped past it. Before that the patient has no invoice and no PayPal payment link for the phase; the clinic and patient pages show "Invoiced on its visit day" with the date. The guard enforces the rule whatever the model asks for: `create_invoice` or `send_invoice` for a phase that is not due, recomputed from the engine's dates at the simulated clock's today, is rejected with `PHASE_NOT_DUE`. So "never pay in advance" holds on both rails, checkout and invoice.
+
+Why not send future-dated invoices at approval instead? PayPal makes an invoice with a future `invoice_date` `SCHEDULED`, and the sandbox then refuses `cancel_sent_invoice` and `send_invoice_reminder` on it with a 422, which would break the edit flow (cancel → reissue) and reminders. So each invoice is issued with no `invoice_date`, which dates it the day it is issued (the visit day), and the visit date goes on the line item. See [ADR-8](docs/ARCHITECTURE_DECISIONS.md#adr-8-each-phase-invoice-issued-on-its-visit-day).
 
 ## Bryntum Gantt: the API map
 The Gantt is the product, not decoration. [Bryntum Gantt](https://bryntum.com/) (the public trial package; it shows a trial notice) is the only module that draws dates. Every task is `manuallyScheduled`: Bryntum renders, validates and animates, while the engine owns every date.
@@ -200,7 +206,7 @@ The hosted demo runs on [Render](https://render.com) from the Blueprint in [`ren
 Full statement: [`docs/submission/ai-tools.md`](docs/submission/ai-tools.md).
 - **Quote extraction** (Claude Sonnet 5.5, structured output) reads the PDF into lines. Code parses the Spanish prices, re-sums the lines, compares them to the printed total and validates the FDI tooth numbers. A labelled cached extraction is the fallback.
 - **Wording** (Claude Sonnet 5.5) drafts ES/EN slot templates for the patient notes, and the dentist approves them.
-- **Clinic billing agent** (Claude Sonnet 5.5) runs a tool loop over the PayPal Agent Toolkit, behind the deterministic guard. A labelled deterministic playbook takes over when the model is unavailable.
+- **Clinic billing agent** (Claude Sonnet 5.5) runs a tool loop over the PayPal Agent Toolkit, behind the deterministic guard. It invoices each phase on its visit day, reissues an invoice after a plan edit, reminds overdue invoices and closes an invoice when the checkout captures. A labelled deterministic playbook takes over when the model is unavailable.
 - **Patient chat** (Claude Haiku 5.5) answers from the approved notes as cited documents. Its `simulate_delay` tool calls the engine; a numeric grounding check, a referral for medical questions and a rate limit keep it safe.
 - **Claude Code** was used to build the project.
 

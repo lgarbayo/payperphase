@@ -180,6 +180,36 @@ describe("docs: submission requirements", () => {
     }
   });
 
+  it("no doc says phase invoices are still sent at approval; the README states the visit-day rule", () => {
+    // Current behaviour: a phase invoice is created and sent only once the phase is due (ADR-8).
+    // Released CHANGELOG sections are history, so only its Unreleased section is checked.
+    const current = (doc: string): string => {
+      const text = read(doc);
+      return doc === "CHANGELOG.md" ? (text.split(/^## \[\d/m)[0] ?? "") : text;
+    };
+    const stale: RegExp[] = [
+      /\b(are|is) (sent|issued)( and sent)? (at|on) (plan )?approval/i,
+      /\b(are|is) (sent|issued)( and sent)? when the plan is approved/i,
+      /^- issue and send every phase invoice/im,
+      /we issue the invoice at approval/i,
+      /invoice rail cannot/i,
+      /sending (each )?invoices? on (its|the) visit day (instead )?is (planned|the next step)/i,
+      /send each phase invoice on its visit day instead of at approval/i,
+      /reminders? (follow|when|for) (the )?upcoming/i,
+    ];
+    for (const doc of docs) {
+      const text = current(doc);
+      for (const re of stale) expect(text, `${doc}: ${re}`).not.toMatch(re);
+    }
+
+    const readme = read("README.md");
+    expect(readme).toMatch(/invoice is issued on its visit day/i);
+    expect(readme).toMatch(/PHASE_NOT_DUE/);
+    expect(readme).toMatch(/SCHEDULED/);
+    expect(readme).toMatch(/422/);
+    expect(readme).not.toMatch(/A known limit, stated plainly/);
+  });
+
   it("the checklist flags the items that need a human", () => {
     const checklist = read("docs/submission/checklist.md");
     expect(checklist.match(/\*\*HUMAN\*\*/g)?.length ?? 0).toBeGreaterThanOrEqual(8);
