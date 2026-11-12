@@ -179,8 +179,14 @@ export class AgentRun {
     const approvals = await store.listPendingApprovals(plan.id);
     if (approvals.some((a) => a.tool === "send_invoice" && approvalInvoiceId(a) === invoiceId)) return true;
     // A reissued version on an edited plan is a post-edit send, whatever event triggered this run.
-    const inv = phaseOfInvoiceId(plan, invoiceId)?.payment.invoice;
-    return !!inv && inv.version > 1 && plan.version > 1;
+    const phase = phaseOfInvoiceId(plan, invoiceId);
+    const inv = phase?.payment.invoice;
+    if (!phase || !inv) return false;
+    if (inv.version > 1 && plan.version > 1) return true;
+    // So is any invoice (even a first v1) at an amount the dentist's plan approval did not cover,
+    // e.g. an edit saved while the PLAN_APPROVED run was still issuing invoices.
+    const approved = plan.baseline?.phases.find((b) => b.phaseId === phase.id);
+    return !!approved && approved.amountCents !== inv.amountCents;
   }
 
   /** The single gated entry point for every tool call. */
