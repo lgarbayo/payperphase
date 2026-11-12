@@ -55,13 +55,18 @@ describe("formatFit never claims eligibility", () => {
       "Dentro del rango de Paga en 3 (20 €–2.000 €)",
     );
     expect(formatFit({ band: "PAY_IN_3", reason: "WITHIN_PAY_IN_3_RANGE" }, "en")).toBe("Within Pay in 3 range (€20–€2,000)");
-    const all = (["INDIVISIBLE_ITEM_OVER_PAY_IN_3_MAX", "BELOW_PAY_IN_3_MIN", "OVER_INSTALLMENTS_MAX"] as const).flatMap((reason) =>
+    const all = (
+      ["INDIVISIBLE_ITEM_OVER_PAY_IN_3_MAX", "BELOW_PAY_IN_3_MIN", "OVER_INSTALLMENTS_MAX", "OVER_PAY_IN_3_MAX"] as const
+    ).flatMap((reason) =>
       (["es", "en"] as const).map((l) => formatFit({ band: "INSTALLMENTS", reason }, l)),
     );
     for (const text of all) {
       expect(text.length).toBeGreaterThan(0);
       expect(text).not.toMatch(/elegible|eligible/i);
     }
+    // A multi-item phase an edit took over €2,000 is not called indivisible.
+    expect(formatFit({ band: "PAYPAL_ONLY", reason: "OVER_PAY_IN_3_MAX" }, "en")).toBe("Above the Pay in 3 range");
+    expect(formatFit({ band: "PAYPAL_ONLY", reason: "OVER_PAY_IN_3_MAX" }, "es")).toBe("Por encima del rango de Paga en 3");
   });
 });
 

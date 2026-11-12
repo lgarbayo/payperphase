@@ -1,6 +1,5 @@
 /** WP-10 manual Claude loop with a scripted fake client: guard feedback, refusal fallback, iteration cap. */
 import { beforeEach, describe, expect, it } from "vitest";
-import type Anthropic from "@anthropic-ai/sdk";
 import { GOLDEN_BONE_GRAFT_DIFF } from "@/contracts/fixtures/implantCase";
 import { executeRun } from "@/agent";
 import { AGENT_SYSTEM_PROMPT, FALLBACK_BETA, MAX_LOOP_ITERATIONS, type LlmClient } from "@/agent/loop";

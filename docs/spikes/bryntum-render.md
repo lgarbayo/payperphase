@@ -2,7 +2,7 @@
 
 ## Status
 
-**Live Render URL: not yet created.** The human has linked Render to GitHub but has not applied the Blueprint (`docs/deploy.md`). Until then the same checks were run against the local production build, which is the build Render runs (`scripts/render-build.sh` then `npm start`).
+**Live Render URL: <https://payperphase.onrender.com>.** The app was deployed to Render after this spike. The checks below were run before that deploy, against the local production build, which is the build Render runs (`scripts/render-build.sh` then `npm start`).
 
 ## Local production run (2026-11-11 00:35 CET)
 

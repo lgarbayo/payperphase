@@ -16,6 +16,7 @@ export {
   type SlotValues,
 } from "./fill";
 export { deterministicPhaseTemplate, phaseSlotValues, REQUIRED_PHASE_SLOTS } from "./templates";
+export { phaseSummaryText } from "./summary";
 export {
   validateLocalizedTemplate,
   validateTemplate,

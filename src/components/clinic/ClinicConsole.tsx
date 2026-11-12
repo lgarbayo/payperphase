@@ -289,7 +289,9 @@ export function ClinicConsole({
         drafts.status === "ready"
           ? plan.phases.flatMap((p) => {
               const d = drafts.byPhase[p.id];
-              return d && usedDrafts.has(p.id) ? [{ phaseId: p.id, text: d.rendered }] : [];
+              // The slot template, not the rendered text: the patient page fills it from the phase's
+              // current engine values, so a later edit or move never leaves a stale amount or date.
+              return d && usedDrafts.has(p.id) ? [{ phaseId: p.id, text: d.template }] : [];
             })
           : [];
       const res = await clinicApi.approve(plan.id, { approvedBy: plan.clinic.dentistName, noteIds, summaries });

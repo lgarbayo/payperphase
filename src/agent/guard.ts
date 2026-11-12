@@ -32,6 +32,7 @@ export type GuardCode =
   | "INVALID_ITEMS"
   | "AMOUNT_MISMATCH"
   | "PHASE_ALREADY_PAID"
+  | "PHASE_NOT_PAID"
   | "INVOICE_ALREADY_OPEN"
   | "STALE_INVOICE_VERSION"
   | "FOREIGN_INVOICE_ID"
@@ -217,6 +218,14 @@ function checkInvoiceIdTool(name: string, input: Record<string, unknown>, ctx: G
   const extra = checkExtraRecipients(input, ctx);
   if (extra) return { ...extra, phaseId: phase.id };
 
+  // A payable invoice (or its QR) never goes out for a settled phase, nor at an amount the engine
+  // no longer holds (a held send whose phase was paid or edited again before the Approve click).
+  if (name === "send_invoice" || name === "generate_invoice_qr_code") {
+    if (isPhaseSettled(phase)) return reject("PHASE_ALREADY_PAID", lt("guardPaid", { n: phase.n }), { phaseId: phase.id });
+    const invoiced = phase.payment.invoice!.amountCents;
+    if (name === "send_invoice" && invoiced !== phase.amountCents) return amountMismatch(invoiced, phase.amountCents, phase.id);
+  }
+
   if (name === "send_invoice") {
     const notDue = checkPhaseDue(phase, ctx);
     if (notDue) return notDue;
@@ -232,6 +241,11 @@ function checkInvoiceIdTool(name: string, input: Record<string, unknown>, ctx: G
   }
 
   if (name === "record_payment_for_invoice") {
+    // The record only mirrors a completed checkout capture onto the phase invoice; it never marks
+    // an unpaid phase's invoice as paid.
+    if (phase.payment.status !== "paid" || phase.payment.instrument !== "order") {
+      return reject("PHASE_NOT_PAID", lt("guardNotPaid", { n: phase.n }), { phaseId: phase.id });
+    }
     if (input.method !== "PAYPAL") {
       return reject("PAYMENT_METHOD_NOT_PAYPAL", lt("guardMethod", { method: String(input.method ?? "—") }), {
         phaseId: phase.id,

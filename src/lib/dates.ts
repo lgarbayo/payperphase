@@ -33,11 +33,6 @@ export function toIsoDate(ms: number): IsoDate {
   return new Date(ms).toISOString().slice(0, 10);
 }
 
-/** Date-only ISO for a JS Date, using its UTC calendar day. */
-export function fromDate(d: Date): IsoDate {
-  return toIsoDate(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
-}
-
 /** A JS Date at local midnight of the day. Use ONLY to hand dates to UI widgets (Bryntum). */
 export function toLocalDate(date: IsoDate): Date {
   const ms = toUtcMs(date);
@@ -53,10 +48,6 @@ export function fromLocalDate(d: Date): IsoDate {
 export function addDays(date: IsoDate, days: number): IsoDate {
   if (!Number.isInteger(days)) throw new Error(`addDays expects an integer, got ${days}`);
   return toIsoDate(toUtcMs(date) + days * DAY_MS);
-}
-
-export function addWeeks(date: IsoDate, weeks: number): IsoDate {
-  return addDays(date, weeks * 7);
 }
 
 /** Whole days from `from` to `to` (positive when `to` is later). */
