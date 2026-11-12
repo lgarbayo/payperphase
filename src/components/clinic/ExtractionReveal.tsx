@@ -94,10 +94,14 @@ export function ExtractionReveal({
     [invalidByLine, reviewIds],
   );
 
+  const flashTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(flashTimer.current), []);
+
   const scrollToFlagged = useCallback(() => {
     const first = lines.find(isFlagged);
     setFlash(true);
-    setTimeout(() => setFlash(false), 1800);
+    clearTimeout(flashTimer.current);
+    flashTimer.current = setTimeout(() => setFlash(false), 1800);
     if (!first) return;
     const go = () => {
       if (typeof document === "undefined") return;
