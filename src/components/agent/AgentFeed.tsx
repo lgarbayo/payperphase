@@ -80,7 +80,7 @@ function Chip({ tone, children, title, ...rest }: { tone: "ok" | "bad" | "pendin
     <span
       title={title}
       className={cx(
-        "inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-mono text-xs",
+        "inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2 py-0.5 font-mono text-xs font-medium",
         tone === "ok" && "bg-status-paid/15 text-status-paid",
         tone === "bad" && "bg-status-overdue/15 text-status-overdue",
         tone === "pending" && "bg-surface-2 text-muted",
@@ -120,7 +120,7 @@ function Details({ step, result, t }: { step: AgentStep; result?: AgentStep; t: 
   const shown = isRecord(output) && "qrDataUrl" in output ? { ...output, qrDataUrl: "data:image/png;base64,…" } : output;
   return (
     <details className="mt-1">
-      <summary className="cursor-pointer text-xs text-muted hover:text-ink">{t("showJson")}</summary>
+      <summary className="w-fit cursor-pointer rounded text-xs text-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">{t("showJson")}</summary>
       <div className="mt-2 space-y-2">
         <Json label={t("input")} value={input} />
         <Json label={t("output")} value={shown} />
@@ -157,7 +157,7 @@ function StepRow({
       <li
         data-testid="agent-step"
         data-kind="guard_rejected"
-        className={cx(shell, "border-status-overdue/40 bg-status-overdue/10")}
+        className={cx(shell, "border-status-overdue/50 border-l-4 border-l-status-overdue bg-status-overdue/10")}
       >
         <div className="flex flex-wrap items-center gap-2">
           <Chip tone="bad" data-testid="guard-chip">
@@ -166,9 +166,9 @@ function StepRow({
           {step.tool ? <Chip tone="neutral">{step.tool}</Chip> : null}
           {phase ? <Chip tone="neutral">{phase}</Chip> : null}
           {guardTest ? <Badge tone="overdue">{t("guardTestLabel")}</Badge> : null}
-          <span className="ml-auto text-xs text-muted">{time}</span>
+          <span className="ml-auto text-xs tabular-nums text-muted">{time}</span>
         </div>
-        <p className="mt-1 font-medium text-status-overdue" data-testid="guard-reason">
+        <p className="mt-1.5 text-base font-semibold tabular-nums text-status-overdue" data-testid="guard-reason">
           {text}
         </p>
         <Details step={step} t={t} />
@@ -185,7 +185,7 @@ function StepRow({
             {state === "ok" ? "✓" : state === "bad" ? "✗" : "…"} {step.tool}
           </Chip>
           {phase ? <Chip tone="neutral">{phase}</Chip> : null}
-          <span className="ml-auto text-xs text-muted">{time}</span>
+          <span className="ml-auto text-xs tabular-nums text-muted">{time}</span>
         </div>
         <p className="mt-1 text-ink">{text}</p>
         {result?.text ? (
@@ -196,7 +196,7 @@ function StepRow({
             href={payerUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-1 inline-block text-xs font-medium text-primary-strong underline"
+            className="mt-1 inline-block rounded text-xs font-medium text-primary-strong underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             data-testid="payer-link"
           >
             {t("payerLink")}{invoiceNumber ? ` · ${invoiceNumber}` : ""}
@@ -236,7 +236,7 @@ function StepRow({
               {t(`approvalStatus_${approval.status}` as AgentKey)}
             </Badge>
           ) : null}
-          <span className="ml-auto text-xs text-muted">{time}</span>
+          <span className="ml-auto text-xs tabular-nums text-muted">{time}</span>
         </div>
         <p className="mt-1 text-ink">{text}</p>
         <Details step={step} t={t} />
@@ -293,7 +293,7 @@ function RunCard({ run, locale, t, approvals }: { run: Run; locale: Locale; t: T
   const issues = run.finished?.ok === false;
   const triggerKey = `trigger_${run.first.trigger}` as AgentKey;
   return (
-    <section className="space-y-2" data-testid="agent-run" data-run-id={run.runId} aria-label={t(triggerKey)}>
+    <section className="space-y-2 border-t border-border pt-4 first:border-t-0 first:pt-0" data-testid="agent-run" data-run-id={run.runId} aria-label={t(triggerKey)}>
       <div className="flex flex-wrap items-center gap-2">
         <h4 className="text-sm font-semibold text-ink">{t(triggerKey)}</h4>
         <Badge tone={mode === "llm" ? "primary" : "neutral"} title={mode === "llm" ? t("modeLlmTitle") : t("modePlaybookTitle")} data-testid="mode-badge" data-mode={mode}>
@@ -307,7 +307,7 @@ function RunCard({ run, locale, t, approvals }: { run: Run; locale: Locale; t: T
         ) : issues ? (
           <Badge tone="overdue">{t("runFinishedIssues")}</Badge>
         ) : null}
-        <span className="ml-auto text-xs text-muted">{timeOf(run.first.at, locale)}</span>
+        <span className="ml-auto text-xs tabular-nums text-muted">{timeOf(run.first.at, locale)}</span>
       </div>
       <ul className="space-y-1.5">
         {rows.map((r) => (
@@ -359,10 +359,10 @@ function ApprovalCard({
     >
       <div className="flex items-center gap-2">
         <span aria-hidden>🛡️</span>
-        <h4 className="text-sm font-semibold text-ink">{t("approvalTitle")}</h4>
+        <h4 className="text-base font-semibold text-ink">{t("approvalTitle")}</h4>
         {approval.phaseId ? <Chip tone="neutral">{approval.phaseId.replace(/^ph/, "F")}</Chip> : null}
       </div>
-      <p className="mt-1 text-sm font-medium text-ink" data-testid="approval-summary">
+      <p className="mt-1 text-sm font-medium tabular-nums text-ink" data-testid="approval-summary">
         {approval.summary[locale]}
       </p>
       <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs text-muted">
@@ -375,16 +375,16 @@ function ApprovalCard({
       </dl>
       <p className="mt-2 text-xs text-muted">{t("approvalHint")}</p>
       <details className="mt-1">
-        <summary className="cursor-pointer text-xs text-muted hover:text-ink">{t("showJson")}</summary>
+        <summary className="w-fit cursor-pointer rounded text-xs text-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">{t("showJson")}</summary>
         <div className="mt-2">
           <Json label={t("input")} value={approval.payload} />
         </div>
       </details>
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <Button size="sm" onClick={() => decide("approve")} disabled={busy !== null} data-testid="approve-button">
+        <Button size="md" onClick={() => decide("approve")} disabled={busy !== null} data-testid="approve-button">
           {busy === "approve" ? t("approving") : t("approve")}
         </Button>
-        <Button size="sm" variant="secondary" onClick={() => decide("reject")} disabled={busy !== null} data-testid="reject-button">
+        <Button size="md" variant="secondary" onClick={() => decide("reject")} disabled={busy !== null} data-testid="reject-button">
           {busy === "reject" ? t("rejecting") : t("reject")}
         </Button>
         {error ? (
