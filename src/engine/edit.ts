@@ -18,7 +18,7 @@ import { nextClinicDay } from "@/lib/dates";
 import { lagRule } from "./catalog";
 import { EngineError } from "./errors";
 import { fitFor } from "./fit";
-import { dependencyFrom, phaseCodes, phaseNoteIds } from "./phasing";
+import { dependencyFrom, lineUnits, phaseCodes, phaseNoteIds } from "./phasing";
 import { lockReason, requiredStart, setPhaseStart, topoOrder } from "./schedule";
 
 function assertEditable(phase: Phase): void {
@@ -66,6 +66,13 @@ function phaseTeeth(plan: Plan, phase: Phase, previousTeeth: readonly FdiTooth[]
     for (const t of line.teeth) if (!shared || prev.has(t)) teeth.add(t);
   }
   return [...teeth].sort((a, b) => a - b);
+}
+
+/** True when the phase bills exactly one unit: one indivisible line, or one unit of a divisible line. */
+function isSingleUnit(phase: Phase, lines: readonly QuoteLine[]): boolean {
+  if (phase.lineIds.length !== 1) return false;
+  const line = lines.find((l) => l.id === phase.lineIds[0]);
+  return line !== undefined && lineUnits(line)[0]?.cents === phase.amountCents;
 }
 
 /** Dentist edit → new plan version (re-sized, re-fitted, re-scheduled). */
@@ -117,7 +124,7 @@ export function applyEdit(plan: Plan, edit: PlanEdit, now: string): Plan {
     }
   }
 
-  touched.fit = fitFor(touched.amountCents);
+  touched.fit = fitFor(touched.amountCents, { singleUnit: isSingleUnit(touched, next.lines) });
   next.totalCents = next.lines.reduce((a, l) => a + l.totalCents, 0);
 
   // Re-derive every healing lag from the phases' procedures (a bone graft lengthens osseointegration).

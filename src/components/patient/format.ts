@@ -79,6 +79,8 @@ export function formatFit(fit: PhaseFit, locale: Locale): string {
       });
     case "INDIVISIBLE_ITEM_OVER_PAY_IN_3_MAX":
       return tr(locale, "fitIndivisible");
+    case "OVER_PAY_IN_3_MAX":
+      return tr(locale, "fitOverMax");
     case "BELOW_PAY_IN_3_MIN":
       return tr(locale, "fitBelowMin");
     case "OVER_INSTALLMENTS_MAX":

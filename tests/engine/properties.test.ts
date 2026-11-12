@@ -321,7 +321,13 @@ describe("engine properties (fast-check)", () => {
           const b = plan.phases.find((x) => x.id === p.id)!;
           expect(p.startDate >= b.startDate).toBe(true);
           expect(p.payment.dueDate).toBe(p.startDate);
-          expect(p.fit).toEqual(fitFor(p.amountCents));
+          expect([fitFor(p.amountCents), fitFor(p.amountCents, { singleUnit: false })]).toContainEqual(p.fit);
+          // "indivisible" is only ever said of a phase that bills one unit
+          if (p.fit.reason === "INDIVISIBLE_ITEM_OVER_PAY_IN_3_MAX") {
+            expect(p.lineIds).toHaveLength(1);
+            const l = after.lines.find((x) => x.id === p.lineIds[0])!;
+            expect([l.totalCents, l.unitPriceCents]).toContain(p.amountCents);
+          }
         }
         void caseKind;
       }),

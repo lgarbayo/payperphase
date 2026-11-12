@@ -117,17 +117,41 @@ describe("applyEdit: other edits", () => {
   });
 
   it("SET_UNIT_PRICE re-sizes and re-fits the phase", () => {
+    // ph4 holds four lines (two crowns on L9 alone): over €2,000 it is not one indivisible item.
     const out = applyEdit(GOLDEN_PLAN, { kind: "SET_UNIT_PRICE", lineId: "L9", unitPriceCents: 90_000 }, NOW);
     const ph4 = out.phases[3]!;
     expect(ph4.amountCents).toBe(169_000 + 2 * 18_000);
-    expect(ph4.fit).toEqual({ band: "INSTALLMENTS", reason: "INDIVISIBLE_ITEM_OVER_PAY_IN_3_MAX" });
-    expect(ph4.noteIds).toContain("INSTALLMENTS_ONLY_REASON");
+    expect(ph4.fit).toEqual({ band: "PAYPAL_ONLY", reason: "OVER_PAY_IN_3_MAX" });
+    expect(ph4.noteIds).not.toContain("INSTALLMENTS_ONLY_REASON");
     expect(ph4.noteIds).not.toContain("PAY_IN_3_RANGE");
     expect(out.lines.find((l) => l.id === "L9")).toMatchObject({ unitPriceCents: 90_000, totalCents: 180_000 });
     expect(out.totalCents).toBe(407_000 + 36_000);
     const diff = diffPlans(GOLDEN_PLAN, out);
     expect(diff.phases).toHaveLength(1);
-    expect(diff.phases[0]).toMatchObject({ phaseId: "ph4", deltaCents: 36_000, fitBefore: "PAY_IN_3", fitAfter: "INSTALLMENTS" });
+    expect(diff.phases[0]).toMatchObject({ phaseId: "ph4", deltaCents: 36_000, fitBefore: "PAY_IN_3", fitAfter: "PAYPAL_ONLY" });
+  });
+
+  it("an edit that takes a multi-item phase over €2,000 never calls it indivisible", () => {
+    // Two grafts on ph2: implant + 2 grafts = €2,400 in three separate lines.
+    const twice = applyEdit(applyEdit(GOLDEN_PLAN, GOLDEN_BONE_GRAFT_EDIT, NOW), graftOn("ph2"), NOW);
+    const ph2 = twice.phases[1]!;
+    expect(ph2.amountCents).toBe(240_000);
+    expect(ph2.fit).toEqual({ band: "PAYPAL_ONLY", reason: "OVER_PAY_IN_3_MAX" });
+    expect(ph2.noteIds).not.toContain("INSTALLMENTS_ONLY_REASON");
+  });
+
+  it("a single item priced over €2,000 by an edit is still the indivisible INSTALLMENTS case", () => {
+    const plan = planOf([
+      { code: "EXAM", qty: 1, unitPriceCents: 5_000 },
+      { code: "IMPLANT", qty: 1, unitPriceCents: 120_000, teeth: [36] },
+      { code: "IMPLANT_CROWN", qty: 1, unitPriceCents: 150_000, teeth: [36] },
+    ]);
+    const out = applyEdit(plan, { kind: "SET_UNIT_PRICE", lineId: "L3", unitPriceCents: 240_000 }, NOW);
+    const crown = out.phases.find((p) => p.lineIds.includes("L3"))!;
+    expect(crown.lineIds).toEqual(["L3"]);
+    expect(crown.amountCents).toBe(240_000);
+    expect(crown.fit).toEqual({ band: "INSTALLMENTS", reason: "INDIVISIBLE_ITEM_OVER_PAY_IN_3_MAX" });
+    expect(crown.noteIds).toContain("INSTALLMENTS_ONLY_REASON");
   });
 
   it("REMOVE_LINE shrinks the phase; removing the extraction shortens no booked visit", () => {

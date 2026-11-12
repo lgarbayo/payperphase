@@ -89,6 +89,8 @@ export const FitReasonSchema = z.enum([
   "INDIVISIBLE_ITEM_OVER_PAY_IN_3_MAX",
   "BELOW_PAY_IN_3_MIN",
   "OVER_INSTALLMENTS_MAX",
+  /** A phase of several items that a dentist edit took over €2,000 (edits never re-split). */
+  "OVER_PAY_IN_3_MAX",
 ]);
 export type FitReason = z.infer<typeof FitReasonSchema>;
 

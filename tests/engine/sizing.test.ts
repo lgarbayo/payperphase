@@ -13,6 +13,13 @@ describe("fitFor", () => {
     expect(fitFor(500_000)).toEqual({ band: "INSTALLMENTS", reason: "INDIVISIBLE_ITEM_OVER_PAY_IN_3_MAX" });
     expect(fitFor(500_001)).toEqual({ band: "PAYPAL_ONLY", reason: "OVER_INSTALLMENTS_MAX" });
   });
+
+  it("never calls a phase of several items indivisible", () => {
+    expect(fitFor(200_000, { singleUnit: false })).toEqual({ band: "PAY_IN_3", reason: "WITHIN_PAY_IN_3_RANGE" });
+    expect(fitFor(200_001, { singleUnit: false })).toEqual({ band: "PAYPAL_ONLY", reason: "OVER_PAY_IN_3_MAX" });
+    expect(fitFor(500_000, { singleUnit: false })).toEqual({ band: "PAYPAL_ONLY", reason: "OVER_PAY_IN_3_MAX" });
+    expect(fitFor(500_001, { singleUnit: false })).toEqual({ band: "PAYPAL_ONLY", reason: "OVER_INSTALLMENTS_MAX" });
+  });
 });
 
 describe("indivisible single items over €2,000", () => {
