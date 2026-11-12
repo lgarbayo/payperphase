@@ -5,7 +5,7 @@ import { __setAgentDeps, decideApproval, executeRun } from "@/agent";
 import { createMockInvoiceTools, getMockInvoice } from "@/agent/mockTools";
 import { applyPaymentEvent } from "@/lib/paypal/apply";
 import { store } from "@/server/store";
-import { applyEditedGolden, invoiceOf, PLAN_ID, resetWorld, steps, usePlaybookDeps } from "./helpers";
+import { applyEditedGolden, atPhase2VisitDay, invoiceOf, PH2_VISIT_DAY, PLAN_ID, resetWorld, steps, usePlaybookDeps } from "./helpers";
 
 const issue = () => executeRun(PLAN_ID, "PLAN_APPROVED", { type: "PLAN_APPROVED" });
 const edit = () => executeRun(PLAN_ID, "PLAN_EDITED", { type: "PLAN_EDITED", diff: GOLDEN_BONE_GRAFT_DIFF });
@@ -17,6 +17,8 @@ beforeEach(async () => {
 
 describe("billing-agent-1: a held send_invoice never goes out once the phase is paid", () => {
   it("Approve after a checkout capture on that phase fails and leaves the reissued invoice unsent", async () => {
+    // Phase 2 is invoiced only on its visit day.
+    await atPhase2VisitDay();
     await issue();
     await applyEditedGolden();
     await edit();
@@ -71,6 +73,9 @@ describe("billing-agent-5: a send at a post-edit amount waits for Approve whatev
         };
       },
     });
+    // On phase 2's visit day phase 1 (overdue) and phase 2 (due) are invoiced; the edit lands after
+    // phase 1's send, before phase 2's invoice is created.
+    await store.setClock(PH2_VISIT_DAY);
     await issue();
     usePlaybookDeps();
 
@@ -80,8 +85,9 @@ describe("billing-agent-5: a send at a post-edit amount waits for Approve whatev
     expect(getMockInvoice(invoiceOf(plan, "ph2").invoiceId)?.status).toBe("DRAFT");
     const pending = (await store.listPendingApprovals(PLAN_ID)).filter((a) => a.status === "pending");
     expect(pending).toEqual([expect.objectContaining({ phaseId: "ph2", tool: "send_invoice" })]);
-    // Phases the edit did not change are sent as approved at plan approval.
-    expect(invoiceOf(plan, "ph3").status).toBe("SENT");
+    // Phase 1, which the edit did not change, is sent as approved; phase 3 is not due, so it has no invoice yet.
+    expect(invoiceOf(plan, "ph1").status).toBe("SENT");
+    expect(plan.phases.find((p) => p.id === "ph3")?.payment.invoice).toBeUndefined();
 
     // The queued PLAN_EDITED run finds nothing to reissue and the hold stays.
     await edit();
