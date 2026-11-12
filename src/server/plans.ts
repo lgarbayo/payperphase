@@ -255,7 +255,11 @@ export async function editPlan(id: string, req: EditPlanRequest): Promise<EditPl
 
 // ---------------------------------------------------------------- deliver
 
-/** POST /api/plans/:id/phases/:phaseId/deliver: engine.markDelivered on the simulated day. */
+/**
+ * POST /api/plans/:id/phases/:phaseId/deliver: engine.markDelivered on the simulated day. Care is
+ * delivered at its visit, so a phase whose visit day has not come yet is refused (an early invoice
+ * payment must keep showing in the exposure meter).
+ */
 export async function deliverPhase(id: string, phaseId: string): Promise<Plan> {
   const { today } = await store.getClock();
   let changed = false;
@@ -264,6 +268,9 @@ export async function deliverPhase(id: string, phaseId: string): Promise<Plan> {
     if (!phase) throw new RouteError(404, "UNKNOWN_PHASE", `Phase not found: ${phaseId}`);
     if (cur.status === "draft") throw new RouteError(409, "PLAN_NOT_APPROVED", `Plan ${cur.id} is not approved yet`);
     changed = phase.delivery.status !== "delivered";
+    if (changed && phase.startDate > today) {
+      throw new RouteError(409, "VISIT_NOT_REACHED", `Phase ${phaseId} is on ${phase.startDate}; it cannot be delivered before its visit`);
+    }
     return markDelivered(cur, phaseId, today);
   });
   if (changed) publish({ type: "PHASE_DELIVERED", planId: plan.id, phaseId });
