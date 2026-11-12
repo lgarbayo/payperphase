@@ -11,7 +11,7 @@ import { useT } from "@/i18n";
 import { Button, cx } from "@/lib/ui";
 import { useToast } from "@/lib/ui/Toast";
 import { AssistantTurn, UserBubble } from "./ChatMessage";
-import { SendIcon, SparklesIcon } from "./icons";
+import { SendIcon } from "./icons";
 
 export interface PlanChatProps {
   planId: string;
@@ -218,14 +218,9 @@ function Welcome({ locale, onPick, disabled }: { locale: Locale; onPick: (q: str
   const t = useT("chat");
   return (
     <div data-testid="chat-empty" className="flex flex-col gap-5 pt-2">
-      <div className="flex flex-col items-start gap-3">
-        <span aria-hidden className="rounded-full bg-primary/10 p-2.5 text-primary">
-          <SparklesIcon width={20} height={20} />
-        </span>
-        <div>
-          <h3 className="text-base font-semibold tracking-tight text-ink">{t("emptyTitle")}</h3>
-          <p className="mt-1 text-sm leading-relaxed text-muted">{t("emptyBody")}</p>
-        </div>
+      <div>
+        <h3 className="text-base font-semibold tracking-tight text-ink">{t("emptyTitle")}</h3>
+        <p className="mt-1 text-sm leading-relaxed text-muted">{t("emptyBody")}</p>
       </div>
       <div className="flex flex-col gap-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted">{t("suggestedLabel")}</p>
@@ -254,7 +249,7 @@ function SuggestionChip({
       onClick={onClick}
       disabled={disabled}
       className={cx(
-        "rounded-xl border border-border bg-surface text-left text-ink shadow-sm transition-colors hover:border-primary/50 hover:bg-primary/5 disabled:opacity-50",
+        "rounded-xl border border-border bg-surface text-left text-ink transition-colors hover:border-primary/50 hover:bg-primary/5 disabled:opacity-50",
         compact ? "rounded-full px-3 py-1 text-xs text-muted hover:text-ink" : "px-3.5 py-2.5 text-sm font-medium",
       )}
     >
