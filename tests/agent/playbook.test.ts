@@ -5,6 +5,7 @@ import type { DomainEvent } from "@/contracts";
 import { decideApproval, executeRun } from "@/agent";
 import { payloadSha256 } from "@/agent/approvals";
 import { getMockInvoice } from "@/agent/mockTools";
+import { applyPaymentEvent } from "@/lib/paypal/apply";
 import { subscribe } from "@/server/events";
 import { store } from "@/server/store";
 import {
@@ -213,6 +214,13 @@ describe("PLAN_EDITED with GOLDEN_BONE_GRAFT_DIFF", () => {
 describe("PAYMENT_CAPTURED and PHASE_STATUS_CHANGED", () => {
   it("records the checkout payment on that phase's open invoice (PAYPAL, captured cents, sim today)", async () => {
     await issue();
+    // The checkout capture settles the phase first; PAYMENT_CAPTURED is published after that.
+    await applyPaymentEvent({
+      planId: PLAN_ID,
+      phaseId: "ph1",
+      event: { type: "CAPTURE_COMPLETED", orderId: "ORD7K2", captureId: "CAP7K2", amountCents: 36_000, paidAt: "2026-11-16T10:00:00.000Z" },
+      via: "capture",
+    });
     await executeRun(PLAN_ID, "PAYMENT_CAPTURED", { type: "PAYMENT_CAPTURED", phaseId: "ph1", amountCents: 36_000, captureId: "CAP7K2" });
     const rec = (await steps()).find((s) => s.kind === "tool_call" && s.tool === "record_payment_for_invoice")!;
     expect(rec.input).toMatchObject({

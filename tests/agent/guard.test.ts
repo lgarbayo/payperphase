@@ -290,12 +290,35 @@ describe("guard · send_invoice after an edit needs an executed human approval",
   it("does not require approval for the first issue", () => {
     expect(checkToolCall("send_invoice", payload, ctx(plan))).toMatchObject({ ok: true });
   });
+  it("never sends (or QRs) an invoice on a settled phase, even with an executed approval", () => {
+    for (const status of ["paid", "processing"] as const) {
+      const settled = structuredClone(plan);
+      settled.phases[1]!.payment.status = status;
+      const approved = ctx(settled, { requiresApproval: true, approval: approval("approved") });
+      expect(checkToolCall("send_invoice", payload, approved)).toMatchObject({ ok: false, code: "PHASE_ALREADY_PAID", phaseId: "ph2" });
+      expect(checkToolCall("send_invoice", payload, ctx(settled))).toMatchObject({ code: "PHASE_ALREADY_PAID" });
+      expect(checkToolCall("generate_invoice_qr_code", buildQrInput("INV2-PH2-0001"), ctx(settled))).toMatchObject({
+        code: "PHASE_ALREADY_PAID",
+      });
+    }
+  });
+  it("never sends an invoice whose amount is no longer the engine's", () => {
+    const stale = structuredClone(plan);
+    stale.phases[1]!.amountCents = 195_000;
+    expect(checkToolCall("send_invoice", payload, ctx(stale, { requiresApproval: true, approval: approval("approved") }))).toMatchObject({
+      ok: false,
+      code: "AMOUNT_MISMATCH",
+      details: { actualCents: 150_000, expectedCents: 195_000 },
+    });
+  });
 });
 
 describe("guard · record_payment_for_invoice", () => {
+  /** ph1 paid at the visit through a checkout capture, its invoice still open. */
   const plan = (() => {
     const p = goldenPlan();
     withInvoice(p, "ph1", "SENT");
+    Object.assign(p.phases[0]!.payment, { status: "paid", instrument: "order", captureId: "CAP123", paidCents: 36_000 });
     return p;
   })();
   it("passes PAYPAL with the phase's cents", () => {
@@ -310,6 +333,23 @@ describe("guard · record_payment_for_invoice", () => {
     expect(
       checkToolCall("record_payment_for_invoice", { ...ok, amount: { currency_code: "USD", value: "360.00" } }, ctx(plan)),
     ).toMatchObject({ code: "CURRENCY_NOT_EUR" });
+  });
+  it("only records on a phase a checkout capture has paid (never on an unpaid sibling with the same amount)", () => {
+    const p = goldenPlan();
+    withInvoice(p, "ph3", "SENT");
+    const ph3 = p.phases[2]!;
+    expect(ph3.payment.status).toBe("scheduled");
+    const input = buildRecordPaymentInput(p, "INV2-PH3-0001", ph3.amountCents, TODAY, "CAP1");
+    expect(checkToolCall("record_payment_for_invoice", input, ctx(p))).toMatchObject({ ok: false, code: "PHASE_NOT_PAID", phaseId: "ph3" });
+    for (const payment of [
+      { status: "processing", instrument: "order" }, // capture still pending: no money yet
+      { status: "paid", instrument: "invoice" }, // the invoice itself settled it: nothing to mirror
+    ] as const) {
+      Object.assign(ph3.payment, payment);
+      expect(checkToolCall("record_payment_for_invoice", input, ctx(p))).toMatchObject({ code: "PHASE_NOT_PAID" });
+    }
+    Object.assign(ph3.payment, { status: "paid", instrument: "order" });
+    expect(checkToolCall("record_payment_for_invoice", input, ctx(p)).ok).toBe(true);
   });
 });
 
