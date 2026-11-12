@@ -33,7 +33,7 @@ import { Button, Card, cx, LiveBadge, ModeBadge, SimClockBadge } from "@/lib/ui"
 import { useToast } from "@/lib/ui/Toast";
 import { ApprovedNotes } from "./ApprovedNotes";
 import { describeShifts, formatPatientAlias } from "./format";
-import { AlertIcon, ChatIcon, CloseIcon, InfoIcon, ShieldIcon, SparkIcon, ToothIcon } from "./icons";
+import { AlertIcon, ChatIcon, CloseIcon, InfoIcon, ShieldIcon, ToothIcon } from "./icons";
 import { Ledger } from "./Ledger";
 import { NoteCard } from "./NoteCard";
 import { PhaseCard, phaseCardDomId } from "./PhaseCard";
@@ -307,7 +307,7 @@ export function PatientPlanView({ initial, planRef }: PatientPlanViewProps) {
               className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--ppp-radius)] border border-dashed border-primary/40 bg-primary/5 px-4 py-3"
             >
               <p className="flex items-start gap-2.5 text-sm text-ink">
-                <SparkIcon className="mt-0.5 shrink-0 text-primary" />
+                <InfoIcon className="mt-0.5 shrink-0 text-primary" />
                 <span>
                   <span className="font-semibold">{t("ghostTitle")}.</span> {t("ghostBody")}{" "}
                   <span className="text-muted">{describeShifts(live.ghostShifts, "", plan.phases, locale)}</span>
