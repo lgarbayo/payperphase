@@ -16,7 +16,8 @@
  * - timeRanges: the simulated "today" line, a red line per breached deadline, and temporary
  *   healing/safe zones while dragging;
  * - indicators.deadlineDate: per-visit deadline flag, pinned to the exact day;
- * - labels / taskRenderer / column renderers: dates, amounts and statuses from the engine meta;
+ * - labels / column renderers: visit dates, payment amounts and statuses from the engine meta;
+ * - taskRenderer: the phase number inside visit pills and the minimum-healing text ("min. 8 wk") on long healing bars;
  * - summary: a "paid this month" footer row summed from the payment milestones;
  * - taskMenu: patient actions (pay a phase, ask for a delay), everything else filtered out;
  * - dependencies tooltip: explains the healing lag between two phases;

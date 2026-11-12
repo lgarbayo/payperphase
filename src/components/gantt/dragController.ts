@@ -7,8 +7,10 @@
  *   current plan: a long drag never clones the plan or re-validates the same day twice.
  * - `drop` runs once from `afterTaskDrop` when Bryntum accepted the drop: it re-checks, previews
  *   `engine.reschedule` (successors move instantly) and hands the move to the parent (`onMoveCommitted`).
- * - `snapBack` runs once from `afterTaskDrop` when Bryntum rejected the drop: it reports the
- *   clinician note to the parent (`onMoveRejected`) so it can show the snap-back card.
+ * - `snapBack` runs once from `afterTaskDrop` when Bryntum rejected the drop: if the engine also
+ *   rejects that day, it reports the rejection to the parent (`onMoveRejected`: the phase id, plus
+ *   the clinician note id and earliest legal date when there are any) so it can show the snap-back
+ *   card. A drop Bryntum rejected for its own reasons reports nothing.
  */
 import type { ClinicalNote, Locale, MoveRequest, MoveValidation, NoteId, Phase, Plan, WhatIfResult } from "@/contracts";
 import { reschedule, snapToClinicDay, validateMove } from "@/engine";

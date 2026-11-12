@@ -1,4 +1,4 @@
-/** Public props of <PlanGantt/> — the patient page, the clinic console and the landing rely on these. */
+/** Public props of <PlanGantt/> — the patient page, the clinic console and the dev /gantt-lab page rely on these. */
 import type { ClinicalNote, DeadlineWarning, Locale, MoveRequest, NoteId, PhaseShift, Plan } from "@/contracts";
 
 export interface PlanGanttProps {

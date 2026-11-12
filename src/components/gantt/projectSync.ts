@@ -4,7 +4,7 @@
  * `loadInlineData`, `commitAsync`) with no @bryntum import, so the parity test can drive a real
  * ProjectModel under jsdom.
  *
- * Same rows, arrows and baselines → records are updated in place with `record.set`, which lets
+ * Same rows, arrows, time-range ids and baselines → records are updated in place with `record.set`, which lets
  * Bryntum animate the bars (successors glide to their new dates after a what-if).
  * Anything structural → `loadInlineData` reloads the whole package.
  */
