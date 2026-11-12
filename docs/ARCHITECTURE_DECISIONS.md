@@ -70,7 +70,7 @@ Maintainers add new entries at the end. An entry is never deleted: when a decisi
 ## ADR-4: The server sets the amount and refuses early orders
 **Context.** If the browser sent the amount, a tampered request could pay the wrong price. If the server accepted any phase, "never in advance" would only be a UI promise.
 
-**Decision.** `POST /api/paypal/orders` takes a plan and a phase, never an amount. The server reads the amount from the store and creates the order only if the phase's status is `due` or `overdue`. Each attempt carries a `PayPal-Request-Id`, so retries are idempotent.
+**Decision.** `POST /api/paypal/orders` takes a plan and a phase, never an amount. The server reads the amount from the store and creates the order only if the phase's status is `due` or `overdue`. Each attempt carries a `PayPal-Request-Id`, so retries are idempotent. Order creation is serialized per plan and phase: a second request while one is in flight (a double click, two tabs) gets the same open order back, for the same server amount, instead of a second order that could never be captured. Every confirmation path (capture, webhook, return page) settles a phase only for the server amount, in EUR, once the phase is due.
 
 **Consequences.**
 - A sandbox check confirmed it: the server ignored an amount sent in the request (order `8UF12137GP897594C`) and refused a phase that was not yet due with `NOT_DUE_YET`.
@@ -167,6 +167,7 @@ They arrive in any order, sometimes twice. Applying them independently would dou
 
 **Consequences.**
 - Bryntum does what it is best at: rendering, baselines, dependencies, indicators, time ranges, summaries and animated updates.
+- The chart uses Bryntum's `svalbard-dark` theme, tuned through CSS variables to the app's dark product theme (near-black surfaces, one teal accent). Healing stripes and the numbers on scheduled phase pills were contrast-checked against the dark background.
 - We use the public trial package, which shows a trial notice. A production deployment would need a Bryntum licence.
 
 ## ADR-10: Patient wording as approved slot templates; a grounded chat
@@ -174,7 +175,7 @@ They arrive in any order, sometimes twice. Applying them independently would dou
 
 **Decision.**
 - **Notes.** Claude drafts notes as slot templates (`{{amount}}`, `{{date}}`, `{{teeth}}`, `{{minWeeks}}`). A validator rejects any digit, currency sign or month name outside a slot, code fills the slots from the engine, and a dentist approves every note.
-- **Chat.** The chat (Claude Haiku 5.5) answers only from approved notes passed as cited documents. A `simulate_delay` tool runs the engine for what-if questions. A numeric grounding check replaces any answer that contains a number not found in its sources. Medical questions get a fixed referral to the clinic, and the chat is rate-limited.
+- **Chat.** The chat (Claude Haiku 5.5) answers only from approved notes passed as cited documents. A `simulate_delay` tool runs the engine for what-if questions. A numeric grounding check replaces any answer that contains a number not found in its sources. Money questions about the plan ("How much is phase 2?", "When do I pay phase 3?", "How much do I still owe?") never reach the model: code builds the answer from the engine's plan data and cites the approved pay-per-phase note. Care questions that only mention a phase or a date ("When can I eat after the implant?") take the normal path. Medical questions get a fixed referral to the clinic, and the chat is rate-limited.
 
 **Consequences.**
 - Patients only ever read approved or grounded text.
