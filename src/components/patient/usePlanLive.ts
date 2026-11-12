@@ -9,7 +9,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  apiFetch,
+  ApiErrorSchema,
   type DomainEvent,
   type DomainEventType,
   type PhaseShift,
@@ -52,6 +52,15 @@ export interface PlanLive {
   lastEventAt: number | null;
 }
 
+async function readPlanView(res: Response): Promise<PlanViewResponse> {
+  const body: unknown = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const parsed = ApiErrorSchema.safeParse(body);
+    throw new Error(parsed.success ? `${parsed.data.error.code}: ${parsed.data.error.message}` : `HTTP ${res.status}`);
+  }
+  return body as PlanViewResponse;
+}
+
 export function usePlanLive(
   planRef: string,
   initial: PlanViewResponse,
@@ -88,9 +97,14 @@ export function usePlanLive(
       do {
         dirty.current = false;
         try {
-          const next = await apiFetch<PlanViewResponse>(`/api/plans/${encodeURIComponent(planRef)}?view=patient`, {
+          const res = await fetch(`/api/plans/${encodeURIComponent(planRef)}?view=patient`, {
             cache: "no-store",
+            headers: { "x-if-missing": "204" },
           });
+          // 204: the plan was removed (e.g. Director beat 1 empties the demo while this page is still
+          // open and about to navigate away). Keep what is on screen, quietly.
+          if (res.status === 204) break;
+          const next = await readPlanView(res);
           if (mounted.current) {
             setView(next);
             setError(null);

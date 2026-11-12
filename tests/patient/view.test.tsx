@@ -389,6 +389,20 @@ describe("live updates over SSE", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it("a plan removed meanwhile (204 on refetch) keeps the page as is: no error, no banner", async () => {
+    fetchMock.mockImplementation(async () => new Response(null, { status: 204 }));
+    const errors = vi.spyOn(console, "error");
+    renderView();
+    await emit({ type: "DEMO_RESET" });
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({ headers: { "x-if-missing": "204" } });
+    await act(async () => {});
+    expect(screen.queryByText(/No hemos podido actualizar tu plan/)).toBeNull();
+    expect(card("ph1")).toBeTruthy();
+    expect(errors).not.toHaveBeenCalled();
+    errors.mockRestore();
+  });
+
   it("shows a retry banner when the refetch fails", async () => {
     fetchMock.mockImplementation(async () => jsonResponse({ error: { code: "NOT_FOUND", message: "Plan not found" } }, 404));
     renderView();
