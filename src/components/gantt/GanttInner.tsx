@@ -11,7 +11,7 @@
  * - a new `plan` prop updates the records in place (animated), the baseline ghost stays.
  */
 import "@bryntum/gantt/gantt.css";
-import "@bryntum/gantt/svalbard-light.css";
+import "@bryntum/gantt/svalbard-dark.css";
 import "@bryntum/gantt/fontawesome/css/fontawesome.css";
 import "@bryntum/gantt/fontawesome/css/solid.css";
 import "@bryntum/gantt/locales/gantt.locale.Es.js";

@@ -4,47 +4,49 @@
  * Scaffold-owned theme. Calm, clinical, trustworthy. Use the CSS variables (or the Tailwind
  * aliases below: bg-surface, text-ink, text-muted, bg-primary, text-status-paid …) — never raw hex.
  * Payment-status colours are shared by the Gantt, phase cards, ledger and agent feed.
+ * Dark product theme (design pass 2026-11-12): near-black canvas, hairline borders, one teal accent.
  */
 :root {
-  --ppp-bg: #f5f8f9;
-  --ppp-surface: #ffffff;
-  --ppp-surface-2: #eef3f5;
-  --ppp-ink: #10243a;
-  --ppp-muted: #5a6b7b;
-  --ppp-border: #d8e1e7;
-  --ppp-primary: #0f766e;
-  --ppp-primary-strong: #0b5d57;
-  --ppp-primary-ink: #ffffff;
-  --ppp-focus: #2563eb;
+  color-scheme: dark;
+  --ppp-bg: #08090a;
+  --ppp-surface: #101113;
+  --ppp-surface-2: #17181b;
+  --ppp-ink: #f4f5f6;
+  --ppp-muted: #9096a0;
+  --ppp-border: #24262b;
+  --ppp-primary: #2bc4ad;
+  --ppp-primary-strong: #6ee7d5;
+  --ppp-primary-ink: #04201c;
+  --ppp-focus: #7aa2ff;
 
-  --ppp-status-scheduled: #94a3b8;
-  --ppp-status-upcoming: #d97706;
-  --ppp-status-due: #2563eb;
-  --ppp-status-processing: #6366f1;
-  --ppp-status-paid: #16a34a;
-  --ppp-status-overdue: #dc2626;
+  --ppp-status-scheduled: #6b7280;
+  --ppp-status-upcoming: #f0a33a;
+  --ppp-status-due: #6b93f5;
+  --ppp-status-processing: #8f86f7;
+  --ppp-status-paid: #34c27a;
+  --ppp-status-overdue: #ef5b5b;
 
   /* Procedure categories (odontogram marks, line chips). One per ProcedureCategory. */
-  --ppp-cat-diagnostic: #64748b;
-  --ppp-cat-preventive: #0891b2;
-  --ppp-cat-surgical: #b45309;
-  --ppp-cat-implant: #0f766e;
-  --ppp-cat-prosthetic: #7c3aed;
-  --ppp-cat-restorative: #2563eb;
-  --ppp-cat-endodontic: #be185d;
-  --ppp-cat-periodontal: #c2410c;
-  --ppp-cat-orthodontic: #4f46e5;
-  --ppp-cat-other: #94a3b8;
-  --ppp-tooth-missing: #cbd5e1;
+  --ppp-cat-diagnostic: #8b95a5;
+  --ppp-cat-preventive: #22b8d6;
+  --ppp-cat-surgical: #e08a2e;
+  --ppp-cat-implant: #2bc4ad;
+  --ppp-cat-prosthetic: #a78bfa;
+  --ppp-cat-restorative: #6b93f5;
+  --ppp-cat-endodontic: #ec5f9e;
+  --ppp-cat-periodontal: #f0743a;
+  --ppp-cat-orthodontic: #8f86f7;
+  --ppp-cat-other: #6b7280;
+  --ppp-tooth-missing: #3a3d44;
 
-  --ppp-healing: #cbd5e1;
-  --ppp-deadline: #dc2626;
-  --ppp-ghost: rgba(16, 36, 58, 0.18);
+  --ppp-healing: #4a4f58;
+  --ppp-deadline: #ef5b5b;
+  --ppp-ghost: rgba(255, 255, 255, 0.14);
 
   --ppp-radius: 14px;
   --ppp-radius-sm: 8px;
-  --ppp-shadow: 0 1px 2px rgba(16, 36, 58, 0.05), 0 1px 3px rgba(16, 36, 58, 0.04);
-  --ppp-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --ppp-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 8px 24px rgba(0, 0, 0, 0.35);
+  --ppp-font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --ppp-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
@@ -70,12 +72,43 @@
   --radius-card: var(--ppp-radius);
 }
 
+html {
+  scroll-padding-top: 64px; /* the header is sticky */
+}
+
 html,
 body {
   background: var(--ppp-bg);
   color: var(--ppp-ink);
   font-family: var(--ppp-font);
   -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv11", "ss01", "ss03";
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--ppp-primary) 35%, transparent);
+}
+
+/* Subtle entrance for page content (Linear-style): fade up once, nothing loops. */
+@keyframes ppp-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.ppp-enter {
+  animation: ppp-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 :focus-visible {

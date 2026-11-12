@@ -30,7 +30,7 @@ export function PlanPreview({ className }: { className?: string }) {
   return (
     <figure
       data-testid="plan-preview"
-      className={cx("rounded-[var(--ppp-radius)] border border-border bg-surface p-5 shadow-[0_8px_40px_rgba(16,36,58,0.10)]", className)}
+      className={cx("rounded-[var(--ppp-radius)] border border-border bg-surface p-5 shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_30px_80px_-20px_rgba(0,0,0,0.6)]", className)}
     >
       <div className="mb-4 flex items-center justify-between gap-3">
         <p className="text-sm font-semibold text-ink">{t("previewLabel")}</p>
