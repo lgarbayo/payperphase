@@ -31,6 +31,7 @@ export type GuardCode =
   | "INVALID_ITEMS"
   | "AMOUNT_MISMATCH"
   | "PHASE_ALREADY_PAID"
+  | "PHASE_NOT_PAID"
   | "INVOICE_ALREADY_OPEN"
   | "STALE_INVOICE_VERSION"
   | "FOREIGN_INVOICE_ID"
@@ -220,6 +221,11 @@ function checkInvoiceIdTool(name: string, input: Record<string, unknown>, ctx: G
   }
 
   if (name === "record_payment_for_invoice") {
+    // The record only mirrors a completed checkout capture onto the phase invoice; it never marks
+    // an unpaid phase's invoice as paid.
+    if (phase.payment.status !== "paid" || phase.payment.instrument !== "order") {
+      return reject("PHASE_NOT_PAID", lt("guardNotPaid", { n: phase.n }), { phaseId: phase.id });
+    }
     if (input.method !== "PAYPAL") {
       return reject("PAYMENT_METHOD_NOT_PAYPAL", lt("guardMethod", { method: String(input.method ?? "—") }), {
         phaseId: phase.id,
