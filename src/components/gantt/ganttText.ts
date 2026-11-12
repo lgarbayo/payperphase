@@ -3,6 +3,7 @@
  * as textContent) and tooltips (HTML strings, every interpolated value escaped).
  */
 import type { ClinicalNote, Locale, NoteId } from "@/contracts";
+import { snapToClinicDay } from "@/engine";
 import { STATUS_LABEL } from "@/lib/ui/status";
 import { daysBetween } from "@/lib/dates";
 import { formatCents } from "@/lib/money";
@@ -179,14 +180,16 @@ export function dragTipHtml(
   locale: Locale,
   verdict: { valid: true } | { valid: false; message: string },
 ): string {
-  const delta = daysBetween(m.startDate, newStart);
+  // `newStart` is the raw pointer day: show the clinic day the engine lands the drop on (weekend → Monday).
+  const landing = snapToClinicDay(newStart);
+  const delta = daysBetween(m.startDate, landing);
   const sign = delta > 0 ? "+" : delta < 0 ? "−" : "±";
   const abs = Math.abs(delta);
   const shift =
     abs > 0 && abs % 7 === 0 ? tg(locale, "tipDragDeltaWeeks", { weeks: abs / 7 }) : tg(locale, "tipDragDelta", { days: abs });
   const parts = [
     `<div class="ppp-tip-title"><span class="ppp-n ppp-status-${m.status}">${m.n}</span>${escapeHtml(m.title)}</div>`,
-    `<div class="ppp-tip-row"><strong>${escapeHtml(tg(locale, "tipDragTo", { date: shortDate(newStart, locale) }))}</strong><span class="ppp-tip-delta">${sign}${escapeHtml(shift)}</span></div>`,
+    `<div class="ppp-tip-row"><strong>${escapeHtml(tg(locale, "tipDragTo", { date: shortDate(landing, locale) }))}</strong><span class="ppp-tip-delta">${sign}${escapeHtml(shift)}</span></div>`,
   ];
   if (!verdict.valid && verdict.message) parts.push(`<div class="ppp-tip-reject">${escapeHtml(verdict.message)}</div>`);
   return `<div class="ppp-tip ppp-drag-tip${verdict.valid ? "" : " ppp-drag-invalid"}">${parts.join("")}</div>`;
