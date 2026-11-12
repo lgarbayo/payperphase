@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-11. The `simulate_delay` engine tool. Every date in a chat answer comes from here:
+ * The `simulate_delay` engine tool. Every date in a chat answer comes from here:
  * newStart = phase start + amount (code), then engine validateMove / reschedule. The model (or the mock
  * router) never does date arithmetic; it only receives the formatted result.
  */

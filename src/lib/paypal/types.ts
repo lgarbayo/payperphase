@@ -1,4 +1,4 @@
-/** OWNED BY WP-04. The slices of PayPal REST payloads we read (Orders v2, Webhooks, Invoicing v2). */
+/** The slices of PayPal REST payloads we read (Orders v2, Webhooks, Invoicing v2). */
 
 export interface PayPalMoney {
   currency_code: string;

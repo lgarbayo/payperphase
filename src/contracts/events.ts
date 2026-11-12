@@ -5,8 +5,8 @@ import { InvoiceStatusSchema, PaymentStatusSchema } from "./plan";
 import { CentsSchema, IsoDateSchema, IsoDateTimeSchema, PhaseIdSchema, PlanIdSchema } from "./primitives";
 
 /**
- * Domain events: published by the server (src/server/events.ts, WP-09), streamed to browsers
- * over SSE (GET /api/events?planId=…), consumed by the agent (WP-10) and the UIs.
+ * Domain events: published by the server (src/server/events.ts), streamed to browsers
+ * over SSE (GET /api/events?planId=…), consumed by the agent (src/agent) and the UIs.
  */
 const base = {
   id: z.string(),

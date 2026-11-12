@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-07. PDF dropzone: drag and drop or file picker (PDF only, ≤10 MB) plus
+ * PDF dropzone: drag and drop or file picker (PDF only, ≤10 MB) plus
  * "Probar con un ejemplo" sample buttons (SAMPLE_PDFS → POST /api/extract {sampleId}).
  */
 import { useRef, useState, type DragEvent } from "react";

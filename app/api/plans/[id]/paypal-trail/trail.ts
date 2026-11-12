@@ -1,5 +1,5 @@
 /**
- * P4. Builds the PayPal trail of a plan: per phase the order → capture → webhook → invoice → agent steps.
+ * Builds the PayPal trail of a plan: per phase the order → capture → webhook → invoice → agent steps.
  * IDS AND STATUSES ONLY: no emails, tokens, payer names or payload bodies ever leave this function
  * (the invoice's recipientEmail and the agent steps' input/output are deliberately never read).
  */

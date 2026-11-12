@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-14. Static, illustrative mini-Gantt for the landing hero: four phases from the seeded
+ * Static, illustrative mini-Gantt for the landing hero: four phases from the seeded
  * synthetic implant case, a hatched healing window and payment diamonds by status. It is a picture,
  * not the Bryntum Gantt, and it says so (caption: illustrative · synthetic · simulated · sandbox).
  */

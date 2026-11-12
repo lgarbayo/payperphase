@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-07. Plan editor: add a line to a phase (with the one-click "Injerto óseo (+450 €)"
+ * Plan editor: add a line to a phase (with the one-click "Injerto óseo (+450 €)"
  * preset = GOLDEN_BONE_GRAFT_EDIT), remove a line, and mark a phase delivered. Each change goes to
  * POST /api/plans/:id/edit (or /deliver); the engine resizes, refits and reschedules.
  */

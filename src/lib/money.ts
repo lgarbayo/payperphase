@@ -1,7 +1,7 @@
 /**
  * Scaffold-owned. Money is ALWAYS integer EUR cents in this codebase.
  * Only src/engine produces amounts; everything else formats or transports them.
- * Spanish printed-money parsing ("1.250,00 €") belongs to WP-03 (src/ai/extract).
+ * Spanish printed-money parsing ("1.250,00 €") lives in src/ai/extract.
  */
 export type Cents = number;
 

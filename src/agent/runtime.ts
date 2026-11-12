@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-10. One agent run: every step is redacted, persisted (store.appendAgentStep) and streamed
+ * One agent run: every step is redacted, persisted (store.appendAgentStep) and streamed
  * (AGENT_STEP). `callTool` is the single choke point for LLM and playbook alike:
  *   guard (incl. "invoice on the visit day" at the simulated today) → (human-approval gate) → toolkit call → phase.payment.invoice update + INVOICE_UPDATED.
  */

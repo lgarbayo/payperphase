@@ -1,4 +1,4 @@
-/** OWNED BY WP-14. Closing card: compliance + tagline + hosted URL. */
+/** Closing card: compliance + tagline + hosted URL. */
 import { ClosingCard } from "@/components/director/Cards";
 import { serverEnv } from "@/env";
 

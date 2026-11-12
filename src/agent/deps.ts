@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-10. Wires the agent to its integrations from env (modes()): live toolkit or mock tools,
+ * Wires the agent to its integrations from env (modes()): live toolkit or mock tools,
  * Claude tool loop or deterministic playbook. Tests replace any part with __setAgentDeps.
  */
 import type { InvoiceToolsClient } from "@/contracts";

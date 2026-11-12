@@ -1,5 +1,5 @@
 /**
- * WP-09 · Integration follow-ups against the REAL engine: the bone-graft edit makes ph3 cite
+ * Integration follow-ups against the REAL engine: the bone-graft edit makes ph3 cite
  * BONE_GRAFT_HEALING_16W, which the patient must not see until the clinic approves it; engine
  * refusals on edit/what-if are 4xx, never 500.
  */

@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-09. Server-Sent Events stream of DomainEvents for GET /api/events.
+ * Server-Sent Events stream of DomainEvents for GET /api/events.
  *
  *   ?planId=<id|demo>  only that plan's events; events without a planId (DEMO_RESET,
  *                      CLOCK_ADVANCED) always pass. "demo" follows the CURRENT hero, so a

@@ -1,4 +1,4 @@
-/** WP-10 API routes over the in-memory store + mock PayPal: steps, approve, guard-test, run. */
+/** API routes over the in-memory store + mock PayPal: steps, approve, guard-test, run. */
 import { beforeEach, describe, expect, it } from "vitest";
 import { GOLDEN_BONE_GRAFT_DIFF } from "@/contracts/fixtures/implantCase";
 import { agentIdle, executeRun } from "@/agent";

@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-03. Slot-template validator. A template may carry numbers, money and dates ONLY inside
+ * Slot-template validator. A template may carry numbers, money and dates ONLY inside
  * {{slots}}; everything outside a slot is checked here before any fill.
  */
 import { WORDING_SLOTS, type LocalizedText, type WordingSlot } from "@/contracts";

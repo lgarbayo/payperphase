@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-07. Clinic console /clinic. Server-renders the hero plan (alias "demo"; null on an
+ * Clinic console /clinic. Server-renders the hero plan (alias "demo"; null on an
  * empty store, Director beat B1), the simulated clock and the note library into the client console.
  */
 import type { Metadata } from "next";

@@ -1,6 +1,6 @@
 /**
- * WP-04 test doubles. The store and the event bus are replaced with in-memory fakes so these tests
- * do not depend on WP-09's storage implementation; the PayPal REST API is replaced by a fetch router.
+ * test doubles. The store and the event bus are replaced with in-memory fakes so these tests
+ * do not depend on the store implementation; the PayPal REST API is replaced by a fetch router.
  *
  * Usage in a test file:
  *   vi.mock("@/server/store", async () => ({ store: (await import("./fakes")).fakeStore }));

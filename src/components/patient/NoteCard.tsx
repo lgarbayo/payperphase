@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-06. A clinician-approved note as a card, with its "Aprobado por Dra. …" chip.
+ * A clinician-approved note as a card, with its "Aprobado por Dra. …" chip.
  * Used for the approved-note list, the snap-back card (illegal drag) and deadline warnings.
  * Patients only ever see notes the clinic approved for their plan (Plan.approvedNotes).
  */

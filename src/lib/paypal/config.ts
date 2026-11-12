@@ -1,4 +1,4 @@
-/** OWNED BY WP-04. Server-side: what the browser needs to render the PayPal button (GET /api/paypal/config). */
+/** Server-side: what the browser needs to render the PayPal button (GET /api/paypal/config). */
 import { modes, publicEnv, serverEnv } from "@/env";
 import type { PayPalClientConfig } from "./sdk-url";
 

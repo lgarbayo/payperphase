@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-05. Pushes a fresh `planToBryntum` mapping into a live Bryntum ProjectModel.
+ * Pushes a fresh `planToBryntum` mapping into a live Bryntum ProjectModel.
  * Duck-typed (no @bryntum import) so the parity test can drive a real ProjectModel under jsdom.
  *
  * Same rows/arrows/baselines → records are updated in place, which lets Bryntum animate the bars

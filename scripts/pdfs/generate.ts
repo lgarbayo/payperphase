@@ -1,6 +1,6 @@
 /**
- * OWNED BY WP-02. `npm run pdfs`: renders the synthetic presupuestos into public/samples/ and rewrites
- * data/seed/sample-hashes.json with their sha256 (the cache key for WP-03's extraction fallback).
+ * `npm run pdfs`: renders the synthetic presupuestos into public/samples/ and rewrites
+ * data/seed/sample-hashes.json with their sha256 (the cache key for the extraction fallback).
  */
 import { createHash } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";

@@ -33,7 +33,7 @@ export const RawExtractionSchema = z.object({
 });
 export type RawExtraction = z.infer<typeof RawExtractionSchema>;
 
-/** ---------- After deterministic parsing + validation (src/ai/extract, WP-03) ---------- */
+/** ---------- After deterministic parsing + validation (src/ai/extract) ---------- */
 export const LineIssueSchema = z.enum([
   "INVALID_TOOTH",
   "LOW_CONFIDENCE",

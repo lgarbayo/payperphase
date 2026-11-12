@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-10. Localized step text (AgentStep.text is {es, en}); server-safe (no React).
+ * Localized step text (AgentStep.text is {es, en}); server-safe (no React).
  */
 import type { Locale, LocalizedText } from "@/contracts";
 import { translate, type KeyOf, type Vars } from "@/i18n/core";

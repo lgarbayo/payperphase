@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-03. Deterministic parsers for text Claude copies verbatim from a Spanish presupuesto.
+ * Deterministic parsers for text Claude copies verbatim from a Spanish presupuesto.
  * The LLM never converts money, quantities or dates: these functions do, and return null when
  * the printed text is not something we can read with certainty.
  */

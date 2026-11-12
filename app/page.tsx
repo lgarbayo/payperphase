@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-14. Story landing page: hook with its official source, how it works, positioning, trust.
+ * Story landing page: hook with its official source, how it works, positioning, trust.
  */
 import { Landing } from "@/components/brand/Landing";
 

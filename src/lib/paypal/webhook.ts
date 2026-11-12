@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-04. PayPal webhooks: signature verification, dedupe on the PayPal event id, routing,
+ * PayPal webhooks: signature verification, dedupe on the PayPal event id, routing,
  * and the pure transition(). Independent confirmation of what the capture response already applied.
  *
  *   PAYMENT.CAPTURE.COMPLETED|PENDING|DENIED|DECLINED → routed by the capture's custom_id

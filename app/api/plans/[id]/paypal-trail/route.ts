@@ -1,4 +1,4 @@
-/** P4. GET /api/plans/:id/paypal-trail (id may be the alias "demo"): ids and statuses only. */
+/** GET /api/plans/:id/paypal-trail (id may be the alias "demo"): ids and statuses only. */
 import { apiError, json } from "@/lib/http";
 import { handleRoute } from "@/server/errors";
 import { store } from "@/server/store";

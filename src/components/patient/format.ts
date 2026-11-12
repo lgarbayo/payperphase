@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-06. Pure display helpers for the patient page. They only FORMAT values the engine
+ * Pure display helpers for the patient page. They only FORMAT values the engine
  * and the server produced (cents, IsoDates, day deltas); they never compute money or dates.
  */
 import { PAY_IN_3, type Locale, type PhaseFit, type PhaseShift, type Plan } from "@/contracts";

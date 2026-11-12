@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-10. Live clinic-agent activity feed: the audit trail from GET /api/agent/steps, then
+ * Live clinic-agent activity feed: the audit trail from GET /api/agent/steps, then
  * AGENT_STEP / APPROVAL_REQUESTED over SSE. Per run: tool chips with ✓/✗, red guard rejections with the
  * reason ("1.500,00 € ≠ motor 1.950,00 €"), expandable redacted JSON, invoice payer links and QR images,
  * LLM/Playbook and Mock badges, and the approval card (Approve / Reject) that executes the stored payload.

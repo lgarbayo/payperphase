@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-/** WP-10 <AgentFeed/> (jsdom, mocked fetch + mocked SSE): audit trail, live steps, guard reds, approval card. */
+/** <AgentFeed/> (jsdom, mocked fetch + mocked SSE): audit trail, live steps, guard reds, approval card. */
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AgentStep, AgentStepsResponse, DomainEvent, Locale, PendingApproval } from "@/contracts";

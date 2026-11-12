@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-06. "Pagado {x} · recibido {y}" per phase and in total.
+ * "Pagado {x} · recibido {y}" per phase and in total.
  * Totals are the engine's ExposureReport (paidCents / deliveredCents); per-phase rows use the
  * report's paid/delivered flags with the phase amount. Nothing is summed here.
  */

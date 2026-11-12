@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-03. Fill slot templates with ENGINE values only. Formatting happens here (money via
+ * Fill slot templates with ENGINE values only. Formatting happens here (money via
  * formatCents, dates via formatIsoDate), so no caller ever pastes a number into patient text.
  */
 import { isValidFdi, type Locale, type LocalizedText, type WordingSlot } from "@/contracts";

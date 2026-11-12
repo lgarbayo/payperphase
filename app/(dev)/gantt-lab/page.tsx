@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-05. Gantt lab (/gantt-lab): the golden plan with knobs (simulated today, mode, ghost
+ * Gantt lab (/gantt-lab): the golden plan with knobs (simulated today, mode, ghost
  * preview, locale, paid phase 1) and the full drag loop wired like the patient page: commit →
  * (simulated) persist via engine.reschedule → new plan prop. Also the Gate A Bryntum smoke page.
  *

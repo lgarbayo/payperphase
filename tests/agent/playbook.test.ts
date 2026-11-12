@@ -1,4 +1,4 @@
-/** WP-10 playbook (mock PayPal tools): the deterministic sequences behind every trigger. */
+/** playbook (mock PayPal tools): the deterministic sequences behind every trigger. */
 import { beforeEach, describe, expect, it } from "vitest";
 import { GOLDEN_BONE_GRAFT_DIFF } from "@/contracts/fixtures/implantCase";
 import type { DomainEvent } from "@/contracts";

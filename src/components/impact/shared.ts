@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-12. Small helpers shared by the impact visuals. Presentation only: every amount
+ * Small helpers shared by the impact visuals. Presentation only: every amount
  * shown by these components arrives as integer cents from the engine and is only formatted here.
  */
 import type { Locale } from "@/contracts";

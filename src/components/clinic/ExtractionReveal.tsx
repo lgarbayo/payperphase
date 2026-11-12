@@ -1,8 +1,8 @@
 "use client";
 /**
- * OWNED BY WP-07. Staggered extraction reveal: lines appear ~120 ms apart while the matching teeth
+ * Staggered extraction reveal: lines appear ~120 ms apart while the matching teeth
  * pulse on the odontogram (`highlight`) and gain marks (`marksFromLines`). The check bar lands when
- * every line is on screen. Amounts and checks are WP-03's; this component only displays them.
+ * every line is on screen. Amounts and checks come from the extractor; this component only displays them.
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { ExtractionResult, FdiTooth, Locale, QuoteLine } from "@/contracts";

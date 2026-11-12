@@ -1,5 +1,5 @@
 /**
- * WP-07 pure helpers: euro input parsing for the add-line form, note grouping for approval,
+ * pure helpers: euro input parsing for the add-line form, note grouping for approval,
  * the plain-language diff headline (ES/EN) and case-kind inference for uploaded quotes.
  */
 import { describe, expect, it } from "vitest";

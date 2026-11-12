@@ -1,4 +1,4 @@
-/** OWNED BY WP-04. GET /api/paypal/config → PayPalClientConfig (mode, public client id, buyer country). */
+/** GET /api/paypal/config → PayPalClientConfig (mode, public client id, buyer country). */
 import { json } from "@/lib/http";
 import { paypalClientConfig } from "@/lib/paypal";
 

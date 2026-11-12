@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-06. Approved-note cards grouped by phase. Only notes in `plan.approvedNotes` are shown
+ * Approved-note cards grouped by phase. Only notes in `plan.approvedNotes` are shown
  * (and only those the server sent for the patient view). Each card carries "Aprobado por Dra. …".
  * Payment and referral notes, and approved notes no phase references, go in a general group.
  */

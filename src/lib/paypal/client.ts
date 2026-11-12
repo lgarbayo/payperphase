@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-04. Minimal typed PayPal REST client over fetch (Orders v2, Webhooks, Invoicing GET).
+ * Minimal typed PayPal REST client over fetch (Orders v2, Webhooks, Invoicing GET).
  * Every call goes through getAccessToken(); a 401 drops the cached token and retries once.
  */
 import { PAYPAL_API_BASE } from "@/env";

@@ -1,4 +1,4 @@
-/** WP-10 toolkit adapter: toolSpec → Anthropic tools (allowlist only), safe JSON parsing, sandbox flag, 401 rebuild. */
+/** toolkit adapter: toolSpec → Anthropic tools (allowlist only), safe JSON parsing, sandbox flag, 401 rebuild. */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { InvoiceToolNameSchema, TOOLKIT_INVOICE_ACTIONS } from "@/contracts";
 import {

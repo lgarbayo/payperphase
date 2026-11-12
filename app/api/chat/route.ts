@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-11. POST /api/chat: validates with ChatRequestSchema, rate-limits per plan (10/min, in memory),
+ * POST /api/chat: validates with ChatRequestSchema, rate-limits per plan (10/min, in memory),
  * then answers through answerPatientQuestion (grounded, cited, referral when out of scope).
  */
 import { ChatRequestSchema } from "@/contracts";

@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-10. Manual Claude tool loop (claude-api skill: manual loop so every call can be gated and
+ * Manual Claude tool loop (claude-api skill: manual loop so every call can be gated and
  * paused). Model from ANTHROPIC_MODEL_AGENT, tool_choice auto, `refusal` handled before content is read,
  * server-side fallbacks in the documented form (beta `server-side-fallback-2026-07-01`, `fallbacks:"default"`).
  * Every tool_use goes through AgentRun.callTool → guard; a violation returns an `is_error` tool_result so

@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-05. Client-only Bryntum Gantt (loaded via next/dynamic ssr:false from PlanGantt).
+ * Client-only Bryntum Gantt (loaded via next/dynamic ssr:false from PlanGantt).
  * The ONLY module that imports @bryntum/*.
  *
  * Bryntum draws, the engine decides:

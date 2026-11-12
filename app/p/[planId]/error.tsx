@@ -1,5 +1,5 @@
 "use client";
-/** OWNED BY WP-06. Error boundary for the patient page. */
+/** Error boundary for the patient page. */
 import { useT } from "@/i18n";
 import { Button, Card } from "@/lib/ui";
 

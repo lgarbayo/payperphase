@@ -22,7 +22,7 @@ import { loadBryntum } from "./helpers/bryntum";
 const today = GOLDEN_START_DATE;
 const opts = { today, locale: "es" as const, mode: "patient" as const };
 
-/** The documented +42-day cascade of the demo's delay move (what WP-01's engine returns). */
+/** The documented +42-day cascade of the demo's delay move (what the engine returns). */
 function delayedPlan(): Plan {
   const plan = goldenPlan();
   for (const p of plan.phases) {

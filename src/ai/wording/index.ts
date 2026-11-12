@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-03. Patient-facing wording as SLOT TEMPLATES ({{amount}} {{date}} …) drafted by Claude
+ * Patient-facing wording as SLOT TEMPLATES ({{amount}} {{date}} …) drafted by Claude
  * and filled only with engine values. Drafts stay drafts until the clinic approves them.
  */
 export { draftPhaseWording, WORDING_SYSTEM, WordingLlmOutputSchema, type DraftOptions } from "./draft";

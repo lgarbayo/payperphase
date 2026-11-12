@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-09. POST /api/demo/beat {beat}: Director Mode beat states (hotkeys 1–6), see
+ * POST /api/demo/beat {beat}: Director Mode beat states (hotkeys 1–6), see
  * src/server/seed.ts. The store publishes DEMO_RESET, then PLAN_APPROVED for B2–B6.
  */
 import { DemoBeatRequestSchema, HERO_PLAN_ALIAS, type DemoResponse } from "@/contracts";

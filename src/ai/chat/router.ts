@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-11. Deterministic mock router (no API key; answers are labelled cached).
+ * Deterministic mock router (no API key; answers are labelled cached).
  * Delay questions (ES/EN) become a `simulate_delay` call; medication and everything else is referred
  * to the clinic. No model, no randomness: the same question always routes the same way.
  */

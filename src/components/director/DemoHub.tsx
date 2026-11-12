@@ -1,5 +1,5 @@
 "use client";
-/** OWNED BY WP-14. Public demo hub: Reset, beat list with deep links, recordable cards, sample PDFs. */
+/** Public demo hub: Reset, beat list with deep links, recordable cards, sample PDFs. */
 import Link from "next/link";
 import { useLocale, useT } from "@/i18n";
 import { Card } from "@/lib/ui";

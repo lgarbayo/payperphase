@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-04. POST /api/paypal/orders/:orderId/capture {planId, phaseId, orderId}.
+ * POST /api/paypal/orders/:orderId/capture {planId, phaseId, orderId}.
  * COMPLETED → paid + delivered (PAYMENT_CAPTURED over SSE) · PENDING → processing ·
  * DECLINED → the button calls actions.restart() · ALREADY_CAPTURED → reconciled from PayPal.
  */

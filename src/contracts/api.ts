@@ -20,8 +20,9 @@ import { DemoBeatSchema, SimClockSchema } from "./server";
 /**
  * HTTP API contract. Route handlers validate bodies with these schemas; clients use the types.
  * Errors are always { error: { code, message } } with a 4xx/5xx status.
- * Owners: /api/extract & /api/wording WP-03 · /api/paypal/* WP-04 · /api/plans/*, /api/clock,
- * /api/events, /api/demo/* WP-09 · /api/agent/* WP-10 · /api/chat WP-11 · /api/health WP-13.
+ * Implemented by: /api/extract & /api/wording → src/ai · /api/paypal/* → src/lib/paypal ·
+ * /api/plans/*, /api/clock, /api/events, /api/demo/* → src/server · /api/agent/* → src/agent ·
+ * /api/chat → src/ai/chat · /api/health → app/api/health.
  */
 export const ApiErrorSchema = z.object({ error: z.object({ code: z.string(), message: z.string() }) });
 export type ApiError = z.infer<typeof ApiErrorSchema>;

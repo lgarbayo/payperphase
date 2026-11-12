@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-09. Assembles PlanViewResponse for GET /api/plans/:id and the /p/[planId] page.
+ * Assembles PlanViewResponse for GET /api/plans/:id and the /p/[planId] page.
  * Patient view: only the notes the clinic approved for this plan. Clinic view: the whole library.
  */
 import type { ClinicalNote, PlanViewResponse } from "@/contracts";

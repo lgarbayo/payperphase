@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-05. Pure Plan → Bryntum data mapping (no @bryntum import, runs in node tests).
+ * Pure Plan → Bryntum data mapping (no @bryntum import, runs in node tests).
  *
  * Bryntum never computes a date here: every start/end comes from the plan (engine output) and is
  * handed over through `toLocalDate`, the only Date bridge. Every task is `manuallyScheduled`.

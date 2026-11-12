@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-10. POST /api/agent/run {planId, trigger?} — queue a reconcile run (default MANUAL) and
+ * POST /api/agent/run {planId, trigger?} — queue a reconcile run (default MANUAL) and
  * return its runId immediately; the steps stream to the feed. Idempotent: it never duplicates invoices.
  */
 import { AgentRunRequestSchema, AgentTriggerSchema } from "@/contracts";

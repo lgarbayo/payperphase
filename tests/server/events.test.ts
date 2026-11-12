@@ -1,5 +1,5 @@
 /**
- * WP-09 · Event bus + GET /api/events (SSE): planId filtering (events without a planId always pass,
+ * Event bus + GET /api/events (SSE): planId filtering (events without a planId always pass,
  * the "demo" alias follows the hero), 15 s heartbeat, cleanup on abort/cancel, Last-Event-ID replay.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";

@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-14. The six video beats: hotkey, store state, where Director Mode navigates, and the
+ * The six video beats: hotkey, store state, where Director Mode navigates, and the
  * deep link that reproduces it (`?director=1&beat=N` applies the beat on load, then strips the param).
  * B5 puts the simulated clock on phase 2's visit day (the implant): phase 2 is due, so its invoice is
  * issued that day, and the bone-graft edit reissues it (src/server/seed.ts).

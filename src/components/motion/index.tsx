@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-08. Motion primitives for the plan-assembly reveal and payment moments (framer-motion).
+ * Motion primitives for the plan-assembly reveal and payment moments (framer-motion).
  * Every primitive respects prefers-reduced-motion: no transforms, no counting, no travelling waves.
  */
 import { Children, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";

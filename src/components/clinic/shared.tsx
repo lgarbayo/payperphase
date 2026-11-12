@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-07. Small shared pieces for the clinic console: label maps, category colours,
+ * Small shared pieces for the clinic console: label maps, category colours,
  * inline icons and the numbered section header. Display helpers only: no money or date arithmetic.
  */
 import type { ReactNode, SVGProps } from "react";

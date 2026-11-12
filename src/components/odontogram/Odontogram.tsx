@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-08. FDI odontogram (SVG) with per-tooth treatment marks and staggered reveal.
+ * FDI odontogram (SVG) with per-tooth treatment marks and staggered reveal.
  *
  * Upper arch 18→11 | 21→28, lower arch 48→41 | 31→38 (patient's right on the image's left).
  * Marks are coloured by procedure category (`--ppp-cat-*`), carry the phase number as a badge,

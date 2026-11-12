@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-04. Per-phase PayPal button (JS SDK v5 Buttons, EUR, Pay Later enabled).
+ * Per-phase PayPal button (JS SDK v5 Buttons, EUR, Pay Later enabled).
  *
  * - Payable only when the milestone is `due` or `overdue`; otherwise disabled with the reason
  *   "Se paga el día de la visita" (the server enforces the same rule: no prepayment).

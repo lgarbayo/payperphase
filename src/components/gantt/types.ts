@@ -1,4 +1,4 @@
-/** OWNED BY WP-05. Public props of <PlanGantt/> — consumers (WP-06, WP-07, WP-14) rely on these. */
+/** Public props of <PlanGantt/> — the patient page, the clinic console and the landing rely on these. */
 import type { ClinicalNote, DeadlineWarning, Locale, MoveRequest, NoteId, PhaseShift, Plan } from "@/contracts";
 
 export interface PlanGanttProps {

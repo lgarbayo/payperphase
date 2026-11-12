@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-09. POST /api/demo/reset: the public "Reset demo" button (judges, Director R key).
+ * POST /api/demo/reset: the public "Reset demo" button (judges, Director R key).
  * Beat state B2 with a freshly re-id'd hero; the store publishes DEMO_RESET then PLAN_APPROVED.
  */
 import type { DemoResponse } from "@/contracts";

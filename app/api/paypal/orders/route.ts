@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-04. POST /api/paypal/orders {planId, phaseId} → CreatePhaseOrderResponse.
+ * POST /api/paypal/orders {planId, phaseId} → CreatePhaseOrderResponse.
  * The amount is read server-side from the stored plan; any amount in the body is ignored (and
  * stripped by the schema). 404 PLAN_NOT_FOUND for an unknown plan; 409 when the phase is not payable
  * yet (no prepayment).

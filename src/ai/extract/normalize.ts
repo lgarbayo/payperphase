@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-03. RawExtraction (what Claude read, as printed text) → ExtractionResult (cents, FDI-valid
+ * RawExtraction (what Claude read, as printed text) → ExtractionResult (cents, FDI-valid
  * teeth, per-line issues, Σ check). Pure and deterministic: same input, same output.
  */
 import {

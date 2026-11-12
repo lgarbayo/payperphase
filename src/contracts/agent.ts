@@ -120,7 +120,7 @@ export type PendingApproval = z.infer<typeof PendingApprovalSchema>;
 
 /**
  * Abstraction over the toolkit so the agent can run against the real
- * PayPal Agent Toolkit or a mock. WP-10 implements both.
+ * PayPal Agent Toolkit or a mock. src/agent implements both.
  */
 export interface InvoiceToolsClient {
   readonly mode: "live" | "mock";

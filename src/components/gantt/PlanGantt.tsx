@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-05. Public entry: <PlanGantt {...PlanGanttProps}/>. Bryntum is client-only
+ * Public entry: <PlanGantt {...PlanGanttProps}/>. Bryntum is client-only
  * (next/dynamic, ssr:false); GanttInner is the only module that imports @bryntum/*.
  */
 import dynamic from "next/dynamic";

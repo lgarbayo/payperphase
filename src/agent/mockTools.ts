@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-10. Deterministic stand-in for the PayPal invoicing tools when there are no sandbox
+ * Deterministic stand-in for the PayPal invoicing tools when there are no sandbox
  * credentials. Same tool names and input shapes as the toolkit; ids are `INV2-MOCK-XXXX-XXXX-XXXX`
  * derived from the invoice number; invoice states follow PayPal's (DRAFT → SENT/SCHEDULED → MARKED_AS_PAID
  * or CANCELLED). Outputs mimic the toolkit's decoded outputs (errors are `{ok:false,status,code,message}`).

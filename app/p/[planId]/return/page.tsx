@@ -1,6 +1,6 @@
 /**
- * OWNED BY WP-06. PayPal full-page redirect fallback: /p/[planId]/return?token=ORDER_ID.
- * Calls WP-04's reconcileReturn (idempotent) with the real plan id (the URL may carry the alias
+ * PayPal full-page redirect fallback: /p/[planId]/return?token=ORDER_ID.
+ * Calls reconcileReturn (idempotent) with the real plan id (the URL may carry the alias
  * "demo") and redirects back to /p/[planId]. A failed reconcile still lands on the plan page,
  * which shows the server's truth and keeps listening for the capture/webhook over SSE.
  */

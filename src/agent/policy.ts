@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-10. Deterministic billing policy shared by the guard, the playbook and the LLM's
+ * Deterministic billing policy shared by the guard, the playbook and the LLM's
  * `get_plan` view: who is invoiced, how invoices are numbered and dated, and the exact tool payloads.
  * Amounts are ALWAYS the engine's integer cents (phase.amountCents), formatted with centsToPayPalValue.
  */

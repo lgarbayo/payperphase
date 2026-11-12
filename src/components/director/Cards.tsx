@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-14. Recordable full-screen 16:9 cards (hook, title, closing). Rendered as a fixed overlay
+ * Recordable full-screen 16:9 cards (hook, title, closing). Rendered as a fixed overlay
  * above the app shell, dark, sized with vw units so 1920×1080 recordings look right at any window size.
  */
 import { useSearchParams } from "next/navigation";

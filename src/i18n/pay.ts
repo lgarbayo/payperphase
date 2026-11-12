@@ -1,7 +1,7 @@
 import type { Dictionary } from "./types";
 
 /**
- * Owned by WP-04. Add keys to BOTH es and en (tests/i18n checks parity).
+ * Add keys to BOTH es and en (tests/i18n checks parity).
  * Our own copy never claims Pay Later eligibility: the official PayPal message speaks for itself,
  * and we only ever say "within Pay in 3 range (€20–€2,000)".
  */

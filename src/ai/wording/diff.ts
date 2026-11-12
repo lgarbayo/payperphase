@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-03. Plain-language explanation of a PlanDiff for the clinic diff panel, the agent feed and
+ * Plain-language explanation of a PlanDiff for the clinic diff panel, the agent feed and
  * the patient notice. Deterministic (no LLM): every number in the sentence is read from the diff.
  *   ES "Fase 2: +450,00 €, sigue dentro del rango de Paga en 3 · fases 3–4 se mueven 4 semanas"
  *   EN "Phase 2: +€450.00, still within the Pay in 3 range · phases 3–4 move 4 weeks later"
@@ -133,6 +133,6 @@ export function explainDiffSync(diff: PlanDiff): DiffExplanation {
 }
 
 export async function explainDiff(diff: PlanDiff, plan: Plan): Promise<DiffExplanation> {
-  void plan; // Kept for the stable signature (WP-09's edit route); the diff carries every number used.
+  void plan; // Kept for the stable signature (the plan edit route); the diff carries every number used.
   return explainDiffSync(diff);
 }

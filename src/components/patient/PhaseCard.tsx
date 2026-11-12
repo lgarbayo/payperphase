@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-06. One card per clinical phase: title (+ approved summary), visit date, amount,
+ * One card per clinical phase: title (+ approved summary), visit date, amount,
  * the Pay in 3 range badge, status, and the payment action:
  *   due/overdue → <PayPhaseButton/> + <PayLaterMessage/> (the only payable states)
  *   scheduled/upcoming → a disabled, locked "se paga el {fecha}, el día que la recibes" refusal + caption

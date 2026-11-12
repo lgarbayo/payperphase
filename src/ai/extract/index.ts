@@ -1,9 +1,9 @@
 /**
- * OWNED BY WP-03. Quote extraction: PDF → Claude (structured output RawExtraction) → deterministic
+ * Quote extraction: PDF → Claude (structured output RawExtraction) → deterministic
  * parsing/validation → ExtractionResult. The LLM never produces cents or dates.
  *
  * Live when ANTHROPIC_API_KEY is set. Without a key, on a 45 s timeout, a refusal or any API failure, a
- * known sample (by PDF sha256 or sample id, both owned by WP-02's seed) falls back to its golden
+ * known sample (by PDF sha256 or sample id, both defined by the seed data) falls back to its golden
  * extraction labelled source:"cached". An unknown PDF without a live result is a typed ExtractError.
  */
 import { createHash } from "node:crypto";
@@ -146,7 +146,7 @@ async function readSamplePdf(publicDir: string, samplePath: string): Promise<Uin
   try {
     return new Uint8Array(await readFile(path.join(publicDir, samplePath.replace(/^\/+/, ""))));
   } catch {
-    return null; // WP-02 hasn't generated it yet, or the deploy doesn't ship it.
+    return null; // Not generated yet (scripts/pdfs), or the deploy doesn't ship it.
   }
 }
 

@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-10. Live InvoiceToolsClient over the PayPal Agent Toolkit `/bedrock` export
+ * Live InvoiceToolsClient over the PayPal Agent Toolkit `/bedrock` export
  * (@paypal/agent-toolkit@1.11.0), adapted to Anthropic tool shapes:
  *   getTools()       → [{toolSpec:{name, description, inputSchema:{json}}}]  →  [{name, description, input_schema}]
  *   handleToolCall() → {toolUseId, content:[{text}]}                         →  {ok, output}

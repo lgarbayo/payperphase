@@ -1,5 +1,5 @@
 "use client";
-/** OWNED BY WP-05. Legend strip under the Gantt (also shows the snap-back reason briefly). */
+/** Legend strip under the Gantt (also shows the snap-back reason briefly). */
 import type { Locale } from "@/contracts";
 import { LEGEND_HEIGHT, tg } from "./toBryntum";
 

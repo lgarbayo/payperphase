@@ -1,4 +1,4 @@
-/** OWNED BY WP-09. GET list · POST create a draft plan from a stored extraction (engine.buildPlan). */
+/** GET list · POST create a draft plan from a stored extraction (engine.buildPlan). */
 import { CreatePlanRequestSchema, type ListPlansResponse, type PlanResponse } from "@/contracts";
 import { json, parseJson } from "@/lib/http";
 import { handleRoute } from "@/server/errors";

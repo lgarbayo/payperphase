@@ -2,7 +2,7 @@ import { z } from "zod";
 import { CentsSchema, IsoDateTimeSchema, PhaseIdSchema, PlanIdSchema } from "./primitives";
 
 /**
- * Server-side PayPal checkout contract (WP-04). The client NEVER sends an amount:
+ * Server-side PayPal checkout contract (src/lib/paypal). The client NEVER sends an amount:
  * the server reads Phase.amountCents from the store and asks engine.canCreateOrder().
  */
 export const CreatePhaseOrderRequestSchema = z.object({ planId: PlanIdSchema, phaseId: PhaseIdSchema });

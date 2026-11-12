@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { ClinicClosureButton } from "@/components/impact/ClinicClosureButton";
 import { goldenImpactProps, norm } from "./fixtures";
 
-// Record what the closure panel asks of the shared CountUp primitive (WP-08 owns the animation
+// Record what the closure panel asks of the shared CountUp primitive (src/components/motion owns the animation
 // and its reduced-motion handling); here we pin the ~1 s duration and the cents → text format.
 const countUps: Array<{ value: number; durationMs?: number; sample: string }> = [];
 vi.mock("@/components/motion", () => ({

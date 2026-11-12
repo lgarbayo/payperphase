@@ -1,7 +1,7 @@
 /**
- * WP-09 · Plan API route handlers called directly with Request objects. The engine is mocked
+ * Plan API route handlers called directly with Request objects. The engine is mocked
  * (passthrough by default) wherever an assertion depends on engine behaviour, so these tests hold
- * against both the scaffold stub and WP-01's real engine.
+ * against both the scaffold stub and the real engine.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -280,7 +280,7 @@ describe("POST /api/plans/:id/approve", () => {
 // ------------------------------------------------------------------ edit
 describe("POST /api/plans/:id/edit", () => {
   const url = `${BASE}/plans/demo/edit`;
-  /** The golden plan after the bone-graft edit, as WP-01 produces it. */
+  /** The golden plan after the bone-graft edit, as the engine produces it. */
   function grafted(plan: Plan): Plan {
     const line = GOLDEN_BONE_GRAFT_DIFF.phases[0]!.addedLines[0]!;
     return {

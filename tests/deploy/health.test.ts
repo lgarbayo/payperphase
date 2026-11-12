@@ -1,5 +1,5 @@
 /**
- * WP-13: GET /api/health keeps the HealthResponse contract shape, reports the Render commit and
+ * GET /api/health keeps the HealthResponse contract shape, reports the Render commit and
  * the integration modes, and turns 503 when the store or the env is broken.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

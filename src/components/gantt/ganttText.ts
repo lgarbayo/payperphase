@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-05. Pure render helpers for the Gantt: grid cells (DomConfig objects, so text is set
+ * Pure render helpers for the Gantt: grid cells (DomConfig objects, so text is set
  * as textContent) and tooltips (HTML strings, every interpolated value escaped).
  */
 import type { ClinicalNote, Locale, NoteId } from "@/contracts";

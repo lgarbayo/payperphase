@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-14. PayPerPhase wordmark: a tile with three ascending phase bars and a payment diamond,
+ * PayPerPhase wordmark: a tile with three ascending phase bars and a payment diamond,
  * then the name. Pure SVG + text: no third-party logos, safe on server and client.
  */
 import { cx } from "@/lib/ui/cx";

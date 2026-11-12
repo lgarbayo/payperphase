@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-14. The positioning line against the rivals, in the dictionary so ES/EN stay in sync.
+ * The positioning line against the rivals, in the dictionary so ES/EN stay in sync.
  * Server-safe (no hooks): pass the locale.
  */
 import type { Locale } from "@/contracts";

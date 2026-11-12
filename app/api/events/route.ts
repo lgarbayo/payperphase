@@ -1,4 +1,4 @@
-/** OWNED BY WP-09. Server-Sent Events stream of DomainEvents (?planId= filters; see src/server/sse.ts). */
+/** Server-Sent Events stream of DomainEvents (?planId= filters; see src/server/sse.ts). */
 import { eventStreamResponse } from "@/server/sse";
 
 export const dynamic = "force-dynamic";

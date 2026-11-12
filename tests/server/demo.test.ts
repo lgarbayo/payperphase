@@ -1,5 +1,5 @@
 /**
- * WP-09 · Director Mode beats (POST /api/demo/beat) and the public reset (POST /api/demo/reset).
+ * Director Mode beats (POST /api/demo/beat) and the public reset (POST /api/demo/reset).
  * Every beat is checked for the resulting hero state, so each video take is reproducible.
  */
 import { describe, expect, it } from "vitest";

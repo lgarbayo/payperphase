@@ -1,4 +1,4 @@
-/** OWNED BY WP-11. Tiny inline stroke icons for the chat panel (decorative, aria-hidden). */
+/** Tiny inline stroke icons for the chat panel (decorative, aria-hidden). */
 import type { SVGProps } from "react";
 
 function Svg({ children, ...props }: SVGProps<SVGSVGElement>) {

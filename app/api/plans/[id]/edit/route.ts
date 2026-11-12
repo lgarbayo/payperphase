@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-09. POST /api/plans/:id/edit: dentist plan edit → engine.applyEdit + diffPlans,
+ * POST /api/plans/:id/edit: dentist plan edit → engine.applyEdit + diffPlans,
  * saved, PLAN_EDITED {diff} (the agent reissues the invoice), plus the explainDiff wording.
  */
 import { EditPlanRequestSchema } from "@/contracts";

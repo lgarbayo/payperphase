@@ -4,7 +4,7 @@ import { NoteIdSchema } from "./notes";
 import { LocaleSchema, LocalizedTextSchema, PhaseIdSchema, PlanIdSchema } from "./primitives";
 
 /**
- * ---------- Wording (WP-03) ----------
+ * ---------- Wording ----------
  * Claude drafts SLOT TEMPLATES, never final text with numbers. Allowed slots:
  *   {{amount}} {{date}} {{teeth}} {{minWeeks}} {{phaseN}} {{dentist}}
  * A validator rejects any digit, currency sign or month name outside a slot.
@@ -40,7 +40,7 @@ export const DiffExplanationSchema = z.object({
 });
 export type DiffExplanation = z.infer<typeof DiffExplanationSchema>;
 
-/** ---------- Patient chat (WP-11) ---------- */
+/** ---------- Patient chat ---------- */
 export const ChatMessageSchema = z.object({
   role: z.enum(["user", "assistant"]),
   text: z.string().max(2000),

@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-03. One structured-output Claude call, shared by extraction and wording.
+ * One structured-output Claude call, shared by extraction and wording.
  *
  * Rules (SPEC "Rules for every Claude call"):
  * - `client.messages.parse` + `zodOutputFormat(schema)`; no forced tool_choice; no sampling params.

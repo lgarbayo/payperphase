@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-11. Numeric grounding check. Any number, date, month name or amount in an answer must
+ * Numeric grounding check. Any number, date, month name or amount in an answer must
  * appear in the sources: the `simulate_delay` tool results and the texts of the cited approved notes.
  * One ungrounded token fails the whole answer; the caller then swaps in a code-built summary.
  */

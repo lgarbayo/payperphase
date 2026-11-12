@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-10. Strips secrets and full tokens from step input/output before they are stored,
+ * Strips secrets and full tokens from step input/output before they are stored,
  * streamed or shown, and bounds their size. QR images (data URLs under `qrDataUrl`) are kept.
  */
 const SECRET_KEY_RE = /secret|token|authorization|password|passwd|api[-_]?key|client[-_]?id|cookie|signature/i;

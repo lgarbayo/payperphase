@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-06. Patient plan page body (/p/[planId]):
+ * Patient plan page body (/p/[planId]):
  *   header (clinic · patient alias (ficticio) · SimClockBadge · ModeBadges · live)
  *   → Gantt (#gantt, what-if drag, chat ghost preview, snap-back note card)
  *   → phase cards (pay only when due) → ledger + impact strip (#closure) → approved notes

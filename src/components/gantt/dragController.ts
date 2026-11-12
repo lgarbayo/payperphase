@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-05. Drag validation wrapper between Bryntum's TaskDrag and the engine.
+ * Drag validation wrapper between Bryntum's TaskDrag and the engine.
  * Pure TypeScript (no @bryntum import) so it is unit-tested in node.
  *
  * - `validate` runs on every drag frame (Bryntum `validatorFn`). It calls `engine.validateMove`

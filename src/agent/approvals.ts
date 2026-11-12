@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-10. Human-approval payload hashing: canonical JSON (sorted keys, no undefined) → sha256.
+ * Human-approval payload hashing: canonical JSON (sorted keys, no undefined) → sha256.
  * The stored PendingApproval.payload is executed verbatim after the Approve click, and the hash is
  * re-checked right before execution, so a payload changed after the request is refused.
  */

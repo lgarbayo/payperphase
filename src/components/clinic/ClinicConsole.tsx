@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-07. Clinic console: PDF dropzone → extraction reveal (+ odontogram + check bar) →
+ * Clinic console: PDF dropzone → extraction reveal (+ odontogram + check bar) →
  * phase review & note approval → approve & send (link, QR, invoices) → plan editor with diff →
  * agent feed → payments overview. Works from an empty store (Director beat B1) and from the hero
  * plan (B2–B6). Every amount and date shown comes from an API response, never from this file.

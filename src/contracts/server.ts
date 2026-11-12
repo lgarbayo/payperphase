@@ -38,7 +38,7 @@ export const DemoBeatSchema = z.enum([
 export type DemoBeat = z.infer<typeof DemoBeatSchema>;
 
 /**
- * Store API implemented by src/server/store.ts (WP-09). JSON file at DATA_DIR/db.json,
+ * Store API implemented by src/server/store.ts. JSON file at DATA_DIR/db.json,
  * seeded on boot. All methods are async and safe to call from route handlers.
  * Callers never mutate returned objects in place: use updatePlan(id, fn).
  */

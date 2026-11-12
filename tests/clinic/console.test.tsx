@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 /**
- * WP-07 clinic console (jsdom, mocked fetch and child components).
+ * clinic console (jsdom, mocked fetch and child components).
  * Covers: golden extraction → 12 lines + ✓ check bar "1 a revisar"; invalid tooth flagged; approve gated
  * on note ticks; approve payload; link/QR/invoices; bone-graft preset posts GOLDEN_BONE_GRAFT_EDIT; diff
  * "+450,00 €"; Director anchors; payments overview + SSE live refresh; EN toggle; dropzone validation.

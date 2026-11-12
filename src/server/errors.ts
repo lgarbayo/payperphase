@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-09. Typed route errors → `{ error: { code, message } }` (src/lib/http.ts).
+ * Typed route errors → `{ error: { code, message } }` (src/lib/http.ts).
  * Route handlers wrap their body in `handleRoute` so a thrown RouteError, a not-found store
  * update or an engine refusal becomes a clean 4xx instead of an unhandled 500.
  */
@@ -35,7 +35,7 @@ export class InvalidRecordError extends RouteError {
 /** Engine refusals that mean "conflicts with the plan's current state" rather than "bad input". */
 const ENGINE_CONFLICTS = new Set(["PHASE_PAID", "PHASE_DELIVERED", "INVALID_MOVE", "SPLIT_LINE"]);
 
-/** Duck-typed so it works with the scaffold engine stub (no EngineError) and WP-01's engine. */
+/** Duck-typed so it works with the scaffold engine stub (no EngineError) and the real engine. */
 function engineErrorCode(err: unknown): string | null {
   if (!(err instanceof Error) || err.name !== "EngineError") return null;
   const code: unknown = (err as Error & { code?: unknown }).code;

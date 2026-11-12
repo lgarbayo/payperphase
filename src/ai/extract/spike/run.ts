@@ -1,10 +1,10 @@
 /**
- * OWNED BY WP-03. Hour-1 spike: one live Claude extraction of the hero presupuesto, scored against the
+ * Hour-1 spike: one live Claude extraction of the hero presupuesto, scored against the
  * golden extraction. Results go in docs/spikes/claude-pdf.md.
  *
  *   npx tsx src/ai/extract/spike/run.ts [path/to.pdf] [--runs 3] [--write-pdf out.pdf] [--dry]
  *
- * PDF: the given path, else public/samples/presupuesto-implantes-ribera.pdf (WP-02), else a synthetic
+ * PDF: the given path, else public/samples/presupuesto-implantes-ribera.pdf, else a synthetic
  * stand-in rendered from GOLDEN_RAW_EXTRACTION. Needs ANTHROPIC_API_KEY (.env or environment) unless --dry.
  */
 import Anthropic from "@anthropic-ai/sdk";

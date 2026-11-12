@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-/** P3: single-locale compliance footer, ?lang persistence, LiveBadge. */
+/** single-locale compliance footer, ?lang persistence, LiveBadge. */
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { COMPLIANCE_COPY } from "@/contracts/constants";

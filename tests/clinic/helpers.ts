@@ -1,5 +1,5 @@
 /**
- * WP-07 test helpers: a tiny route-based fetch mock and golden-derived fixtures.
+ * test helpers: a tiny route-based fetch mock and golden-derived fixtures.
  * (vi.mock calls live in each test file because they are hoisted per file.)
  */
 import { vi } from "vitest";

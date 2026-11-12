@@ -1,4 +1,4 @@
-/** OWNED BY WP-09. POST /api/plans/:id/phases/:phaseId/deliver: the clinic marks a phase delivered. */
+/** POST /api/plans/:id/phases/:phaseId/deliver: the clinic marks a phase delivered. */
 import type { PlanResponse } from "@/contracts";
 import { json } from "@/lib/http";
 import { handleRoute } from "@/server/errors";

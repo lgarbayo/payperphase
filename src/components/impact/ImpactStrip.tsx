@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-12. Optional composition of the two impact visuals: the exposure meter beside the
+ * Optional composition of the two impact visuals: the exposure meter beside the
  * "What if the clinic closes today?" button. Props only; nothing imports this yet.
  */
 import type { ClosureStressTest, ExposureReport, Locale } from "@/contracts";

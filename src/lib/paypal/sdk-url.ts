@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-04. Isomorphic (browser-safe, no server imports): the PayPal JS SDK v5 URL and the
+ * Isomorphic (browser-safe, no server imports): the PayPal JS SDK v5 URL and the
  * config the browser needs. Client components import THIS file, never "@/lib/paypal" (server-only).
  */
 import { INSTALLMENTS, PAY_IN_3 } from "@/contracts/constants";

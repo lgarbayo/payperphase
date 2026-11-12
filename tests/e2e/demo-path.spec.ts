@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-16. Browser smoke of the whole demo path, in the order the video records it.
+ * Browser smoke of the whole demo path, in the order the video records it.
  *
  *   npm run e2e                      builds the app, starts it in mock mode, runs this file, stops it
  *   E2E_SKIP_BUILD=1 npm run e2e     reuses the existing .next build
@@ -7,7 +7,7 @@
  * playwright.config.ts starts `next start` with FORCE_MOCKS=1 (no live PayPal or Anthropic call is
  * possible), a fresh temporary DATA_DIR and a free port. The test resets the demo state through the
  * API first, so it is re-runnable and order-independent. Reset, beats and the simulated clock are
- * driven through the API, not the Director hotkeys (WP-14 unit-tests those).
+ * driven through the API, not the Director hotkeys (tests/director unit-tests those).
  *
  * Steps (one `test.step` each, screenshots in test-results/demo-path/):
  *   1 reset + health is mock · 2 clinic: real PDF → 12 lines → plan → notes → approve → link + QR

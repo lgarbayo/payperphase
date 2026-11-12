@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-04. Persists a PaymentEvent through the pure transition() and publishes what changed.
+ * Persists a PaymentEvent through the pure transition() and publishes what changed.
  * Capture responses, webhooks and the return reconcile all call this, so a fact that arrives three
  * times changes the store once and publishes once.
  */

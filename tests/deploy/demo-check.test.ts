@@ -1,5 +1,5 @@
 /**
- * WP-13: scripts/demo-check.ts exit codes and report, driven in-process with a fetch that routes
+ * scripts/demo-check.ts exit codes and report, driven in-process with a fetch that routes
  * to the real route handlers (temp DATA_DIR) and fakes the HTML pages. No server, no network.
  */
 import { mkdtempSync, rmSync } from "node:fs";

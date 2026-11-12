@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-09. In-process domain event bus (survives Next dev HMR via globalThis).
+ * In-process domain event bus (survives Next dev HMR via globalThis).
  *
  * - `publish` stamps id / wall-clock `at` / simulated `simToday` and fans out synchronously.
  *   Publishers call it AFTER persisting, so subscribers (the agent, SSE) always read fresh state.

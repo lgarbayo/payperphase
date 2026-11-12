@@ -17,7 +17,7 @@ import {
 import { ProcedureCodeSchema } from "./procedures";
 
 /**
- * Engine I/O types. The engine (src/engine, WP-01) is pure, isomorphic TypeScript and the ONLY
+ * Engine I/O types. The engine (src/engine) is pure, isomorphic TypeScript and the ONLY
  * producer of money (integer cents) and dates (IsoDate). Signatures live in src/engine/index.ts.
  */
 

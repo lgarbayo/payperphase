@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-07. Plain-language diff after a dentist edit:
+ * Plain-language diff after a dentist edit:
  *   "Fase 2: 1.500,00 € → 1.950,00 € · sigue dentro del rango de Paga en 3 · fases 3–4 se mueven 4 semanas"
  * plus `explanation.rendered` and a per-phase before/after table. Amounts and dates are the
  * engine's (PlanDiff); the UI only formats them.

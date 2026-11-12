@@ -1,5 +1,5 @@
 /**
- * WP-13: render.yaml is the Render Blueprint. No YAML dependency: line and block matching only.
+ * render.yaml is the Render Blueprint. No YAML dependency: line and block matching only.
  * (The full file was also validated against Render's published JSON schema; see docs/deploy.md.)
  */
 import { readFileSync, statSync } from "node:fs";

@@ -1,5 +1,5 @@
 /**
- * WP-09 · JSON plan store: persistence, atomic + serialized writes, reseed on corruption,
+ * JSON plan store: persistence, atomic + serialized writes, reseed on corruption,
  * hero alias, webhook dedupe, agent audit trail, boot (beat B2) and the public demo reset.
  */
 import { readdir, readFile, rm, writeFile } from "node:fs/promises";

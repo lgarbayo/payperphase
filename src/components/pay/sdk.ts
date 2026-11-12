@@ -1,6 +1,6 @@
 "use client";
 /**
- * OWNED BY WP-04. Browser-side PayPal JS SDK v5 loader + the config fetch. Each SDK URL (client id,
+ * Browser-side PayPal JS SDK v5 loader + the config fetch. Each SDK URL (client id,
  * locale, intent) is loaded exactly once per page, under its own data-namespace, and shared by every
  * PayPhaseButton and PayLaterMessage on the page.
  */

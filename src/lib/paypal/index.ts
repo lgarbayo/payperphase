@@ -1,5 +1,5 @@
 /**
- * OWNED BY WP-04. Server-only PayPal checkout: OAuth token cache, Orders v2 create/capture per phase,
+ * Server-only PayPal checkout: OAuth token cache, Orders v2 create/capture per phase,
  * webhook verification, redirect-return reconcile. Amounts ALWAYS come from the store, never the client.
  *
  * Server-only: this module reaches the store and the PayPal REST API. Client components import
