@@ -4,6 +4,12 @@
   "private": true,
   "description": "Pay for multi-visit dental treatment one clinical phase at a time, with PayPal, as each phase is delivered.",
   "license": "MIT",
+  "author": "Luis Garbayo Fernández",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lgarbayo/payperphase.git"
+  },
+  "homepage": "https://payperphase.onrender.com",
   "engines": {
     "node": ">=22 <23"
   },
