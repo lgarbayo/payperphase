@@ -8,7 +8,10 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 import type { DomainEvent, DomainEventInput, PhaseShift, Plan, PlanViewResponse, WhatIfResponse } from "@/contracts";
 import type { PlanGanttProps } from "@/components/gantt/types";
 import type { PlanChatProps } from "@/components/chat/PlanChat";
-import { GOLDEN_DELAY_MOVE, GOLDEN_ILLEGAL_MOVE, goldenPlan } from "@/contracts/fixtures/implantCase";
+import { GOLDEN_BONE_GRAFT_EDIT, GOLDEN_DELAY_MOVE, GOLDEN_ILLEGAL_MOVE, goldenPlan } from "@/contracts/fixtures/implantCase";
+import { draftPhaseWording } from "@/ai/wording";
+import { applyEdit } from "@/engine";
+import { NOTE_LIBRARY } from "@data/seed/notes";
 import { PatientPlanView } from "@/components/patient/PatientPlanView";
 import { LocaleProvider } from "@/i18n";
 import { addDays } from "@/lib/dates";
@@ -190,6 +193,32 @@ describe("golden view (B2: phase 1 due today)", () => {
     renderView(viewOf(plan));
     expect(within(card("ph2")).getByTestId("phase-summary").textContent).toBe("Colocamos dos implantes de titanio.");
     expect(within(card("ph1")).queryByTestId("phase-summary")).toBeNull();
+  });
+
+  it("fills an approved summary template from the current engine values, so an edit never leaves a stale amount or date", async () => {
+    // What the clinic console approves: the slot template of each wording draft.
+    const approved = goldenPlan();
+    const drafts = await draftPhaseWording(approved, NOTE_LIBRARY, { client: null });
+    for (const p of approved.phases) p.summary = drafts.phases.find((d) => d.phaseId === p.id)!.template;
+    // Then the dentist applies the bone-graft preset: ph2 +450 €, ph3 waits 16 weeks, ph4 follows.
+    const edited = applyEdit(approved, GOLDEN_BONE_GRAFT_EDIT, "2026-11-16T10:00:00.000Z");
+    renderView(viewOf(edited));
+
+    const ph2 = norm(within(card("ph2")).getByTestId("phase-summary").textContent);
+    expect(ph2).toContain("Pagas 1.950,00 € el 12 de enero de 2027");
+    expect(ph2).not.toContain("1.500,00");
+    const ph3 = norm(within(card("ph3")).getByTestId("phase-summary").textContent);
+    expect(ph3).toContain("el 5 de mayo de 2027");
+    expect(ph3).toContain("como pronto 16 semanas");
+    expect(norm(within(card("ph4")).getByTestId("phase-summary").textContent)).toContain("el 20 de mayo de 2027");
+    expect(document.body.textContent).not.toContain("{{");
+  });
+
+  it("never shows a stored summary with numbers outside slots (an old rendered text the engine can no longer vouch for)", () => {
+    const plan = goldenPlan();
+    plan.phases[1]!.summary = { es: "Pagas 1.500,00 € el 12 de enero de 2027.", en: "You pay €1,500.00 on 12 January 2027." };
+    renderView(viewOf(plan));
+    expect(within(card("ph2")).queryByTestId("phase-summary")).toBeNull();
   });
 
   it("the ledger shows 0 €", () => {

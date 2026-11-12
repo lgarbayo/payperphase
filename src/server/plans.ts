@@ -18,7 +18,7 @@ import {
   type WhatIfResult,
   planShortCode,
 } from "@/contracts";
-import { explainDiff } from "@/ai/wording";
+import { explainDiff, phaseSlotValues, slotStrings } from "@/ai/wording";
 import {
   applyEdit,
   applyPaymentStatuses,
@@ -44,6 +44,31 @@ const FALLBACK_CITY = "Valencia";
 
 function publishStatusChanges(planId: string, changes: readonly StatusChange[]): void {
   for (const c of changes) publish({ type: "PHASE_STATUS_CHANGED", planId, phaseId: c.phaseId, from: c.from, to: c.to });
+}
+
+/** What a filled phase template shows ({{amount}} {{date}} {{teeth}} {{minWeeks}} …), in both locales. */
+function slotText(plan: Plan, phase: Plan["phases"][number]): string {
+  const values = phaseSlotValues(plan, phase);
+  return JSON.stringify([slotStrings(values, "es"), slotStrings(values, "en")]);
+}
+
+/**
+ * An approved summary is a template already filled with the engine values of approval time, and
+ * only the filled text is stored. When an edit or a move changes any of those values, the text would
+ * contradict the amount and date on the same card, so it is dropped (the card keeps the engine's own
+ * figures). Phases whose values did not change keep their approved text.
+ */
+function dropStaleSummaries(before: Plan, after: Plan): Plan {
+  return {
+    ...after,
+    phases: after.phases.map((p) => {
+      if (!p.summary) return p;
+      const prev = before.phases.find((x) => x.id === p.id);
+      if (prev && slotText(before, prev) === slotText(after, p)) return p;
+      const { summary: _stale, ...rest } = p;
+      return rest;
+    }),
+  };
 }
 
 /** "María García (paciente ficticia)" → "María G." (privacy-friendly alias for the UI). */
@@ -165,7 +190,8 @@ export async function whatIf(id: string, req: WhatIfRequest): Promise<{ status: 
     if (!plan) throw new RouteError(404, "NOT_FOUND", `Plan not found: ${id}`);
     const validation = validateMove(plan, move, today);
     if (!validation.ok) return { status: 409, body: { ok: false, validation } };
-    return { status: 200, body: { ok: true, result: reschedule(plan, move, today) } };
+    const preview = reschedule(plan, move, today);
+    return { status: 200, body: { ok: true, result: { ...preview, plan: dropStaleSummaries(plan, preview.plan) } } };
   }
 
   let rejection: MoveValidation | null = null;
@@ -182,8 +208,13 @@ export async function whatIf(id: string, req: WhatIfRequest): Promise<{ status: 
       const moved = reschedule(cur, move, today);
       const applied = applyPaymentStatuses({ ...moved.plan, baseline: cur.baseline }, today);
       result = moved;
-      changes = applied.changes;
-      return applied.plan;
+      // reschedule already re-derives the moved phases' statuses, so applyPaymentStatuses alone
+      // would report no change for them: compare against the stored plan instead.
+      changes = applied.plan.phases.flatMap((p) => {
+        const from = cur.phases.find((x) => x.id === p.id)?.payment.status;
+        return from && from !== p.payment.status ? [{ phaseId: p.id, from, to: p.payment.status }] : [];
+      });
+      return dropStaleSummaries(cur, applied.plan);
     });
   } catch (err) {
     if (err === REJECTED && rejection) return { status: 409, body: { ok: false, validation: rejection } };
@@ -210,7 +241,7 @@ export async function editPlan(id: string, req: EditPlanRequest): Promise<EditPl
     const edited = applyPaymentStatuses(applyEdit(cur, req.edit, now), today);
     changes = edited.changes;
     diff = diffPlans(cur, edited.plan);
-    return edited.plan;
+    return dropStaleSummaries(cur, edited.plan);
   });
   const planDiff = diff!;
   publish({ type: "PLAN_EDITED", planId: after.id, diff: planDiff });
@@ -224,7 +255,11 @@ export async function editPlan(id: string, req: EditPlanRequest): Promise<EditPl
 
 // ---------------------------------------------------------------- deliver
 
-/** POST /api/plans/:id/phases/:phaseId/deliver: engine.markDelivered on the simulated day. */
+/**
+ * POST /api/plans/:id/phases/:phaseId/deliver: engine.markDelivered on the simulated day. Care is
+ * delivered at its visit, so a phase whose visit day has not come yet is refused (an early invoice
+ * payment must keep showing in the exposure meter).
+ */
 export async function deliverPhase(id: string, phaseId: string): Promise<Plan> {
   const { today } = await store.getClock();
   let changed = false;
@@ -233,6 +268,9 @@ export async function deliverPhase(id: string, phaseId: string): Promise<Plan> {
     if (!phase) throw new RouteError(404, "UNKNOWN_PHASE", `Phase not found: ${phaseId}`);
     if (cur.status === "draft") throw new RouteError(409, "PLAN_NOT_APPROVED", `Plan ${cur.id} is not approved yet`);
     changed = phase.delivery.status !== "delivered";
+    if (changed && phase.startDate > today) {
+      throw new RouteError(409, "VISIT_NOT_REACHED", `Phase ${phaseId} is on ${phase.startDate}; it cannot be delivered before its visit`);
+    }
     return markDelivered(cur, phaseId, today);
   });
   if (changed) publish({ type: "PHASE_DELIVERED", planId: plan.id, phaseId });
