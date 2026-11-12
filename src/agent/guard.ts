@@ -202,6 +202,14 @@ function checkInvoiceIdTool(name: string, input: Record<string, unknown>, ctx: G
   const extra = checkExtraRecipients(input, ctx);
   if (extra) return { ...extra, phaseId: phase.id };
 
+  // A payable invoice (or its QR) never goes out for a settled phase, nor at an amount the engine
+  // no longer holds (a held send whose phase was paid or edited again before the Approve click).
+  if (name === "send_invoice" || name === "generate_invoice_qr_code") {
+    if (isPhaseSettled(phase)) return reject("PHASE_ALREADY_PAID", lt("guardPaid", { n: phase.n }), { phaseId: phase.id });
+    const invoiced = phase.payment.invoice!.amountCents;
+    if (name === "send_invoice" && invoiced !== phase.amountCents) return amountMismatch(invoiced, phase.amountCents, phase.id);
+  }
+
   if (name === "send_invoice" && ctx.requiresApproval) {
     if (!ctx.approval || ctx.approval.status !== "approved") {
       return reject("APPROVAL_REQUIRED", lt("guardApproval"), { phaseId: phase.id });

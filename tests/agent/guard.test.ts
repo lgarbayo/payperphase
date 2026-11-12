@@ -233,6 +233,27 @@ describe("guard · send_invoice after an edit needs an executed human approval",
   it("does not require approval for the first issue", () => {
     expect(checkToolCall("send_invoice", payload, ctx(plan))).toMatchObject({ ok: true });
   });
+  it("never sends (or QRs) an invoice on a settled phase, even with an executed approval", () => {
+    for (const status of ["paid", "processing"] as const) {
+      const settled = structuredClone(plan);
+      settled.phases[1]!.payment.status = status;
+      const approved = ctx(settled, { requiresApproval: true, approval: approval("approved") });
+      expect(checkToolCall("send_invoice", payload, approved)).toMatchObject({ ok: false, code: "PHASE_ALREADY_PAID", phaseId: "ph2" });
+      expect(checkToolCall("send_invoice", payload, ctx(settled))).toMatchObject({ code: "PHASE_ALREADY_PAID" });
+      expect(checkToolCall("generate_invoice_qr_code", buildQrInput("INV2-PH2-0001"), ctx(settled))).toMatchObject({
+        code: "PHASE_ALREADY_PAID",
+      });
+    }
+  });
+  it("never sends an invoice whose amount is no longer the engine's", () => {
+    const stale = structuredClone(plan);
+    stale.phases[1]!.amountCents = 195_000;
+    expect(checkToolCall("send_invoice", payload, ctx(stale, { requiresApproval: true, approval: approval("approved") }))).toMatchObject({
+      ok: false,
+      code: "AMOUNT_MISMATCH",
+      details: { actualCents: 150_000, expectedCents: 195_000 },
+    });
+  });
 });
 
 describe("guard · record_payment_for_invoice", () => {
