@@ -7,6 +7,11 @@ const SUBMISSION_DIR = join(ROOT, "docs/submission");
 
 const docs = [
   "README.md",
+  "CONTRIBUTING.md",
+  "SECURITY.md",
+  "CODE_OF_CONDUCT.md",
+  "CHANGELOG.md",
+  "docs/ARCHITECTURE_DECISIONS.md",
   ...readdirSync(SUBMISSION_DIR)
     .filter((f) => f.endsWith(".md"))
     .map((f) => `docs/submission/${f}`),
@@ -69,6 +74,30 @@ describe("docs: no secrets", () => {
       expect(hits).toEqual([]);
     });
   }
+});
+
+describe("docs: open-source files", () => {
+  it("security and conduct reports go to a private channel, never a public issue", () => {
+    for (const f of ["SECURITY.md", "CODE_OF_CONDUCT.md"]) {
+      const text = read(f).replace(/\*\*/g, "");
+      expect(text, f).toMatch(/mailto:/);
+      expect(text, f).toMatch(/do not (open|report) .*public issue/i);
+    }
+  });
+
+  it("the contributing guide sets the review expectation and the project rules", () => {
+    const text = read("CONTRIBUTING.md");
+    expect(text).toContain("24–48 hours");
+    expect(text).toContain("## The project rules");
+    expect(text).toContain("## Definition of done");
+    expect(text).toMatch(/Conventional Commits/);
+  });
+
+  it("the changelog keeps an Unreleased section and tells agents to update it", () => {
+    const text = read("CHANGELOG.md");
+    expect(text).toContain("## [Unreleased]");
+    expect(text).toMatch(/AI coding agents too/);
+  });
 });
 
 describe("docs: submission requirements", () => {
