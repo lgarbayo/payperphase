@@ -207,7 +207,13 @@ The Gantt is the product, not decoration. [Bryntum Gantt](https://bryntum.com/) 
 **A parity test proves it.** [`tests/gantt/parity.test.ts`](tests/gantt/parity.test.ts) loads a real Bryntum `ProjectModel` in CI and checks, after Bryntum's own scheduling pass, that every date matches the engine's day for day, including after the demo's delay move.
 
 ## Built on Render
-The hosted demo runs on [Render](https://render.com) from the Blueprint in [`render.yaml`](render.yaml) ([how to deploy](docs/deploy.md)):
+The hosted demo runs on [Render](https://render.com) from the Blueprint in [`render.yaml`](render.yaml) ([how to deploy](docs/deploy.md)).
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/lgarbayo/payperphase)
+
+The button creates your own copy from the same Blueprint. Every secret is optional: leave them empty and the app starts in its labelled mock mode, so you can try the whole demo path without a PayPal or Anthropic account. Add sandbox keys later in the Render dashboard to switch each integration to live. The Blueprint uses the paid Starter plan with a disk; for a free trial copy, use [`render.free.yaml`](render.free.yaml) as described in [docs/deploy.md](docs/deploy.md).
+
+What the Blueprint sets up:
 - One Node 22 web service on the **Starter** plan in Frankfurt. It is always on, so it never sleeps while judges are clicking.
 - A **1 GB persistent disk** at `/var/data` holds the JSON store, so the demo state survives deploys. The store reseeds itself if the file is missing.
 - A **health check** at `/api/health` reports the commit and, for each integration, whether it is live or mocked. Webhooks from PayPal arrive at the Render URL.
